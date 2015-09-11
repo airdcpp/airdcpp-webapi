@@ -1,0 +1,193 @@
+/*
+* Copyright (C) 2011-2015 AirDC++ Project
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
+
+#ifndef DCPLUSPLUS_DCPP_WEBSERVER_H
+#define DCPLUSPLUS_DCPP_WEBSERVER_H
+
+#include "stdinc.h"
+
+#include "ApiRouter.h"
+#include "FileServer.h"
+#include "ApiRequest.h"
+
+#include "Timer.h"
+#include "WebSocket.h"
+#include "WebUserManager.h"
+
+#include <client/Singleton.h>
+
+#include <iostream>
+
+namespace webserver {
+	// alias some of the bind related functions as they are a bit long
+	using websocketpp::lib::placeholders::_1;
+	using websocketpp::lib::placeholders::_2;
+	using websocketpp::lib::bind;
+
+	// type of the ssl context pointer is long so alias it
+	typedef std::shared_ptr<boost::asio::ssl::context> context_ptr;
+
+	class WebServerManager : public dcpp::Singleton<WebServerManager> {
+	public:
+		void startup();
+		void shutdown();
+
+		// The shared on_message handler takes a template parameter so the function can
+		// resolve any endpoint dependent types like message_ptr or connection_ptr
+		template <typename EndpointType>
+		void on_message(EndpointType* aServer, websocketpp::connection_hdl hdl,
+			typename EndpointType::message_ptr msg, bool aIsSecure) {
+
+			auto code = websocketpp::http::status_code::bad_request;
+			WebSocketPtr socket = nullptr;
+			std::string  error;
+			json returnJson;
+
+			{
+				WLock l(cs);
+				auto s = sockets.find(hdl);
+				if (s != sockets.end()) {
+					socket = s->second;
+				} else {
+					//socket = make_shared<WebSocket>(aIsSecure, hdl, aServer);
+					//sockets.emplace(hdl, socket);
+					dcassert(0);
+					return;
+				}
+			}
+
+			try {
+				code = api.handleSocketRequest(msg->get_payload(), socket, returnJson, error, aIsSecure);
+			} catch (const std::exception& e) {
+				error = e.what();
+			}
+
+			socket->sendApiResponse(returnJson, error, code);
+		}
+
+		void on_init_socket(websocketpp::connection_hdl hdl) {
+			dcdebug("on_init_socket");
+		}
+
+		template <typename EndpointType>
+		void on_open_socket(EndpointType* aServer, websocketpp::connection_hdl hdl, bool aIsSecure) {
+			if (shuttingDown) {
+				try {
+					aServer->close(hdl, websocketpp::close::status::going_away, "Shutting down");
+				} catch (std::exception& e) {
+					dcdebug("Failed to disconnect socket: %s", e.what());
+				}
+
+				return;
+			}
+
+			dcdebug("on_open_socket");
+
+			WLock l(cs);
+			auto socket = make_shared<WebSocket>(aIsSecure, hdl, aServer);
+			sockets.emplace(hdl, socket);
+		}
+
+		void on_close_socket(websocketpp::connection_hdl hdl);
+
+		template <typename EndpointType>
+		void on_http(EndpointType* s, websocketpp::connection_hdl hdl, bool aIsSecure) {
+			// Blocking HTTP Handler
+			EndpointType::connection_ptr con = s->get_con_from_hdl(hdl);
+			SessionPtr session = nullptr;
+			auto token = con->get_request_header("Authorization");
+			if (token != websocketpp::http::empty_header) {
+				session = WebUserManager::getInstance()->getSession(token);
+			}
+
+			websocketpp::http::status_code::value status;
+
+			if (con->get_resource().length() >= 4 && con->get_resource().compare(0, 4, "/api") == 0) {
+				json output;
+				std::string  error;
+
+				status = api.handleRequest(
+					con->get_resource().substr(4),
+					session,
+					con->get_request_body(),
+					output,
+					error,
+					aIsSecure,
+					con->get_request().get_method()
+					);
+
+				if (status != websocketpp::http::status_code::ok) {
+					con->append_header("Content-Type", "text/plain");
+					con->set_body(error);
+				}
+				else {
+					con->append_header("Content-Type", "application/json");
+					con->set_body(output.dump());
+				}
+
+				con->set_status(status);
+			}
+			else {
+				std::string  contentType, output;
+				status = fileServer.handleRequest(con->get_resource(), session, con->get_request_body(), output, contentType);
+				con->append_header("Content-Type", contentType);
+				con->set_status(status);
+				con->set_body(output);
+			}
+		}
+
+		TimerPtr addTimer(Timer::CallBack&& aCallBack, time_t aIntervalMillis) noexcept;
+
+		WebServerManager();
+		~WebServerManager();
+
+		void start();
+		void stop();
+
+		void disconnectSockets(const std::string& aMessage) noexcept;
+
+		//void logout(const std::string& aSessionToken) noexcept;
+		bool hasSocket(const std::string& aSessionToken) noexcept;
+
+		void load() noexcept;
+		void save() const noexcept;
+	private:
+		mutable SharedMutex cs;
+
+		// set up an external io_service to run both endpoints on. This is not
+		// strictly necessary, but simplifies thread management a bit.
+		boost::asio::io_service ios;
+
+		void on_http(websocketpp::connection_hdl hdl);
+		context_ptr on_tls_init(websocketpp::connection_hdl hdl);
+
+		FileServer fileServer;
+
+		std::map<websocketpp::connection_hdl, WebSocketPtr, std::owner_less<websocketpp::connection_hdl>> sockets;
+
+		ApiRouter api;
+
+		server_plain endpoint_plain;
+		server_tls endpoint_tls;
+		boost::thread_group worker_threads;
+
+		bool shuttingDown = false;
+	};
+}
+
+#endif // DCPLUSPLUS_DCPP_WEBSERVER_H

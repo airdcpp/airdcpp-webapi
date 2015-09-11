@@ -1,0 +1,71 @@
+/*
+* Copyright (C) 2011-2015 AirDC++ Project
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
+
+#ifndef DCPLUSPLUS_DCPP_TIMER_H
+#define DCPLUSPLUS_DCPP_TIMER_H
+
+#include <web-server/stdinc.h>
+
+namespace webserver {
+	class Timer : boost::noncopyable {
+	public:
+		typedef std::function<void()> CallBack;
+		Timer(CallBack&& aCallBack, boost::asio::io_service& aIO, time_t aIntervalMillis) : cb(move(aCallBack)), 
+			interval(aIntervalMillis),
+			timer(aIO, interval) {
+
+		}
+
+		~Timer() {
+			stop();
+		}
+
+		void start() {
+			running = true;
+			timer.expires_from_now(interval);
+			timer.async_wait(bind(&Timer::tick, this, std::placeholders::_1));
+		}
+
+		void stop() {
+			timer.cancel();
+		}
+
+		bool isRunning() const noexcept {
+			return running;
+		}
+	private:
+		void tick(const boost::system::error_code& error) {
+			if (error == boost::asio::error::operation_aborted) {
+				running = false;
+				return;
+			}
+
+			cb();
+			start();
+		}
+
+		CallBack cb;
+		boost::asio::deadline_timer timer;
+		boost::posix_time::milliseconds interval;
+		bool running = false;
+	};
+
+	typedef shared_ptr<Timer> TimerPtr;
+}
+
+#endif
