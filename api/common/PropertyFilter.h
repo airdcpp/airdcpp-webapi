@@ -22,7 +22,7 @@
 #include <client/stdinc.h>
 #include <client/StringMatch.h>
 
-#include "Property.h"
+#include <api/common/Property.h>
 
 namespace webserver {
 

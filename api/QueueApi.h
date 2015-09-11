@@ -27,7 +27,7 @@
 #include <client/QueueManagerListener.h>
 
 #include <api/ApiModule.h>
-#include <api/ListView.h>
+#include <api/common/ListViewController.h>
 
 namespace webserver {
 	class QueueApi : public ApiModule, private QueueManagerListener, private DownloadManagerListener {
@@ -134,7 +134,7 @@ namespace webserver {
 
 		PropertyItemHandler<BundlePtr> bundlePropertyHandler;
 
-		typedef ListView<BundlePtr, PROP_LAST> BundleListView;
+		typedef ListViewController<BundlePtr, PROP_LAST> BundleListView;
 		BundleListView bundleView;
 	};
 }

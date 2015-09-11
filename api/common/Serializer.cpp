@@ -18,8 +18,8 @@
 
 #include <web-server/stdinc.h>
 
-#include <api/Serializer.h>
-#include <api/Format.h>
+#include <api/common/Serializer.h>
+#include <api/common/Format.h>
 
 //#include <client/AdcHub.h>
 #include <client/AirUtil.h>

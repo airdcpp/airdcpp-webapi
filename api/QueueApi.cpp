@@ -19,9 +19,10 @@
 #include <web-server/stdinc.h>
 
 #include <api/QueueApi.h>
-#include <api/Serializer.h>
-#include <api/Deserializer.h>
 #include <api/QueueUtils.h>
+
+#include <api/common/Serializer.h>
+#include <api/common/Deserializer.h>
 
 #include <client/QueueManager.h>
 #include <client/DownloadManager.h>

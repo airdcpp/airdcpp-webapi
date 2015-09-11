@@ -17,9 +17,9 @@
 */
 
 #include <api/SearchUtils.h>
-
-#include <api/Format.h>
 #include <api/SearchApi.h>
+
+#include <api/common/Format.h>
 
 //#include <boost/range/algorithm/copy.hpp>
 

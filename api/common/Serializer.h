@@ -21,7 +21,7 @@
 
 #include <web-server/stdinc.h>
 
-#include <api/Property.h>
+#include <api/common/Property.h>
 
 #include <client/typedefs.h>
 #include <client/QueueItemBase.h>

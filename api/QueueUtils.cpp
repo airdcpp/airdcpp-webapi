@@ -21,7 +21,7 @@
 #include <api/QueueUtils.h>
 
 #include <api/QueueApi.h>
-#include <api/Format.h>
+#include <api/common/Format.h>
 
 #include <client/AirUtil.h>
 #include <client/Bundle.h>
@@ -73,40 +73,7 @@ namespace webserver {
 		}
 	}
 
-	/*json QueueUtils::serializeBundle(const BundlePtr& aBundle) noexcept {
-		json j;
-		j["token"] = aBundle->getToken();
-		j["is_file"] = aBundle->isFileBundle();
-		j["target"] = aBundle->getTarget();
-		j["size"] = aBundle->getSize();
-		j["downloaded_bytes"] = aBundle->getDownloadedBytes();
-		j["time_added"] = aBundle->getTimeAdded();
-		j["time_finished"] = aBundle->getTimeFinished();
-		j["status"]["id"] = aBundle->getStatus();
-		j["status"]["str"] = formatBundleStatus(aBundle);
-		j["priority"] = aBundle->getPriority();
-
-		{
-			RLock l(QueueManager::getInstance()->getCS());
-			j["content"]["files"] = aBundle->getQueueItems().size() + aBundle->getFinishedFiles().size();
-			j["content"]["folders"] = aBundle->getDirectories().size();
-
-			int online = 0;
-			decltype(auto) sources = aBundle->getSources();
-			for (const auto& s : sources) {
-				if (s.getUser().user->isOnline())
-					online++;
-			}
-
-			j["sources"]["online"] = online;
-			j["sources"]["total"] = aBundle->getSources().size();
-		}
-
-		j["speed"] = aBundle->getSpeed();
-		return j;
-	}
-
-	json QueueUtils::serializeQueueItem(const QueueItemPtr& aQI) noexcept {
+	/*json QueueUtils::serializeQueueItem(const QueueItemPtr& aQI) noexcept {
 		json j;
 		return{
 		{ "user", aQI-> },

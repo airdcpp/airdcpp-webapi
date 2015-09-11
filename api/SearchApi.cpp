@@ -145,7 +145,6 @@ namespace webserver {
 			// exludes
 			RLock l(cs);
 			if (curSearch->isExcluded(aResult->getPath())) {
-				//callAsync([this] { onResultFiltered(); });
 				return;
 			}
 

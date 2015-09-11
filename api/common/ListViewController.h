@@ -26,24 +26,24 @@
 #include <client/TaskQueue.h>
 
 #include <api/ApiModule.h>
-#include <api/PropertyFilter.h>
-#include <api/Serializer.h>
+#include <api/common/PropertyFilter.h>
+#include <api/common/Serializer.h>
 
 namespace webserver {
 
 	template<class T, int PropertyCount>
-	class ListView {
+	class ListViewController {
 	public:
 		typedef typename PropertyItemHandler<T>::ItemList ItemList;
 
-		ListView(const string& aViewName, ApiModule* aModule, const PropertyItemHandler<T>& aItemHandler) :
+		ListViewController(const string& aViewName, ApiModule* aModule, const PropertyItemHandler<T>& aItemHandler) :
 			module(aModule), viewName(aViewName), itemHandler(aItemHandler), filter(aItemHandler.properties),
 			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 200))
 		{
 
 		}
 
-		~ListView() {
+		~ListViewController() {
 			timer->stop();
 		}
 
@@ -52,13 +52,13 @@ namespace webserver {
 		}
 
 		void getApiHandlers(ApiModule::RequestHandlerMap& requestHandlers, ApiModule::SubscriptionMap& subscriptions) {
-			METHOD_HANDLER(viewName, ApiRequest::METHOD_PUT, (EXACT_PARAM("filter")), true, ListView::handlePutFilter);
-			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (EXACT_PARAM("filter")), false, ListView::handleDeleteFilter);
+			METHOD_HANDLER(viewName, ApiRequest::METHOD_PUT, (EXACT_PARAM("filter")), true, ListViewController::handlePutFilter);
+			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (EXACT_PARAM("filter")), false, ListViewController::handleDeleteFilter);
 
-			METHOD_HANDLER(viewName, ApiRequest::METHOD_POST, (), true, ListView::handlePostSettings);
-			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (), false, ListView::handleReset);
+			METHOD_HANDLER(viewName, ApiRequest::METHOD_POST, (), true, ListViewController::handlePostSettings);
+			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (), false, ListViewController::handleReset);
 
-			METHOD_HANDLER(viewName, ApiRequest::METHOD_GET, (EXACT_PARAM("items"), NUM_PARAM, NUM_PARAM), false, ListView::handleGetItems);
+			METHOD_HANDLER(viewName, ApiRequest::METHOD_GET, (EXACT_PARAM("items"), NUM_PARAM, NUM_PARAM), false, ListViewController::handleGetItems);
 		}
 
 		void onSocketRemoved() {
@@ -337,11 +337,9 @@ namespace webserver {
 		}
 
 		struct ItemTask : public Task {
-			//ItemTask(const T& aItem, const PropertyIdSet& aUpdatedProperties) : ItemTask(aItem), updateProperties(aUpdatedProperties) { }
 			ItemTask(const T& aItem) : item(aItem) { }
 			~ItemTask() { }
 
-			//const PropertyIdSet updateProperties;
 			const T item;
 		};
 
@@ -352,17 +350,14 @@ namespace webserver {
 		};
 
 		void addListItem(const T& aItem) {
-			//tasks.add(0, unique_ptr<AsyncTask>(new AsyncTask([=] { handleAddItem(aItem); })))
 			tasks.add(ADD_ITEM, unique_ptr<Task>(new ItemTask(aItem)));
 		}
 
 		void updateListItem(const T& aItem, const PropertyIdSet& aUpdatedProperties) {
-			//tasks.add(0, unique_ptr<AsyncTask>(new AsyncTask([=] { handleUpdateItem(aItem, aUpdatedProperties); })));
 			tasks.add(UPDATE_ITEM, unique_ptr<Task>(new ItemUpdateTask(aItem, aUpdatedProperties)));
 		}
 
 		void removeListItem(const T& aItem) {
-			//tasks.add(0, unique_ptr<AsyncTask>(new AsyncTask([=] { handleRemoveItem(aItem); })));
 			tasks.add(REMOVE_ITEM, unique_ptr<Task>(new ItemTask(aItem)));
 		}
 
@@ -384,7 +379,7 @@ namespace webserver {
 						return;
 				}
 
-				std::sort(allItems.begin(), allItems.end(), std::bind(&ListView::itemSort, this, std::placeholders::_1, std::placeholders::_2));
+				std::sort(allItems.begin(), allItems.end(), std::bind(&ListViewController::itemSort, this, std::placeholders::_1, std::placeholders::_2));
 			}
 
 			sortFilterChanged = false;
@@ -511,109 +506,6 @@ namespace webserver {
 			}
 		}
 
-		/*void addListItem(const T& aItem, json& json_) noexcept {
-			auto iter = std::lower_bound(visibleItems.begin(), visibleItems.end(), aItem, sortF);
-			visibleItems.insert(iter, aItem);
-
-			auto pos = static_cast<int>(std::distance(visibleItems.begin(), iter));
-
-			if (pos < rangeStart) {
-				// Update the range range positions
-				rangeStart++;
-				rangeEnd++;
-				appendRange(json_);
-			} else if (pos >= rangeStart && pos <= rangeEnd) {
-				// Update the new visible items
-				appendPositions(pos, json_);
-			} else {
-				// Update the new row count
-			}
-
-			appendRowCount(json_);
-		}
-
-		void removeListItem(typename ItemList::iterator iter, json& json_) noexcept {
-			auto item = *iter;
-			auto pos = static_cast<int>(std::distance(visibleItems.begin(), iter));
-
-			visibleItems.erase(iter);
-
-			if (pos < rangeStart) {
-				// Update the range range positions
-				rangeStart--;
-				rangeEnd--;
-				appendRange(json_);
-			} else if (pos >= rangeStart && pos <= rangeEnd) {
-				// Update the new visible items
-				appendRemovedItem(item, json_, pos);
-			} else {
-				// Update the new row count
-			}
-
-			appendRowCount(json_);
-		}
-
-		void onItemUpdated(const T& aItem, const PropertyIdSet& aUpdatedProperties, json& json_) {
-			auto oldItemPos = findItem(aItem);
-
-			auto prep = filter.prepare();
-			if (!matchesFilter(aItem, prep)) {
-				if (oldItemPos != visibleItems.end()) {
-					removeListItem(oldItemPos, json_);
-				}
-
-				return;
-			} else if (oldItemPos == visibleItems.end()) {
-				addListItem(aItem, json_);
-				return;
-			}
-
-			auto oldPos = static_cast<int>(std::distance(visibleItems.begin(), oldItemPos));
-			int newPos = -1;
-
-			WLock l(cs);
-			if (aUpdatedProperties.find(sortProperty) != aUpdatedProperties.end()) {
-				// Move to new position
-				visibleItems.erase(oldItemPos);
-				auto iter = visibleItems.insert(std::lower_bound(visibleItems.begin(), visibleItems.end(), aItem, sortF), aItem);
-
-				newPos = static_cast<int>(std::distance(visibleItems.begin(), iter));
-			} else {
-				newPos = oldPos;
-			}
-
-			if (inRange(newPos) && !inRange(oldPos)) {
-				// Update the properties
-				appendNewItem(aItem, json_, newPos);
-			} else if (!inRange(newPos) && inRange(oldPos)) {
-				appendRemovedItem(aItem, json_, oldPos);
-			} else if (inRange(newPos) && inRange(oldPos)) {
-				// Update...
-				if (newPos != oldPos) {
-					//appendItemPosition(aItem, json_, newPos);
-					appendPositions(newPos, json_);
-				}
-
-				appendItemProperties(aItem, json_, aUpdatedProperties);
-			}
-		}
-
-		void appendPositions(int startPos, json& json_) {
-			auto positionsToUpdate = getVisibleCount() - (startPos - rangeStart);
-
-			auto startIter = visibleItems.begin();
-			std::advance(startIter, startPos);
-
-			auto endIter = startIter;
-			std::advance(endIter, positionsToUpdate);
-
-			auto curPos = startPos;
-
-			for (auto i = startIter; i < endIter; i++) {
-				appendItemPosition(*i, json_, curPos++);
-			}
-		}*/
-
 		bool matchesFilter(const T& aItem, const PropertyFilter::Preparation& prep) {
 			return filter.match(prep,
 				[&](size_t aProperty) { return itemHandler.numberF(aItem, aProperty); },
@@ -672,7 +564,11 @@ namespace webserver {
 		enum Tasks {
 			ADD_ITEM, UPDATE_ITEM, REMOVE_ITEM
 		};
+
+		// TODO: replace something better that would allow merging items
+		// Also allow determining if the sort property has been updated for any item to avoid unnecessary sorts
 		TaskQueue tasks;
+
 		TimerPtr timer;
 	};
 }

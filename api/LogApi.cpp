@@ -19,7 +19,8 @@
 #include <web-server/stdinc.h>
 
 #include <api/LogApi.h>
-#include <api/Serializer.h>
+
+#include <api/common/Serializer.h>
 
 #include <client/LogManager.h>
 

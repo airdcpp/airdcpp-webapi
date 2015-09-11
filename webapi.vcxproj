@@ -169,24 +169,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="api\Deserializer.h" />
-    <ClInclude Include="api\DirectoryListingApi.h" />
-    <ClInclude Include="api\FavoritesApi.h" />
+    <ClInclude Include="api\common\Deserializer.h" />
+    <ClInclude Include="api\common\Format.h" />
+    <ClInclude Include="api\common\ListViewController.h" />
+    <ClInclude Include="api\common\Property.h" />
+    <ClInclude Include="api\common\PropertyFilter.h" />
+    <ClInclude Include="api\common\Serializer.h" />
     <ClInclude Include="api\ApiModule.h" />
-    <ClInclude Include="api\Format.h" />
-    <ClInclude Include="api\ListView.h" />
     <ClInclude Include="api\LogApi.h" />
-    <ClInclude Include="api\MainApi.h" />
-    <ClInclude Include="api\PrivateMessageApi.h" />
-    <ClInclude Include="api\Property.h" />
-    <ClInclude Include="api\PropertyFilter.h" />
     <ClInclude Include="api\QueueApi.h" />
     <ClInclude Include="api\QueueUtils.h" />
     <ClInclude Include="api\SearchApi.h" />
     <ClInclude Include="api\SearchUtils.h" />
-    <ClInclude Include="api\Serializer.h" />
     <ClInclude Include="api\SessionApi.h" />
-    <ClInclude Include="api\ShareApi.h" />
+    <ClInclude Include="api\TransferApi.h" />
     <ClInclude Include="web-server\ApiRequest.h" />
     <ClInclude Include="web-server\ApiRouter.h" />
     <ClInclude Include="web-server\FileServer.h" />
@@ -201,17 +197,17 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api\ApiModule.cpp" />
-    <ClCompile Include="api\Deserializer.cpp" />
-    <ClCompile Include="api\Format.cpp" />
+    <ClCompile Include="api\common\Deserializer.cpp" />
+    <ClCompile Include="api\common\Format.cpp" />
+    <ClCompile Include="api\common\PropertyFilter.cpp" />
+    <ClCompile Include="api\common\Serializer.cpp" />
     <ClCompile Include="api\LogApi.cpp" />
-    <ClCompile Include="api\MainApi.cpp" />
-    <ClCompile Include="api\PropertyFilter.cpp" />
     <ClCompile Include="api\QueueApi.cpp" />
     <ClCompile Include="api\QueueUtils.cpp" />
     <ClCompile Include="api\SearchApi.cpp" />
     <ClCompile Include="api\SearchUtils.cpp" />
-    <ClCompile Include="api\Serializer.cpp" />
     <ClCompile Include="api\SessionApi.cpp" />
+    <ClCompile Include="api\TransferApi.cpp" />
     <ClCompile Include="web-server\ApiRequest.cpp" />
     <ClCompile Include="web-server\ApiRouter.cpp" />
     <ClCompile Include="web-server\FileServer.cpp" />

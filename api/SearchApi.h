@@ -22,7 +22,7 @@
 #include <web-server/stdinc.h>
 
 #include <api/ApiModule.h>
-#include <api/ListView.h>
+#include <api/common/ListViewController.h>
 
 #include <client/typedefs.h>
 #include <client/AirUtil.h>
@@ -138,7 +138,7 @@ namespace webserver {
 
 		PropertyItemHandler<SearchInfoPtr> itemHandler;
 
-		typedef ListView<SearchInfoPtr, PROP_LAST> SearchView;
+		typedef ListViewController<SearchInfoPtr, PROP_LAST> SearchView;
 		SearchView searchView;
 
 		SearchInfo::List results;

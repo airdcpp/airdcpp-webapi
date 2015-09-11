@@ -21,9 +21,9 @@
 #include <web-server/ApiRequest.h>
 
 #include <api/LogApi.h>
-#include <api/MainApi.h>
 #include <api/QueueApi.h>
 #include <api/SearchApi.h>
+#include <api/TransferApi.h>
 
 #include <client/TimerManager.h>
 
@@ -34,13 +34,12 @@ namespace webserver {
 		user(aUser), token(aToken), started(GET_TICK()), lastActivity(lastActivity), secure(aIsSecure) {
 
 		ADD_MODULE("log", LogApi);
-		ADD_MODULE("main", MainApi);
 		ADD_MODULE("queue", QueueApi);
 		ADD_MODULE("search", SearchApi);
+		ADD_MODULE("transfers", TransferApi);
 	}
 
 	Session::~Session() {
-		//apiHandlers.clear();
 	}
 
 	ApiModule* Session::getModule(const string& aModule) {
