@@ -103,6 +103,13 @@ namespace webserver {
 			sockets.emplace(hdl, socket);
 		}
 
+		template <typename EndpointType>
+		void on_failed(EndpointType* aServer, websocketpp::connection_hdl hdl) {
+			auto con = aServer->get_con_from_hdl(hdl);
+			auto m_error_reason = con->get_ec().message();
+			dcdebug("Connection failed: %s\n", m_error_reason.c_str());
+		}
+
 		void on_close_socket(websocketpp::connection_hdl hdl);
 
 		template <typename EndpointType>

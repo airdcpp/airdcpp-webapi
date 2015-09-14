@@ -27,6 +27,8 @@
 #define CONFIG_NAME "WebServer.xml"
 #define CONFIG_DIR Util::PATH_USER_CONFIG
 
+#define HANDSHAKE_TIMEOUT 10000
+
 namespace webserver {
 	void WebServerManager::startup() {
 		WebUserManager::newInstance();
@@ -58,6 +60,12 @@ namespace webserver {
 		endpoint_plain.set_close_handler(std::bind(&WebServerManager::on_close_socket, this, _1));
 		endpoint_plain.set_open_handler(std::bind(&WebServerManager::on_open_socket<server_plain>, this, &endpoint_plain, _1, false));
 
+
+		// Failures (plain)
+		endpoint_plain.set_interrupt_handler([](websocketpp::connection_hdl hdl) { dcdebug("Connection interrupted\n"); });
+		endpoint_plain.set_fail_handler(std::bind(&WebServerManager::on_failed<server_plain>, this, &endpoint_plain, _1));
+		endpoint_plain.set_open_handshake_timeout(HANDSHAKE_TIMEOUT);
+
 		// set up tls endpoint
 		endpoint_tls.init_asio(&ios);
 		endpoint_tls.set_message_handler(
@@ -65,10 +73,11 @@ namespace webserver {
 
 		endpoint_tls.set_close_handler(std::bind(&WebServerManager::on_close_socket, this, _1));
 		endpoint_tls.set_open_handler(std::bind(&WebServerManager::on_open_socket<server_tls>, this, &endpoint_tls, _1, true));
-
-		//server_tls::connection_ptr p;
-
 		endpoint_tls.set_http_handler(std::bind(&WebServerManager::on_http<server_tls>, this, &endpoint_tls, _1, true));
+
+		// Failures (TLS)
+		endpoint_tls.set_fail_handler(std::bind(&WebServerManager::on_failed<server_tls>, this, &endpoint_tls, _1));
+		endpoint_tls.set_open_handshake_timeout(HANDSHAKE_TIMEOUT);
 
 		// TLS endpoint has an extra handler for the tls init
 		endpoint_tls.set_tls_init_handler(std::bind(&WebServerManager::on_tls_init, this, _1));

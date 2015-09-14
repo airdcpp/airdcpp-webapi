@@ -52,7 +52,7 @@ namespace webserver {
 		}
 
 		void getApiHandlers(ApiModule::RequestHandlerMap& requestHandlers, ApiModule::SubscriptionMap& subscriptions) {
-			METHOD_HANDLER(viewName, ApiRequest::METHOD_PUT, (EXACT_PARAM("filter")), true, ListViewController::handlePutFilter);
+			METHOD_HANDLER(viewName, ApiRequest::METHOD_POST, (EXACT_PARAM("filter")), true, ListViewController::handlePostFilter);
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (EXACT_PARAM("filter")), false, ListViewController::handleDeleteFilter);
 
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_POST, (), true, ListViewController::handlePostSettings);
@@ -65,7 +65,7 @@ namespace webserver {
 			reset();
 		}
 
-		api_return handlePutFilter(ApiRequest& aRequest) throw(exception) {
+		api_return handlePostFilter(ApiRequest& aRequest) throw(exception) {
 			decltype(auto) j = aRequest.getRequestBody();
 
 			std::string pattern = j["pattern"];

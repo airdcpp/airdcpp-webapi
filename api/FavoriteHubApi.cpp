@@ -45,6 +45,10 @@ namespace webserver {
 		FavoriteManager::getInstance()->removeListener(this);
 	}
 
+	void FavoriteHubApi::onSocketRemoved() noexcept {
+		view.onSocketRemoved();
+	}
+
 	string FavoriteHubApi::updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) noexcept {
 		string name, server;
 		ShareProfilePtr shareProfile = nullptr;
