@@ -62,8 +62,10 @@ namespace webserver {
 		}
 
 		const std::string& getStringParam(int pos) const noexcept;
+
+		// Use different naming to avoid accidentally using wrong conversion...
 		uint32_t getTokenParam(int pos) const noexcept;
-		int getIntParam(int pos) const noexcept;
+		int getRangeParam(int pos) const noexcept;
 
 		//GETSET(std::string , response, Response);
 		GETSET(SessionPtr, session, Session);

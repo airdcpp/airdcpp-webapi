@@ -4693,6 +4693,8 @@ class basic_json
                         // print character c as \uxxxx
                         sprintf(&result[pos + 1], "u%04x", int(c));
                         pos += 6;
+                        // overwrite trailing null character
+                        result[pos] = '\\';
                     }
                     else
                     {
@@ -5703,7 +5705,7 @@ class basic_json
         /// the container to iterate
         basic_json& container;
         /// the type of the iterator to use while iteration
-        using json_iterator = decltype(container.begin());
+        using json_iterator = decltype(std::begin(container));
 
         /// internal iterator wrapper
         class iterator_wrapper_internal
@@ -5713,10 +5715,41 @@ class basic_json
             json_iterator anchor;
             /// an index for arrays
             size_t array_index = 0;
-            size_t container_size = 0;
 
-            /// calculate a key for the iterator
-            std::string calculate_key()
+          public:
+            /// construct wrapper given an iterator
+            iterator_wrapper_internal(json_iterator i) : anchor(i)
+            {}
+
+            /// dereference operator (needed for range-based for)
+            iterator_wrapper_internal& operator*()
+            {
+                return *this;
+            }
+
+            /// increment operator (needed for range-based for)
+            iterator_wrapper_internal& operator++()
+            {
+                ++anchor;
+                ++array_index;
+
+                return *this;
+            }
+
+            /// inequality operator (needed for range-based for)
+            bool operator!= (const iterator_wrapper_internal& o)
+            {
+                return anchor != o.anchor;
+            }
+
+            /// stream operator
+            friend std::ostream& operator<<(std::ostream& o, const iterator_wrapper_internal& w)
+            {
+                return o << w.value();
+            }
+
+            /// return key of the iterator
+            typename basic_json::string_t key() const
             {
                 switch (anchor.m_object->type())
                 {
@@ -5740,62 +5773,11 @@ class basic_json
                 }
             }
 
-          public:
-            /// construct wrapper given an iterator
-            iterator_wrapper_internal(json_iterator i, size_t s)
-                : anchor(i), container_size(s), first(calculate_key()), second(*i)
-            {}
-
-            /// dereference operator (needed for range-based for)
-            iterator_wrapper_internal operator*()
-            {
-                return *this;
-            }
-
-            /// increment operator (needed for range-based for)
-            iterator_wrapper_internal& operator++()
-            {
-                ++anchor;
-                ++array_index;
-
-                first = calculate_key();
-
-                if (array_index < container_size)
-                {
-                    second = *anchor;
-                }
-
-                return *this;
-            }
-
-            /// inequality operator (needed for range-based for)
-            bool operator!= (const iterator_wrapper_internal& o)
-            {
-                return anchor != o.anchor;
-            }
-
-            /// stream operator
-            friend std::ostream& operator<<(std::ostream& o, const iterator_wrapper_internal& w)
-            {
-                return o << w.value();
-            }
-
-            /// return key of the iterator
-            typename basic_json::string_t key() const
-            {
-                return first;
-            }
-
             /// return value of the iterator
-            basic_json value() const
+            typename json_iterator::reference value() const
             {
-                return second;
+                return anchor.value();
             }
-
-            /// public member to simulate std::map::iterator access
-            typename basic_json::string_t first;
-            /// public member to simulate std::map::iterator access
-            basic_json& second;
         };
 
       public:
@@ -5807,13 +5789,13 @@ class basic_json
         /// return iterator begin (needed for range-based for)
         iterator_wrapper_internal begin()
         {
-            return iterator_wrapper_internal(container.begin(), container.size());
+            return iterator_wrapper_internal(container.begin());
         }
 
         /// return iterator end (needed for range-based for)
         iterator_wrapper_internal end()
         {
-            return iterator_wrapper_internal(container.end(), container.size());
+            return iterator_wrapper_internal(container.end());
         }
     };
 
@@ -6932,9 +6914,6 @@ basic_json_parser_59:
         @return the result of the number conversion or NAN if the conversion
         read past the current token. The latter case needs to be treated by the
         caller function.
-
-        @note This function is locale-independent, see
-        http://stackoverflow.com/a/1333899/266378
 
         @throw std::range_error if passed value is out of range
         */

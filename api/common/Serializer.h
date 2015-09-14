@@ -113,6 +113,10 @@ namespace webserver {
 					j[prop.name]["str"] = aHandler.stringF(aItem, id);
 					break;
 				}
+				case SERIALIZE_BOOL: {
+					j[prop.name] = aHandler.numberF(aItem, id) == 0 ? false : true;
+					break;
+				}
 				case SERIALIZE_CUSTOM: {
 					j[prop.name] = aHandler.jsonF(aItem, id);
 					break;

@@ -60,8 +60,8 @@ namespace webserver {
 			return websocketpp::http::status_code::bad_request;
 		}
 
-		// Special case because we may not have the session yet
-		if (apiRequest.getApiModule() == "session" || !authenticated) {
+		// Special case because we may not have a session yet
+		if (apiRequest.getApiModule() == "session") {
 			return handleSessionRequest(apiRequest, aIsSecure, aSocket);
 		}
 

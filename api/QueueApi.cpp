@@ -57,6 +57,8 @@ namespace webserver {
 		METHOD_HANDLER("bundle", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, QueueApi::handleRemoveBundle);
 		METHOD_HANDLER("bundle", ApiRequest::METHOD_PUT, (TOKEN_PARAM), true, QueueApi::handleUpdateBundle);
 
+		METHOD_HANDLER("bundle", ApiRequest::METHOD_POST, (TOKEN_PARAM, EXACT_PARAM("search")), false, QueueApi::handleSearchBundle);
+
 		METHOD_HANDLER("temp_item", ApiRequest::METHOD_POST, (), true, QueueApi::handleAddTempItem);
 		METHOD_HANDLER("temp_item", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, QueueApi::handleGetFile);
 		METHOD_HANDLER("temp_item", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, QueueApi::handleRemoveFile);
@@ -77,8 +79,8 @@ namespace webserver {
 
 	// BUNDLES
 	api_return QueueApi::handleGetBundles(ApiRequest& aRequest)  throw(exception) {
-		int start = aRequest.getIntParam(0);
-		int count = aRequest.getIntParam(1);
+		int start = aRequest.getRangeParam(0);
+		int count = aRequest.getRangeParam(1);
 
 		auto j = Serializer::serializeItemList(start, count, bundlePropertyHandler);
 
@@ -87,11 +89,21 @@ namespace webserver {
 	}
 
 	api_return QueueApi::handleGetBundle(ApiRequest& aRequest) throw(exception) {
-		auto b = QueueManager::getInstance()->findBundle(aRequest.getIntParam(0));
+		auto b = QueueManager::getInstance()->findBundle(aRequest.getRangeParam(0));
 		if (b) {
 			auto j = Serializer::serializeItem(b, bundlePropertyHandler);
 			aRequest.setResponseBody(j);
 			return websocketpp::http::status_code::ok;
+		}
+
+		return websocketpp::http::status_code::not_found;
+	}
+
+	api_return QueueApi::handleSearchBundle(ApiRequest& aRequest) throw(exception) {
+		auto b = QueueManager::getInstance()->findBundle(aRequest.getTokenParam(0));
+		if (b) {
+			QueueManager::getInstance()->searchBundleAlternates(b, true);
+			return  websocketpp::http::status_code::ok;
 		}
 
 		return websocketpp::http::status_code::not_found;

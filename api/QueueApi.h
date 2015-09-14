@@ -106,6 +106,7 @@ namespace webserver {
 		api_return handleAddFileBundle(ApiRequest& aRequest) throw(exception);
 
 		api_return handleUpdateBundle(ApiRequest& aRequest) throw(exception);
+		api_return handleSearchBundle(ApiRequest& aRequest) throw(exception);
 		//api_return handleUpdateTempItem(ApiRequest& aRequest) throw(exception);
 		//api_return handleUpdateFileList(ApiRequest& aRequest) throw(exception);
 

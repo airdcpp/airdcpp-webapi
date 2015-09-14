@@ -20,6 +20,8 @@
 #include <web-server/Session.h>
 #include <web-server/ApiRequest.h>
 
+#include <api/FavoriteHubApi.h>
+#include <api/HubApi.h>
 #include <api/LogApi.h>
 #include <api/QueueApi.h>
 #include <api/SearchApi.h>
@@ -33,6 +35,8 @@ namespace webserver {
 	Session::Session(WebUserPtr& aUser, const string& aToken, bool aIsSecure) : 
 		user(aUser), token(aToken), started(GET_TICK()), lastActivity(lastActivity), secure(aIsSecure) {
 
+		ADD_MODULE("favorite_hubs", FavoriteHubApi);
+		ADD_MODULE("hubs", HubApi);
 		ADD_MODULE("log", LogApi);
 		ADD_MODULE("queue", QueueApi);
 		ADD_MODULE("search", SearchApi);

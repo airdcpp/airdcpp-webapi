@@ -16,23 +16,24 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_SEARCHUTILS_H
-#define DCPLUSPLUS_DCPP_SEARCHUTILS_H
+#ifndef DCPLUSPLUS_DCPP_FAVORITEHUBUTILS_H
+#define DCPLUSPLUS_DCPP_FAVORITEHUBUTILS_H
 
-#include <api/SearchApi.h>
+#include <api/FavoriteHubApi.h>
 
 #include <web-server/stdinc.h>
 
 #include <client/typedefs.h>
 
 namespace webserver {
-	class SearchUtils {
+	class FavoriteHubUtils {
 	public:
-		static json serializeResult(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept;
+		static FavoriteHubEntryList getEntryList() noexcept;
+		static json serializeHub(const FavoriteHubEntryPtr& aEntry, int aPropertyName) noexcept;
 
-		static int compareResults(const SearchApi::SearchInfoPtr& a, const SearchApi::SearchInfoPtr& b, int aPropertyName) noexcept;
-		static std::string  getStringInfo(const SearchApi::SearchInfoPtr& a, int aPropertyName) noexcept;
-		static double getNumericInfo(const SearchApi::SearchInfoPtr& a, int aPropertyName) noexcept;
+		static int compareEntries(const FavoriteHubEntryPtr& a, const FavoriteHubEntryPtr& b, int aPropertyName) noexcept;
+		static std::string  getStringInfo(const FavoriteHubEntryPtr& a, int aPropertyName) noexcept;
+		static double getNumericInfo(const FavoriteHubEntryPtr& a, int aPropertyName) noexcept;
 	};
 }
 

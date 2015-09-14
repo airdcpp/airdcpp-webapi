@@ -100,12 +100,18 @@ namespace webserver {
 
 		void parseProperties(const json& j) {
 			if (j.find("range_start") != j.end() && j.find("range_end") != j.end()) {
-				auto start = j["range_start"];
-				auto end = j["range_end"];
+				int start = j["range_start"];
+				int end = j["range_end"];
 
 				if (start > end) {
 					throw std::exception("Range start is after range end");
 				}
+
+				if (start < 0) {
+					throw std::exception("Negative range start not allowed");
+				}
+
+				// End position will be validated when sending items (it's allowed to exceed the item count)
 
 				setRange(start, end);
 			}
@@ -298,8 +304,8 @@ namespace webserver {
 		// RANGE END
 
 		api_return handleGetItems(ApiRequest& aRequest) {
-			auto start = aRequest.getIntParam(1);
-			auto end = aRequest.getIntParam(2);
+			auto start = aRequest.getRangeParam(1);
+			auto end = aRequest.getRangeParam(2);
 			decltype(allItems) allItemsCopy;
 
 			{

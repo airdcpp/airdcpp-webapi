@@ -108,6 +108,15 @@
     <ClInclude Include="api\TransferApi.h">
       <Filter>Header Files\api</Filter>
     </ClInclude>
+    <ClInclude Include="api\FavoriteHubApi.h">
+      <Filter>Header Files\api</Filter>
+    </ClInclude>
+    <ClInclude Include="api\FavoriteHubUtils.h">
+      <Filter>Header Files\api</Filter>
+    </ClInclude>
+    <ClInclude Include="api\HubApi.h">
+      <Filter>Header Files\api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api\QueueApi.cpp">
@@ -168,6 +177,15 @@
       <Filter>Source Files\api\common</Filter>
     </ClCompile>
     <ClCompile Include="api\TransferApi.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="api\FavoriteHubApi.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="api\FavoriteHubUtils.cpp">
+      <Filter>Source Files\api</Filter>
+    </ClCompile>
+    <ClCompile Include="api\HubApi.cpp">
       <Filter>Source Files\api</Filter>
     </ClCompile>
   </ItemGroup>

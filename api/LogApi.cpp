@@ -48,7 +48,7 @@ namespace webserver {
 
 	api_return LogApi::handleGetLog(ApiRequest& aRequest)  throw(exception) {
 		auto j = Serializer::serializeFromEnd(
-			aRequest.getIntParam(0),
+			aRequest.getRangeParam(0),
 			LogManager::getInstance()->getLastLogs(),
 			serializeMessage);
 

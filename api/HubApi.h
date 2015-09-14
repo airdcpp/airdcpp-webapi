@@ -16,23 +16,28 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_SEARCHUTILS_H
-#define DCPLUSPLUS_DCPP_SEARCHUTILS_H
-
-#include <api/SearchApi.h>
+#ifndef DCPLUSPLUS_DCPP_HUBAPI_H
+#define DCPLUSPLUS_DCPP_HUBAPI_H
 
 #include <web-server/stdinc.h>
 
+#include <api/ApiModule.h>
+
 #include <client/typedefs.h>
+#include <client/Client.h>
+#include <client/ClientManagerListener.h>
 
 namespace webserver {
-	class SearchUtils {
+	class HubApi : public ApiModule, private ClientManagerListener {
 	public:
-		static json serializeResult(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept;
+		HubApi();
+		~HubApi();
 
-		static int compareResults(const SearchApi::SearchInfoPtr& a, const SearchApi::SearchInfoPtr& b, int aPropertyName) noexcept;
-		static std::string  getStringInfo(const SearchApi::SearchInfoPtr& a, int aPropertyName) noexcept;
-		static double getNumericInfo(const SearchApi::SearchInfoPtr& a, int aPropertyName) noexcept;
+		int getVersion() const noexcept {
+			return 0;
+		}
+	private:
+		api_return handleConnect(ApiRequest& aRequest) throw(exception);
 	};
 }
 

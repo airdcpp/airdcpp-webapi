@@ -53,10 +53,6 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-    <Import Project="..\packages\boost.1.58.0.0\build\native\boost.targets" Condition="Exists('..\packages\boost.1.58.0.0\build\native\boost.targets')" />
-    <Import Project="..\packages\boost_system-vc140.1.58.0-vs140rc\build\native\boost_system-vc140.targets" Condition="Exists('..\packages\boost_system-vc140.1.58.0-vs140rc\build\native\boost_system-vc140.targets')" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -176,6 +172,9 @@
     <ClInclude Include="api\common\PropertyFilter.h" />
     <ClInclude Include="api\common\Serializer.h" />
     <ClInclude Include="api\ApiModule.h" />
+    <ClInclude Include="api\FavoriteHubApi.h" />
+    <ClInclude Include="api\FavoriteHubUtils.h" />
+    <ClInclude Include="api\HubApi.h" />
     <ClInclude Include="api\LogApi.h" />
     <ClInclude Include="api\QueueApi.h" />
     <ClInclude Include="api\QueueUtils.h" />
@@ -201,6 +200,9 @@
     <ClCompile Include="api\common\Format.cpp" />
     <ClCompile Include="api\common\PropertyFilter.cpp" />
     <ClCompile Include="api\common\Serializer.cpp" />
+    <ClCompile Include="api\FavoriteHubApi.cpp" />
+    <ClCompile Include="api\FavoriteHubUtils.cpp" />
+    <ClCompile Include="api\HubApi.cpp" />
     <ClCompile Include="api\LogApi.cpp" />
     <ClCompile Include="api\QueueApi.cpp" />
     <ClCompile Include="api\QueueUtils.cpp" />

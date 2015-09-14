@@ -96,7 +96,7 @@ namespace webserver {
 		return parameters[pos];
 	}
 
-	int ApiRequest::getIntParam(int pos) const noexcept {
+	int ApiRequest::getRangeParam(int pos) const noexcept {
 		return Util::toInt(parameters[pos]);
 	}
 }
