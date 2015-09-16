@@ -36,6 +36,7 @@ namespace webserver {
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (), true, FavoriteHubApi::handleAddHub);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, FavoriteHubApi::handleRemoveHub);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_PUT, (TOKEN_PARAM), true, FavoriteHubApi::handleUpdateHub);
+		METHOD_HANDLER("hub", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, FavoriteHubApi::handleGetHub);
 
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (TOKEN_PARAM, EXACT_PARAM("connect")), false, FavoriteHubApi::handleConnect);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (TOKEN_PARAM, EXACT_PARAM("disconnect")), false, FavoriteHubApi::handleDisconnect);
@@ -49,7 +50,7 @@ namespace webserver {
 		view.onSocketRemoved();
 	}
 
-	string FavoriteHubApi::updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) noexcept {
+	string FavoriteHubApi::updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) {
 		string name, server;
 		ShareProfilePtr shareProfile = nullptr;
 
@@ -79,11 +80,12 @@ namespace webserver {
 
 		i = j.find("share_profile");
 		if (i != j.end()) {
-			if (AirUtil::isAdcHub(server.empty() ? aEntry->getServerStr() : server)) {
+			ProfileToken token = *i;
+			if (!AirUtil::isAdcHub(server.empty() ? aEntry->getServerStr() : server) && token != SETTING(DEFAULT_SP)) {
 				return "Share profiles can't be changed for NMDC hubs";
 			}
 
-			shareProfile = ShareManager::getInstance()->getShareProfile(*i, false);
+			shareProfile = ShareManager::getInstance()->getShareProfile(token, false);
 			if (!shareProfile) {
 				return "Invalid share profile";
 			}
@@ -105,23 +107,27 @@ namespace webserver {
 		return Util::emptyString;
 	}
 
-	void FavoriteHubApi::updateSimpleProperties(FavoriteHubEntryPtr& aEntry, json& j) noexcept {
+	void FavoriteHubApi::updateSimpleProperties(FavoriteHubEntryPtr& aEntry, json& j) {
+		auto toString = [](const json& aJson) {
+			if (aJson.is_null()) {
+				return Util::emptyString;
+			}
+
+			return aJson.get<std::string>();
+		};
+
 		for (auto i : json::iterator_wrapper(j)) {
 			auto key = i.key();
 			if (key == "auto_connect") {
 				aEntry->setAutoConnect(i.value());
 			} else if (key == "hub_description") {
-				const string val = i.value();
-				aEntry->setDescription(val);
+				aEntry->setDescription(toString(i.value()));
 			} else if (key == "password") {
-				const string val = i.value();
-				aEntry->setPassword(val);
+				aEntry->setPassword(toString(i.value()));
 			} else if (key == "nick") {
-				const string val = i.value();
-				aEntry->get(HubSettings::Nick) = val;
+				aEntry->get(HubSettings::Nick) = toString(i.value());
 			} else if (key == "user_description") {
-				const string val = i.value();
-				aEntry->get(HubSettings::Description) = val;
+				aEntry->get(HubSettings::Description) = toString(i.value());
 			}
 		}
 	}
@@ -155,6 +161,17 @@ namespace webserver {
 			return websocketpp::http::status_code::not_found;
 		}
 
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return FavoriteHubApi::handleGetHub(ApiRequest& aRequest) throw(exception) {
+		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
+		if (!entry) {
+			aRequest.setResponseError("Hub not found");
+			return websocketpp::http::status_code::not_found;
+		}
+
+		aRequest.setResponseBody(Serializer::serializeItem(entry, itemHandler));
 		return websocketpp::http::status_code::ok;
 	}
 

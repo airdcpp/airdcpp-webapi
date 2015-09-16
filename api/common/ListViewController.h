@@ -44,7 +44,7 @@ namespace webserver {
 		}
 
 		~ListViewController() {
-			timer->stop();
+			timer->stop(true);
 		}
 
 		int getSortProperty() const noexcept {
@@ -134,7 +134,7 @@ namespace webserver {
 			if (j.find("paused") != j.end()) {
 				bool paused = j["paused"];
 				if (paused && timer->isRunning()) {
-					timer->stop();
+					timer->stop(false);
 				} else if (!paused && !timer->isRunning()) {
 					timer->start();
 				}
@@ -148,7 +148,7 @@ namespace webserver {
 
 		void reset() noexcept {
 			active = false;
-			timer->stop();
+			timer->stop(true);
 
 			WLock l(cs);
 			currentViewItems.clear();

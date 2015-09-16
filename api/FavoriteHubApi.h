@@ -43,7 +43,7 @@ namespace webserver {
 			{ PROP_HUB_URL, "hub_url", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
 			{ PROP_HUB_DESCRIPTION, "hub_description", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
 			{ PROP_AUTO_CONNECT, "auto_connect", TYPE_NUMERIC_OTHER, SERIALIZE_BOOL, SORT_NUMERIC },
-			{ PROP_SHARE_PROFILE, "share_profile", TYPE_NUMERIC_OTHER, SERIALIZE_BOOL, SORT_TEXT },
+			{ PROP_SHARE_PROFILE, "share_profile", TYPE_TEXT, SERIALIZE_TEXT_NUMERIC, SORT_TEXT },
 			{ PROP_CONNECT_STATE, "connect_state", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_NUMERIC },
 			{ PROP_NICK, "nick", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
 			{ PROP_HAS_PASSWORD, "has_password", TYPE_NUMERIC_OTHER, SERIALIZE_BOOL, SORT_NUMERIC },
@@ -69,15 +69,16 @@ namespace webserver {
 		api_return handleAddHub(ApiRequest& aRequest) throw(exception);
 		api_return handleRemoveHub(ApiRequest& aRequest) throw(exception);
 		api_return handleUpdateHub(ApiRequest& aRequest) throw(exception);
+		api_return handleGetHub(ApiRequest& aRequest) throw(exception);
 
 		api_return handleConnect(ApiRequest& aRequest) throw(exception);
 		api_return handleDisconnect(ApiRequest& aRequest) throw(exception);
 
 		// Returns error if there are invalid properties
-		string updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) noexcept;
+		string updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub);
 
 		// Values that don't need to be validated
-		void updateSimpleProperties(FavoriteHubEntryPtr& aEntry, json& j) noexcept;
+		void updateSimpleProperties(FavoriteHubEntryPtr& aEntry, json& j);
 
 		void on(FavoriteManagerListener::FavoriteHubAdded, const FavoriteHubEntryPtr& /*e*/)  noexcept;
 		void on(FavoriteManagerListener::FavoriteHubRemoved, const FavoriteHubEntryPtr& e) noexcept;

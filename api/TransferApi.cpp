@@ -36,7 +36,7 @@ namespace webserver {
 	}
 
 	TransferApi::~TransferApi() {
-		timer->stop();
+		timer->stop(true);
 
 		DownloadManager::getInstance()->removeListener(this);
 		UploadManager::getInstance()->removeListener(this);

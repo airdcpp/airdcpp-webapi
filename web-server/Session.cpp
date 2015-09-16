@@ -25,6 +25,7 @@
 #include <api/LogApi.h>
 #include <api/QueueApi.h>
 #include <api/SearchApi.h>
+#include <api/ShareApi.h>
 #include <api/TransferApi.h>
 
 #include <client/TimerManager.h>
@@ -40,6 +41,7 @@ namespace webserver {
 		ADD_MODULE("log", LogApi);
 		ADD_MODULE("queue", QueueApi);
 		ADD_MODULE("search", SearchApi);
+		ADD_MODULE("share", ShareApi);
 		ADD_MODULE("transfers", TransferApi);
 	}
 

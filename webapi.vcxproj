@@ -181,6 +181,7 @@
     <ClInclude Include="api\SearchApi.h" />
     <ClInclude Include="api\SearchUtils.h" />
     <ClInclude Include="api\SessionApi.h" />
+    <ClInclude Include="api\ShareApi.h" />
     <ClInclude Include="api\TransferApi.h" />
     <ClInclude Include="web-server\ApiRequest.h" />
     <ClInclude Include="web-server\ApiRouter.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="api\SearchApi.cpp" />
     <ClCompile Include="api\SearchUtils.cpp" />
     <ClCompile Include="api\SessionApi.cpp" />
+    <ClCompile Include="api\ShareApi.cpp" />
     <ClCompile Include="api\TransferApi.cpp" />
     <ClCompile Include="web-server\ApiRequest.cpp" />
     <ClCompile Include="web-server\ApiRouter.cpp" />

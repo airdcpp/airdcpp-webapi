@@ -32,7 +32,7 @@ namespace webserver {
 		}
 
 		~Timer() {
-			stop();
+			stop(true);
 		}
 
 		void start() {
@@ -41,8 +41,14 @@ namespace webserver {
 			timer.async_wait(bind(&Timer::tick, this, std::placeholders::_1));
 		}
 
-		void stop() {
+		void stop(bool aWaitShutdown) {
 			timer.cancel();
+
+			if (aWaitShutdown) {
+				while (running) {
+					std::this_thread::sleep_for(30ms);
+				}
+			}
 		}
 
 		bool isRunning() const noexcept {

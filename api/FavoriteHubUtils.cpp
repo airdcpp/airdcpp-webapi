@@ -67,6 +67,7 @@ namespace webserver {
 		case FavoriteHubApi::PROP_HUB_DESCRIPTION: return aEntry->getDescription();
 		case FavoriteHubApi::PROP_NICK: return aEntry->get(HubSettings::Nick);
 		case FavoriteHubApi::PROP_USER_DESCRIPTION: return aEntry->get(HubSettings::Description);
+		case FavoriteHubApi::PROP_SHARE_PROFILE: return aEntry->getShareProfile()->getDisplayName();
 		default: dcassert(0); return 0;
 		}
 	}
