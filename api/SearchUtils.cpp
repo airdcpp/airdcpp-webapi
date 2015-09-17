@@ -21,33 +21,26 @@
 
 #include <api/common/Format.h>
 
-//#include <boost/range/algorithm/copy.hpp>
-
 namespace webserver {
 	json SearchUtils::serializeResult(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept {
 		json j;
 
 		switch (aPropertyName) {
-		/*case QueueApi::PROP_SOURCES:
+		case SearchApi::PROP_TYPE:
 		{
-			RLock l(QueueManager::getInstance()->getCS());
-			int online = 0;
-			decltype(auto) sources = aBundle->getSources();
-			for (const auto& s : sources) {
-				if (s.getUser().user->isOnline())
-					online++;
+			if (aResult->sr->getType() == SearchResult::TYPE_FILE) {
+				return Serializer::serializeFileType(aResult->sr->getPath());
+			} else {
+				return Serializer::serializeFolderType(aResult->sr->getFileCount(), aResult->sr->getFolderCount());
 			}
-
-			j["online"] = online;
-			j["total"] = aBundle->getSources().size();
 		}
-
-		case QueueApi::PROP_TYPE:
-		{
-			RLock l(QueueManager::getInstance()->getCS());
-			j["files"] = aBundle->getQueueItems().size() + aBundle->getFinishedFiles().size();
-			j["folders"] = aBundle->getDirectories().size();
-		}*/
+		case SearchApi::PROP_SLOTS: {
+			json j;
+			j["str"] = aResult->sr->getSlotString();
+			j["free"] = aResult->sr->getFreeSlots();
+			j["total"] = aResult->sr->getSlots();
+			return j;
+		}
 		}
 
 		return j;
@@ -62,19 +55,26 @@ namespace webserver {
 				return (a->sr->getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
 		}
 		case SearchApi::PROP_TYPE: {
-			if (a->sr->getType() == b->sr->getType()) {
-				if (a->sr->getType() == SearchResult::TYPE_DIRECTORY) {
-					if (a->sr->getFolderCount() != b->sr->getFolderCount()) {
-						return a->sr->getFolderCount() < b->sr->getFolderCount() ? 1 : -1;
-					}
+			if (a->sr->getType() != b->sr->getType()) {
+				// Directories go first
+				return a->sr->getType() == SearchResult::TYPE_FILE ? 1 : -1;
+			}
 
-					return a->sr->getFileCount() < b->sr->getFileCount() ? 1 : -1;
+			if (a->sr->getType() != SearchResult::TYPE_FILE && b->sr->getType() != SearchResult::TYPE_FILE) {
+				// Directory bundles
+				auto dirsA = a->sr->getFolderCount();
+				auto dirsB = b->sr->getFolderCount();
+				if (dirsA != dirsB) {
+					return compare(dirsA, dirsB);
 				}
 
-				return Util::stricmp(Util::getFileExt(a->sr->getPath()), Util::getFileExt(b->sr->getPath()));
-			} else {
-				return(a->sr->getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
+				auto filesA = a->sr->getFileCount();
+				auto filesB = b->sr->getFileCount();
+
+				return compare(filesA, filesB);
 			}
+
+			return Util::stricmp(Util::getFileExt(a->sr->getPath()), Util::getFileExt(b->sr->getPath()));
 		}
 		case SearchApi::PROP_SLOTS: {
 			if (a->sr->getFreeSlots() == b->sr->getFreeSlots())

@@ -44,9 +44,9 @@ namespace webserver {
 		const PropertyList properties = {
 			{ PROP_NAME, "name", TYPE_TEXT, SERIALIZE_TEXT, SORT_CUSTOM },
 			{ PROP_RELEVANCY, "relevancy", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_NUMERIC },
-			//{ PROP_HITS, "hits", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_CUSTOM },
-			{ PROP_USERS, "users", TYPE_TEXT, SERIALIZE_TEXT, SORT_NUMERIC },
-			{ PROP_TYPE, "type", TYPE_TEXT, SERIALIZE_TEXT, SORT_CUSTOM },
+			{ PROP_HITS, "hits", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_NUMERIC },
+			{ PROP_USERS, "users", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+			{ PROP_TYPE, "type", TYPE_TEXT, SERIALIZE_CUSTOM, SORT_CUSTOM },
 			{ PROP_SIZE, "size", TYPE_SIZE, SERIALIZE_NUMERIC, SORT_NUMERIC },
 			{ PROP_DATE, "time", TYPE_TIME, SERIALIZE_NUMERIC, SORT_NUMERIC },
 			{ PROP_PATH, "path", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
@@ -134,6 +134,8 @@ namespace webserver {
 		const SearchInfo::List& getResultList();
 
 		api_return SearchApi::handlePostSearch(ApiRequest& aRequest);
+		api_return SearchApi::handleGetTypes(ApiRequest& aRequest);
+
 		void on(SearchManagerListener::SR, const SearchResultPtr& aResult) noexcept;
 
 		PropertyItemHandler<SearchInfoPtr> itemHandler;

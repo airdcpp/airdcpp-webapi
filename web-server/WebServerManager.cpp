@@ -27,7 +27,7 @@
 #define CONFIG_NAME "WebServer.xml"
 #define CONFIG_DIR Util::PATH_USER_CONFIG
 
-#define HANDSHAKE_TIMEOUT 10000
+#define HANDSHAKE_TIMEOUT 0 // disabled, affects HTTP downloads
 
 namespace webserver {
 	void WebServerManager::startup() {

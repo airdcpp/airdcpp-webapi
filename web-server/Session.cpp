@@ -21,6 +21,7 @@
 #include <web-server/ApiRequest.h>
 
 #include <api/FavoriteHubApi.h>
+#include <api/HistoryApi.h>
 #include <api/HubApi.h>
 #include <api/LogApi.h>
 #include <api/QueueApi.h>
@@ -37,6 +38,7 @@ namespace webserver {
 		user(aUser), token(aToken), started(GET_TICK()), lastActivity(lastActivity), secure(aIsSecure) {
 
 		ADD_MODULE("favorite_hubs", FavoriteHubApi);
+		ADD_MODULE("histories", HistoryApi);
 		ADD_MODULE("hubs", HubApi);
 		ADD_MODULE("log", LogApi);
 		ADD_MODULE("queue", QueueApi);

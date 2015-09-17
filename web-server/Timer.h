@@ -42,10 +42,10 @@ namespace webserver {
 		}
 
 		void stop(bool aWaitShutdown) {
-			timer.cancel();
+			auto cancelled = timer.cancel();
 
-			if (aWaitShutdown) {
-				while (running) {
+			if (cancelled > 0 && aWaitShutdown) {
+				while (running && !timer.get_io_service().stopped()) {
 					std::this_thread::sleep_for(30ms);
 				}
 			}

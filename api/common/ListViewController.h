@@ -150,11 +150,17 @@ namespace webserver {
 			active = false;
 			timer->stop(true);
 
+			clearItems();
+
 			WLock l(cs);
+			filter.clear();
+		}
+
+		void clearItems() {
+			WLock l(cs);
+			tasks.clear();
 			currentViewItems.clear();
 			allItems.clear();
-			filter.clear();
-			tasks.clear();
 
 			prevRangeEnd = -1;
 			prevRangeStart = -1;

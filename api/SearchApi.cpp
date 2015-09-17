@@ -35,6 +35,7 @@ namespace webserver {
 		searchView.getApiHandlers(requestHandlers, subscriptions);
 
 		METHOD_HANDLER("query", ApiRequest::METHOD_POST, (), true, SearchApi::handlePostSearch);
+		METHOD_HANDLER("types", ApiRequest::METHOD_GET, (), false, SearchApi::handleGetTypes);
 	}
 
 	SearchApi::~SearchApi() {
@@ -45,7 +46,7 @@ namespace webserver {
 		return results;
 	}
 
-	SearchApi::SearchInfo::SearchInfo(const SearchResultPtr& aSR, const SearchQuery& aSearch) : token(Util::rand()) {
+	SearchApi::SearchInfo::SearchInfo(const SearchResultPtr& aSR, const SearchQuery& aSearch) : token(Util::rand()), sr(aSR) {
 		//check the dupe
 		if (SETTING(DUPE_SEARCH)) {
 			if (sr->getType() == SearchResult::TYPE_DIRECTORY)
@@ -81,6 +82,12 @@ namespace webserver {
 		return (hits * sourceScoreFactor) + matchRelevancy;
 	}
 
+	api_return SearchApi::handleGetTypes(ApiRequest& aRequest) {
+		auto types = SearchManager::getInstance()->getSearchTypes();
+
+		return websocketpp::http::status_code::ok;
+	}
+
 	api_return SearchApi::handlePostSearch(ApiRequest& aRequest) {
 		/*
 		if(m_lastSearch && m_lastSearch + 3*1000 < TimerManager::getInstance()->getTick()) {
@@ -92,25 +99,17 @@ namespace webserver {
 		decltype(auto) j = aRequest.getRequestBody();
 		std::string str = j["pattern"];
 
-		//auto pattern = j.find("pattern");
-		//if (pattern == j.end()) {
-
-		//}
-
 		if (str.length() < MIN_SEARCH) {
 			aRequest.setResponseError("Search std::string too short");
 			return websocketpp::http::status_code::bad_request;
 		}
 
+		searchView.clearItems();
+
 		auto type = str.size() == 39 && Encoder::isBase32(str.c_str()) ? SearchManager::TYPE_TTH : SearchManager::TYPE_ANY;
 
 		// new search
 		auto newSearch = SearchQuery::getSearch(str, Util::emptyString, 0, type, SearchManager::SIZE_DONTCARE, StringList(), SearchQuery::MATCH_FULL_PATH, false);
-		//if (!newSearch) {
-		//	return;
-		//}
-
-		//m_searchStr = str;
 
 		{
 			WLock l(cs);
@@ -118,7 +117,6 @@ namespace webserver {
 		}
 
 		curSearch = shared_ptr<SearchQuery>(newSearch);
-		//searchView.reset();
 
 		SettingsManager::getInstance()->addToHistory(str, SettingsManager::HISTORY_SEARCH);
 		//lastSearch = GET_TICK();
