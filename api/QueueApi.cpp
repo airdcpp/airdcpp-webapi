@@ -55,7 +55,7 @@ namespace webserver {
 		METHOD_HANDLER("bundle", ApiRequest::METHOD_POST, (EXACT_PARAM("directory")), true, QueueApi::handleAddDirectoryBundle);
 		METHOD_HANDLER("bundle", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, QueueApi::handleGetBundle);
 		METHOD_HANDLER("bundle", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, QueueApi::handleRemoveBundle);
-		METHOD_HANDLER("bundle", ApiRequest::METHOD_PUT, (TOKEN_PARAM), true, QueueApi::handleUpdateBundle);
+		METHOD_HANDLER("bundle", ApiRequest::METHOD_PATCH, (TOKEN_PARAM), true, QueueApi::handleUpdateBundle);
 
 		METHOD_HANDLER("bundle", ApiRequest::METHOD_POST, (TOKEN_PARAM, EXACT_PARAM("search")), false, QueueApi::handleSearchBundle);
 
@@ -63,7 +63,7 @@ namespace webserver {
 		METHOD_HANDLER("temp_item", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, QueueApi::handleGetFile);
 		METHOD_HANDLER("temp_item", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, QueueApi::handleRemoveFile);
 
-		METHOD_HANDLER("filelist", ApiRequest::METHOD_POST, (CID_PARAM), true, QueueApi::handleAddFilelist);
+		METHOD_HANDLER("filelist", ApiRequest::METHOD_POST, (), true, QueueApi::handleAddFilelist);
 		METHOD_HANDLER("filelist", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, QueueApi::handleGetFile);
 		METHOD_HANDLER("filelist", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, QueueApi::handleRemoveFile);
 	}
@@ -239,14 +239,14 @@ namespace webserver {
 		decltype(auto) j = aRequest.getRequestBody();
 
 		auto i = j.find("directory");
-		auto directory = i != j.end() ? (*i) : Util::emptyString;
+		auto directory = i != j.end() ? Util::toNmdcFile(*i) : Util::emptyString;
 
 		auto flags = QueueItem::FLAG_PARTIAL_LIST;
 		//if (j["match"])
 		//	flags = QueueItem::FLAG_MATCH_QUEUE | QueueItem::FLAG_RECURSIVE_LIST;
 
 		try {
-			QueueManager::getInstance()->addList(Deserializer::deserializeHintedUser(j), flags, directory);
+			QueueManager::getInstance()->addList(Deserializer::deserializeHintedUser(j["user"]), flags, directory);
 		} catch (const Exception& e) {
 			aRequest.setResponseError(e.getError());
 			return websocketpp::http::status_code::internal_server_error;

@@ -28,6 +28,7 @@
 #include <client/ClientManager.h>
 #include <client/ChatMessage.h>
 #include <client/DirectoryListing.h>
+#include <client/GeoManager.h>
 #include <client/OnlineUser.h>
 #include <client/QueueItem.h>
 #include <client/QueueManager.h>
@@ -105,6 +106,18 @@ namespace webserver {
 			{ "str", Format::formatFolderContent(aFiles, aDirectories) },
 			{ "files", aFiles },
 			{ "directories", aDirectories },
+		};
+	}
+
+	json Serializer::serializeIp(const string& aIP) noexcept {
+		return serializeIp(aIP, GeoManager::getInstance()->getCountry(aIP));
+	}
+
+	json Serializer::serializeIp(const string& aIP, const string& aCountryCode) noexcept {
+		return{
+			{ "str", Format::formatIp(aIP, aCountryCode) },
+			{ "country_id", aCountryCode },
+			{ "ip", aIP }
 		};
 	}
 }

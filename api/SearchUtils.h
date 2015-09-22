@@ -20,6 +20,7 @@
 #define DCPLUSPLUS_DCPP_SEARCHUTILS_H
 
 #include <api/SearchApi.h>
+#include <api/SearchResultInfo.h>
 
 #include <web-server/stdinc.h>
 
@@ -28,11 +29,11 @@
 namespace webserver {
 	class SearchUtils {
 	public:
-		static json serializeResult(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept;
+		static json serializeResult(const SearchResultInfoPtr& aResult, int aPropertyName) noexcept;
 
-		static int compareResults(const SearchApi::SearchInfoPtr& a, const SearchApi::SearchInfoPtr& b, int aPropertyName) noexcept;
-		static std::string  getStringInfo(const SearchApi::SearchInfoPtr& a, int aPropertyName) noexcept;
-		static double getNumericInfo(const SearchApi::SearchInfoPtr& a, int aPropertyName) noexcept;
+		static int compareResults(const SearchResultInfoPtr& a, const SearchResultInfoPtr& b, int aPropertyName) noexcept;
+		static std::string  getStringInfo(const SearchResultInfoPtr& a, int aPropertyName) noexcept;
+		static double getNumericInfo(const SearchResultInfoPtr& a, int aPropertyName) noexcept;
 	};
 }
 

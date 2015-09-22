@@ -40,7 +40,8 @@ namespace webserver {
 		static json serializeFileType(const string& aPath) noexcept;
 		static json serializeFolderType(size_t aFiles, size_t aDirectories) noexcept;
 
-
+		static json serializeIp(const string& aIP) noexcept;
+		static json serializeIp(const string& aIP, const string& aCountryCode) noexcept;
 
 
 		// Serialize n messages from end by keeping the list order

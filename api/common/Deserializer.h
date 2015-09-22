@@ -23,14 +23,19 @@
 
 #include <client/typedefs.h>
 #include <client/QueueItemBase.h>
+#include <client/TargetUtil.h>
 
 namespace webserver {
+	typedef std::function<void(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPriority)> DownloadHandler;
+
 	class Deserializer {
 	public:
 		static UserPtr deserializeUser(const json& aJson) throw(exception);
 		static HintedUser deserializeHintedUser(const json& aJson) throw(exception);
 		static TTHValue deserializeTTH(const json& aJson) throw(exception);
 		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault) throw(exception);
+
+		static void deserializeDownloadParams(const json& aJson, DownloadHandler aHandler);
 	};
 }
 

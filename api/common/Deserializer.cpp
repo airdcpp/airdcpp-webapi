@@ -56,4 +56,16 @@ namespace webserver {
 
 		return static_cast<QueueItemBase::Priority>(priority);
 	}
+
+	void Deserializer::deserializeDownloadParams(const json& aJson, DownloadHandler aHandler) {
+		const string target = aJson["target"];
+		int targetType = aJson["target_type"];
+		if (targetType < 0 || targetType >= TargetUtil::TARGET_LAST) {
+			throw exception("Invalid target type");
+		}
+
+		auto priority = deserializePriority(aJson, true);
+
+		aHandler(target, static_cast<TargetUtil::TargetType>(targetType), priority);
+	}
 }

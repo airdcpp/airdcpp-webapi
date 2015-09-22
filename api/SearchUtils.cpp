@@ -22,7 +22,7 @@
 #include <api/common/Format.h>
 
 namespace webserver {
-	json SearchUtils::serializeResult(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept {
+	json SearchUtils::serializeResult(const SearchResultInfoPtr& aResult, int aPropertyName) noexcept {
 		json j;
 
 		switch (aPropertyName) {
@@ -35,22 +35,31 @@ namespace webserver {
 			}
 		}
 		case SearchApi::PROP_SLOTS: {
+			int free = 0, total = 0;
+			aResult->getSlots(free, total);
+
 			json j;
-			j["str"] = aResult->sr->getSlotString();
-			j["free"] = aResult->sr->getFreeSlots();
-			j["total"] = aResult->sr->getSlots();
+			j["str"] = aResult->getSlotStr();
+			j["free"] = free;
+			j["total"] = total;
 			return j;
+		}
+		case SearchApi::PROP_IP: {
+			return Serializer::serializeIp(aResult->sr->getIP(), aResult->getCountry());
+		}
+		case SearchApi::PROP_USERS: {
+			return Serializer::serializeHintedUser(aResult->sr->getUser());
 		}
 		}
 
 		return j;
 	}
 
-	int SearchUtils::compareResults(const SearchApi::SearchInfoPtr& a, const SearchApi::SearchInfoPtr& b, int aPropertyName) noexcept {
+	int SearchUtils::compareResults(const SearchResultInfoPtr& a, const SearchResultInfoPtr& b, int aPropertyName) noexcept {
 		switch (aPropertyName) {
 		case SearchApi::PROP_NAME: {
 			if (a->sr->getType() == b->sr->getType())
-				return Util::stricmp(a->sr->getFileName().c_str(), b->sr->getFileName().c_str());
+				return Util::stricmp(a->sr->getFileName(), b->sr->getFileName());
 			else
 				return (a->sr->getType() == SearchResult::TYPE_DIRECTORY) ? -1 : 1;
 		}
@@ -88,10 +97,10 @@ namespace webserver {
 
 		return 0;
 	}
-	std::string SearchUtils::getStringInfo(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept {
+	std::string SearchUtils::getStringInfo(const SearchResultInfoPtr& aResult, int aPropertyName) noexcept {
 		switch (aPropertyName) {
 		case SearchApi::PROP_NAME: return aResult->sr->getFileName();
-		case SearchApi::PROP_PATH: return aResult->sr->getPath();
+		case SearchApi::PROP_PATH: return Util::toAdcFile(aResult->sr->getPath());
 		case SearchApi::PROP_USERS: return Format::formatNicks(aResult->sr->getUser());
 		case SearchApi::PROP_TYPE: {
 			if (aResult->sr->getType() == SearchResult::TYPE_DIRECTORY) {
@@ -101,17 +110,20 @@ namespace webserver {
 				return Format::formatFileType(aResult->sr->getPath());
 			}
 		}
-		case SearchApi::PROP_SLOTS: return aResult->sr->getSlotString();
+		case SearchApi::PROP_SLOTS: return aResult->getSlotStr();
+		case SearchApi::PROP_IP: return Format::formatIp(aResult->sr->getIP(), aResult->getCountry());
+		case SearchApi::PROP_TTH: return aResult->sr->getTTH().toBase32();
 		default: dcassert(0); return 0;
 		}
 	}
-	double SearchUtils::getNumericInfo(const SearchApi::SearchInfoPtr& aResult, int aPropertyName) noexcept {
+	double SearchUtils::getNumericInfo(const SearchResultInfoPtr& aResult, int aPropertyName) noexcept {
 		switch (aPropertyName) {
 		case SearchApi::PROP_SIZE: return (double)aResult->sr->getSize();
 		case SearchApi::PROP_HITS: return (double)aResult->hits;
-		case SearchApi::PROP_CONNECTION: return (double)aResult->sr->getConnectionInt();
+		case SearchApi::PROP_CONNECTION: return aResult->getConnectionSpeed();
 		case SearchApi::PROP_RELEVANCY : return aResult->getTotalRelevancy();
 		case SearchApi::PROP_DATE: return (double)aResult->sr->getDate();
+		case SearchApi::PROP_DUPE: return (double)aResult->getDupe();
 		default: dcassert(0); return 0;
 		}
 	}

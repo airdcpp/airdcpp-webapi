@@ -20,6 +20,7 @@
 
 #include <client/ResourceManager.h>
 #include <client/ClientManager.h>
+#include <client/GeoManager.h>
 
 #include <boost/range/algorithm/copy.hpp>
 
@@ -63,5 +64,17 @@ namespace webserver {
 
 	std::string Format::formatHubs(const HintedUser& aUser) noexcept {
 		return Util::listToString(ClientManager::getInstance()->getHubNames(aUser));
+	}
+
+	std::string Format::formatIp(const string& aIP, const string& aCountryCode) noexcept {
+		if (!aCountryCode.empty()) {
+			return aCountryCode + " (" + aIP + ")";
+		}
+
+		return aIP;
+	}
+
+	std::string Format::formatIp(const string& aIP) noexcept {
+		return formatIp(aIP, GeoManager::getInstance()->getCountry(aIP));
 	}
 }

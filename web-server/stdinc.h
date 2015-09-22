@@ -32,6 +32,8 @@
 #include <websocketpp/config/asio.hpp>
 #include <websocketpp/server.hpp>
 
+#include <boost/range/algorithm/copy.hpp>
+
 // define types for two different server endpoints, one for each config we are
 // using
 typedef websocketpp::server<websocketpp::config::asio> server_plain;

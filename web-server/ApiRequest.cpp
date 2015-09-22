@@ -38,6 +38,9 @@ namespace webserver {
 		else if (aMethod == "DELETE") {
 			method = METHOD_DELETE;
 		}
+		else if (aMethod == "PATCH") {
+			method = METHOD_PATCH;
+		}
 	}
 
 	void ApiRequest::parseHttpRequestJson(const string& aRequestBody) {

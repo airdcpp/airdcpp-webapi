@@ -42,49 +42,32 @@ namespace webserver {
 		SearchManager::getInstance()->removeListener(this);
 	}
 
-	const SearchApi::SearchInfo::List& SearchApi::getResultList() {
-		return results;
-	}
-
-	SearchApi::SearchInfo::SearchInfo(const SearchResultPtr& aSR, const SearchQuery& aSearch) : token(Util::rand()), sr(aSR) {
-		//check the dupe
-		if (SETTING(DUPE_SEARCH)) {
-			if (sr->getType() == SearchResult::TYPE_DIRECTORY)
-				dupe = AirUtil::checkDirDupe(sr->getPath(), sr->getSize());
-			else
-				dupe = AirUtil::checkFileDupe(sr->getTTH());
-		}
-
-		// don't count the levels because they can't be compared with each others...
-		matchRelevancy = SearchQuery::getRelevancyScores(aSearch, 0, aSR->getType() == SearchResult::TYPE_DIRECTORY, aSR->getFileName());
-		if (aSearch.recursion && aSearch.recursion->isComplete()) {
-			// there are subdirectories/files that have more matches than the main directory
-			// don't give too much weight for those
-			sourceScoreFactor = 0.001;
-
-			// we don't get the level scores so balance those here
-			matchRelevancy = max(0.0, matchRelevancy - (0.05*aSearch.recursion->recursionLevel));
-		}
-
-		//get the ip info
-		/*std::string ip = sr->getIP();
-		if (!ip.empty()) {
-			// Only attempt to grab a country mapping if we actually have an IP address
-			std::string tmpCountry = GeoManager::getInstance()->getCountry(sr->getIP());
-			if (!tmpCountry.empty()) {
-				ip = tmpCountry + " (" + ip + ")";
-				flagIndex = Localization::getFlagIndexByCode(tmpCountry.c_str());
-			}
-		}*/
-	}
-
-	double SearchApi::SearchInfo::getTotalRelevancy() const {
-		return (hits * sourceScoreFactor) + matchRelevancy;
+	SearchResultInfo::List SearchApi::getResultList() {
+		SearchResultInfo::List ret;
+		boost::range::copy(results | map_values, back_inserter(ret));
+		return ret;
 	}
 
 	api_return SearchApi::handleGetTypes(ApiRequest& aRequest) {
+		auto getName = [](const string& aId) {
+			if (aId.size() == 1 && aId[0] >= '1' && aId[0] <= '6') {
+				return string(SearchManager::getTypeStr(aId[0] - '0'));
+			}
+
+			return aId;
+		};
+
 		auto types = SearchManager::getInstance()->getSearchTypes();
 
+		json retJ;
+		for (const auto& s : types) {
+			retJ.push_back({
+				{ "id", s.first },
+				{ "str", getName(s.first) }
+			});
+		}
+
+		aRequest.setResponseBody(retJ);
 		return websocketpp::http::status_code::ok;
 	}
 
@@ -100,7 +83,7 @@ namespace webserver {
 		std::string str = j["pattern"];
 
 		if (str.length() < MIN_SEARCH) {
-			aRequest.setResponseError("Search std::string too short");
+			aRequest.setResponseError("Search string too short");
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -122,7 +105,12 @@ namespace webserver {
 		//lastSearch = GET_TICK();
 		currentSearchToken = Util::toString(Util::rand());
 
-		SearchManager::getInstance()->search(str, 0, type, SearchManager::SIZE_DONTCARE, currentSearchToken, Search::MANUAL);
+		auto queueTime = SearchManager::getInstance()->search(str, 0, type, SearchManager::SIZE_DONTCARE, currentSearchToken, Search::MANUAL);
+
+		aRequest.setResponseBody({
+			{ "queue_time", queueTime },
+			{ "search_token", currentSearchToken }
+		});
 		return websocketpp::http::status_code::ok;
 	}
 
@@ -162,13 +150,18 @@ namespace webserver {
 			return;
 		}
 
-		auto i = make_shared<SearchInfo>(aResult, *curSearch.get());
+		auto result = make_shared<SearchResultInfo>(aResult, *curSearch.get());
 
 		{
 			WLock l(cs);
-			results.push_back(i);
+			auto i = results.find(aResult->getTTH());
+			if (i != results.end()) {
+				(*i).second->addItem(result);
+			} else {
+				results.emplace(aResult->getTTH(), result);
+			}
 		}
 
-		searchView.onItemAdded(i);
+		searchView.onItemAdded(result);
 	}
 }

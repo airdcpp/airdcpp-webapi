@@ -180,6 +180,7 @@
     <ClInclude Include="api\QueueApi.h" />
     <ClInclude Include="api\QueueUtils.h" />
     <ClInclude Include="api\SearchApi.h" />
+    <ClInclude Include="api\SearchResultInfo.h" />
     <ClInclude Include="api\SearchUtils.h" />
     <ClInclude Include="api\SessionApi.h" />
     <ClInclude Include="api\ShareApi.h" />
@@ -210,6 +211,7 @@
     <ClCompile Include="api\QueueApi.cpp" />
     <ClCompile Include="api\QueueUtils.cpp" />
     <ClCompile Include="api\SearchApi.cpp" />
+    <ClCompile Include="api\SearchResultInfo.cpp" />
     <ClCompile Include="api\SearchUtils.cpp" />
     <ClCompile Include="api\SessionApi.cpp" />
     <ClCompile Include="api\ShareApi.cpp" />

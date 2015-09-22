@@ -35,7 +35,7 @@ namespace webserver {
 
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (), true, FavoriteHubApi::handleAddHub);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, FavoriteHubApi::handleRemoveHub);
-		METHOD_HANDLER("hub", ApiRequest::METHOD_PUT, (TOKEN_PARAM), true, FavoriteHubApi::handleUpdateHub);
+		METHOD_HANDLER("hub", ApiRequest::METHOD_PATCH, (TOKEN_PARAM), true, FavoriteHubApi::handleUpdateHub);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, FavoriteHubApi::handleGetHub);
 
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (TOKEN_PARAM, EXACT_PARAM("connect")), false, FavoriteHubApi::handleConnect);
@@ -220,7 +220,7 @@ namespace webserver {
 		}
 
 		ClientManager::getInstance()->putClient(entry->getServers()[0].first);
-		return websocketpp::http::status_code::ok;
+		return websocketpp::http::status_code::no_content;
 	}
 
 	void FavoriteHubApi::on(FavoriteManagerListener::FavoriteHubAdded, const FavoriteHubEntryPtr& e)  noexcept {

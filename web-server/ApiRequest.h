@@ -33,6 +33,7 @@ namespace webserver {
 			METHOD_GET,
 			METHOD_PUT,
 			METHOD_DELETE,
+			METHOD_PATCH,
 			METHOD_LAST
 		};
 

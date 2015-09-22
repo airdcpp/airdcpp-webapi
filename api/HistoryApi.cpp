@@ -50,7 +50,7 @@ namespace webserver {
 		const string item = aRequest.getRequestBody()["item"];
 
 		SettingsManager::getInstance()->addToHistory(item, type);
-		return websocketpp::http::status_code::ok;
+		return websocketpp::http::status_code::no_content;
 	}
 
 	static SettingsManager::HistoryType toHistoryType(const string& aName) {
