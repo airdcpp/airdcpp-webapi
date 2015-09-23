@@ -37,10 +37,9 @@ namespace webserver {
 			METHOD_LAST
 		};
 
-		ApiRequest(const std::string& aUrl, const std::string& aMethod, json& output_, std::string& error_) noexcept;
+		ApiRequest(const std::string& aUrl, const std::string& aMethod, json& output_, json& error_) noexcept;
 
-		bool validate(bool aExistingSocket, std::string& output_);
-		//std::string  toLocalFile() noexcept;
+		void validate();
 
 		int getApiVersion() const noexcept {
 			return apiVersion;
@@ -83,11 +82,15 @@ namespace webserver {
 		}
 
 		void setResponseBody(const json& aResponse) {
-			responseJson = aResponse;
+			responseJsonData = aResponse;
 		}
 
-		void setResponseError(const std::string& aError) {
-			responseError = aError;
+		void setResponseErrorStr(const std::string& aError) {
+			responseJsonError = { "message", aError };
+		}
+
+		void setResponseErrorJson(const json& aError) {
+			responseJsonError = aError;
 		}
 	private:
 		RequestParamList parameters;
@@ -98,9 +101,9 @@ namespace webserver {
 		Method method = METHOD_LAST;
 
 		json requestJson;
-		json& responseJson;
 
-		std::string& responseError;
+		json& responseJsonData;
+		json& responseJsonError;
 	};
 }
 

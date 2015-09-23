@@ -23,7 +23,7 @@
 #include <client/Util.h>
 
 namespace webserver {
-	ApiRequest::ApiRequest(const string& aUrl, const string& aMethod, json& output_, string& error_) noexcept : responseJson(output_), responseError(error_) {
+	ApiRequest::ApiRequest(const string& aUrl, const string& aMethod, json& output_, json& error_) noexcept : responseJsonData(output_), responseJsonError(error_) {
 		parameters = StringTokenizer<std::string, deque>(aUrl, '/').getTokens();
 
 		if (aMethod == "GET") {
@@ -55,40 +55,34 @@ namespace webserver {
 		}
 	}
 
-	bool ApiRequest::validate(bool aExistingSocket, string& output_) {
+	void ApiRequest::validate() {
 		// Method
 		if (method == METHOD_LAST) {
-			output_ = "Unsupported method";
-			return false;
+			throw exception("Unsupported method");
 		}
 
 		// Module, version and command are always mandatory
-		if (static_cast<int>(parameters.size()) < (aExistingSocket ? 1 : 3)) {
-			output_ = "Not enough parameters";
-			return false;
+		if (static_cast<int>(parameters.size()) < 3) {
+			throw exception("Not enough parameters");
 		}
 
-		if (!aExistingSocket) {
-			// API Module
-			apiModule = parameters.front();
-			parameters.pop_front();
+		// API Module
+		apiModule = parameters.front();
+		parameters.pop_front();
 
-			// Version
-			auto version = parameters.front();
-			parameters.pop_front();
+		// Version
+		auto version = parameters.front();
+		parameters.pop_front();
 
-			if (version.size() < 2) {
-				output_ = "Invalid version";
-				return false;
-			}
-
-			apiVersion = Util::toInt(version.substr(1));
+		if (version.size() < 2) {
+			throw exception("Invalid version");
 		}
+
+		apiVersion = Util::toInt(version.substr(1));
 
 		// API Module section
 		apiSection = parameters.front();
 		parameters.pop_front();
-		return true;
 	}
 
 	uint32_t ApiRequest::getTokenParam(int pos) const noexcept {

@@ -22,47 +22,26 @@
 #include <client/Util.h>
 
 namespace webserver {
-	WebSocket::WebSocket(bool aIsSecure, websocketpp::connection_hdl aHdl/*, ApiModule* aHandler*/) :
+	WebSocket::WebSocket(bool aIsSecure, websocketpp::connection_hdl aHdl) :
 		secure(aIsSecure), hdl(aHdl) {
 
 	}
 
 	WebSocket::~WebSocket() {
-		if (handler)
-			handler->setSocket(nullptr);
 	}
 
-	void WebSocket::sendApiResponse(json& aJson, const string& error, websocketpp::http::status_code::value code) {
-		if (aJson.find("callback_id") != aJson.end()) {
-			aJson["code"] = code;
-			if (code != websocketpp::http::status_code::ok) {
-				aJson["error"] = error;
-			}
+	void WebSocket::sendApiResponse(const json& aResponseJson, const json& aErrorJson, websocketpp::http::status_code::value aCode, int aCallbackId) {
+		json j;
+		j["callback_id"] = aCallbackId;
+		j["code"] = aCode;
 
-			if (aJson["data"] == nullptr) {
-				aJson.erase("data");
-			}
-
-			sendPlain(aJson.dump());
-		}
-	}
-
-	bool WebSocket::auth(ApiRequest& aRequest, const WebSocketPtr& aPointer) {
-		auto h = aRequest.getSession()->getModule(aRequest.getApiModule());
-		if (!h) {
-			aRequest.setResponseError("Invalid API module");
-			return false;
+		if (aCode != websocketpp::http::status_code::ok) {
+			j["error"] = aErrorJson;
+		} else if (!aResponseJson.is_null()) {
+			j["data"] = aResponseJson;
 		}
 
-		if (aRequest.getApiVersion() != h->getVersion()) {
-			aRequest.setResponseError("Invalid API version");
-			return false;
-		}
-
-		handler = h;
-		handler->setSocket(aPointer);
-		session = aRequest.getSession();
-		return true;
+		sendPlain(j.dump(4));
 	}
 
 	void WebSocket::sendPlain(const string& aMsg) {
@@ -77,10 +56,6 @@ namespace webserver {
 		} catch (const std::exception& e) {
 			dcdebug("WebSocket::send failed: %s", e.what());
 		}
-	}
-
-	api_return WebSocket::handle(ApiRequest& aRequest) noexcept {
-		return handler->handleRequest(aRequest);
 	}
 
 	void WebSocket::close(websocketpp::close::status::value aCode, const string& aMsg) {

@@ -129,6 +129,9 @@
     <ClInclude Include="web-server\JsonUtil.h">
       <Filter>Header Files\web-server</Filter>
     </ClInclude>
+    <ClInclude Include="web-server\Exception.h">
+      <Filter>Header Files\web-server</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api\QueueApi.cpp">

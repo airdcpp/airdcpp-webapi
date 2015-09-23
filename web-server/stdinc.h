@@ -30,6 +30,8 @@
 
 #include <json/json.hpp>
 
+#include <web-server/Exception.h>
+
 #include <websocketpp/http/constants.hpp>
 #include <websocketpp/config/asio.hpp>
 #include <websocketpp/server.hpp>
@@ -47,7 +49,8 @@ using namespace dcpp;
 
 using json = nlohmann::json;
 
-using ArgumentException = std::invalid_argument;
+using ArgumentException = webserver::JsonException;
+//using ArgumentException = std::invalid_argument;
 
 #define CODE_UNPROCESSABLE_ENTITY 422
 

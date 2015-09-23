@@ -59,14 +59,14 @@ namespace webserver {
 		auto h = apiHandlers.find(aRequest.getApiModule());
 		if (h != apiHandlers.end()) {
 			if (aRequest.getApiVersion() != h->second->getVersion()) {
-				aRequest.setResponseError("Invalid API version");
+				aRequest.setResponseErrorStr("Invalid API version");
 				return websocketpp::http::status_code::precondition_failed;
 			}
 
 			return h->second->handleRequest(aRequest);
 		}
 
-		aRequest.setResponseError("Section not found");
+		aRequest.setResponseErrorStr("Section not found");
 		return websocketpp::http::status_code::not_found;
 	}
 

@@ -33,7 +33,7 @@ namespace webserver {
 		auto session = WebUserManager::getInstance()->authenticate(requestJson["username"], requestJson["password"], aIsSecure);
 
 		if (!session) {
-			aRequest.setResponseError("Invalid username or password");
+			aRequest.setResponseErrorStr("Invalid username or password");
 			return websocketpp::http::status_code::unauthorized;
 		}
 
@@ -53,7 +53,7 @@ namespace webserver {
 
 	api_return SessionApi::handleLogout(ApiRequest& aRequest) throw(exception) {
 		if (!aRequest.getSession()) {
-			aRequest.setResponseError("Not authorized");
+			aRequest.setResponseErrorStr("Not authorized");
 			return websocketpp::http::status_code::unauthorized;
 		}
 
@@ -68,12 +68,12 @@ namespace webserver {
 
 		SessionPtr session = WebUserManager::getInstance()->getSession(sessionToken);
 		if (!session) {
-			aRequest.setResponseError("Invalid session token");
+			aRequest.setResponseErrorStr("Invalid session token");
 			return websocketpp::http::status_code::bad_request;
 		}
 
 		if (session->isSecure() != aIsSecure) {
-			aRequest.setResponseError("Invalid protocol");
+			aRequest.setResponseErrorStr("Invalid protocol");
 			return websocketpp::http::status_code::bad_request;
 		}
 

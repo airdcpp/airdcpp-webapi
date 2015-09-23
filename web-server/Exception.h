@@ -16,36 +16,31 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include <web-server/stdinc.h>
+#ifndef DCPLUSPLUS_WEBSERVER_EXCEPTION_H
+#define DCPLUSPLUS_WEBSERVER_EXCEPTION_H
 
-#include <web-server/JsonUtil.h>
+#include <json/json.hpp>
+
+#include <client/debug.h>
 
 namespace webserver {
-	json JsonUtil::getError(const string& fieldName, ErrorType aType, const string& aMessage) noexcept {
-		auto errorTypeToString = [](ErrorType aType) {
-			switch (aType) {
-			case ERROR_MISSING: return "missing_field";
-			case ERROR_INVALID: return "invalid";
-			case ERROR_EXISTS: return "already_exists";
-			}
+	using json = nlohmann::json;
 
-			return "error";
-		};
+	class JsonException : private std::exception
+	{
+	public:
+		//JsonException() { dcdrun(if (error.size()>0)) dcdebug("Thrown: %s\n", error["message"].c_str()); }
+		JsonException(const json& aError) : error(aError) { }
+		JsonException(json&& aError) : error(move(aError)) { }
 
-		/*json error = {
-			{ "message",  aMessage },
-			{ "errors",{
-				{ "field", fieldName },
-				{ "code", errorTypeToString(aType) }
-			}
-			}
-		};*/
+		//virtual const char* what() const throw() { return getError().c_str(); }
 
+		virtual ~JsonException() throw() { }
+		virtual const json& getErrorJson() const { return error; }
+	protected:
 		json error;
-		error["message"] = aMessage;
-		error["field"] = fieldName;
-		error["code"] = errorTypeToString(aType);
+	};
 
-		return error;
-	}
 }
+
+#endif // !defined(EXCEPTION_H)

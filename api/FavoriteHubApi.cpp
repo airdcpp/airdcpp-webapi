@@ -52,10 +52,10 @@ namespace webserver {
 	}
 
 	string FavoriteHubApi::updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) {
-		//string name, server;
-		ShareProfilePtr shareProfile = nullptr;
+		ShareProfilePtr shareProfilePtr = nullptr;
 
 		auto name = JsonUtil::getOptionalField<string>("name", j, false, aNewHub);
+
 		auto server = JsonUtil::getOptionalField<string>("hub_url", j, false, aNewHub);
 		if (server) {
 			if (!FavoriteManager::getInstance()->isUnique(*server, aEntry->getToken())) {
@@ -66,13 +66,12 @@ namespace webserver {
 		{
 			auto shareProfileToken = JsonUtil::getOptionalField<ProfileToken>("share_profile", j, false, false);
 			if (shareProfileToken) {
-				//ProfileToken token = *shareProfileToken;
 				if (!AirUtil::isAdcHub(!server ? aEntry->getServerStr() : *server) && *shareProfileToken != SETTING(DEFAULT_SP)) {
 					JsonUtil::throwError("share_profile", JsonUtil::ERROR_INVALID, "Share profiles can't be changed for NMDC hubs");
 				}
 
-				shareProfile = ShareManager::getInstance()->getShareProfile(*shareProfileToken, false);
-				if (!shareProfile) {
+				shareProfilePtr = ShareManager::getInstance()->getShareProfile(*shareProfileToken, false);
+				if (!shareProfilePtr) {
 					JsonUtil::throwError("share_profile", JsonUtil::ERROR_INVALID, "Invalid share profile");
 				}
 			}
@@ -87,8 +86,8 @@ namespace webserver {
 			aEntry->setServerStr(*server);
 		}
 
-		if (shareProfile) {
-			aEntry->setShareProfile(shareProfile);
+		if (shareProfilePtr) {
+			aEntry->setShareProfile(shareProfilePtr);
 		}
 
 		return Util::emptyString;
@@ -126,7 +125,7 @@ namespace webserver {
 
 		auto err = updateValidatedProperties(e, j, true);
 		if (!err.empty()) {
-			aRequest.setResponseError(err);
+			aRequest.setResponseErrorStr(err);
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -144,7 +143,7 @@ namespace webserver {
 	api_return FavoriteHubApi::handleRemoveHub(ApiRequest& aRequest) throw(exception) {
 		auto token = aRequest.getTokenParam(0);
 		if (!FavoriteManager::getInstance()->removeFavoriteHub(token)) {
-			aRequest.setResponseError("Hub not found");
+			aRequest.setResponseErrorStr("Hub not found");
 			return websocketpp::http::status_code::not_found;
 		}
 
@@ -154,7 +153,7 @@ namespace webserver {
 	api_return FavoriteHubApi::handleGetHub(ApiRequest& aRequest) throw(exception) {
 		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!entry) {
-			aRequest.setResponseError("Hub not found");
+			aRequest.setResponseErrorStr("Hub not found");
 			return websocketpp::http::status_code::not_found;
 		}
 
@@ -165,7 +164,7 @@ namespace webserver {
 	api_return FavoriteHubApi::handleUpdateHub(ApiRequest& aRequest) throw(exception) {
 		auto e = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!e) {
-			aRequest.setResponseError("Hub not found");
+			aRequest.setResponseErrorStr("Hub not found");
 			return websocketpp::http::status_code::not_found;
 		}
 
@@ -174,7 +173,7 @@ namespace webserver {
 
 		auto err = updateValidatedProperties(e, j, false);
 		if (!err.empty()) {
-			aRequest.setResponseError(err);
+			aRequest.setResponseErrorStr(err);
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -188,7 +187,7 @@ namespace webserver {
 	api_return FavoriteHubApi::handleConnect(ApiRequest& aRequest) throw(exception) {
 		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!entry) {
-			aRequest.setResponseError("Hub not found");
+			aRequest.setResponseErrorStr("Hub not found");
 			return websocketpp::http::status_code::not_found;
 		}
 
@@ -202,7 +201,7 @@ namespace webserver {
 	api_return FavoriteHubApi::handleDisconnect(ApiRequest& aRequest) throw(exception) {
 		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!entry) {
-			aRequest.setResponseError("Hub not found");
+			aRequest.setResponseErrorStr("Hub not found");
 			return websocketpp::http::status_code::not_found;
 		}
 

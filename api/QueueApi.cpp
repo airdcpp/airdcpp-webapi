@@ -125,7 +125,7 @@ namespace webserver {
 				);
 		}
 		catch (const Exception& e) {
-			aRequest.setResponseError(e.getError());
+			aRequest.setResponseErrorStr(e.getError());
 			return websocketpp::http::status_code::internal_server_error;
 		}
 
@@ -167,7 +167,7 @@ namespace webserver {
 			);
 		}
 		catch (const QueueException& e) {
-			aRequest.setResponseError(e.getError());
+			aRequest.setResponseErrorStr(e.getError());
 			return websocketpp::http::status_code::internal_server_error;
 		}
 
@@ -225,7 +225,7 @@ namespace webserver {
 				);
 		}
 		catch (const Exception& e) {
-			aRequest.setResponseError(e.getError());
+			aRequest.setResponseErrorStr(e.getError());
 			return websocketpp::http::status_code::internal_server_error;
 		}
 
@@ -248,7 +248,7 @@ namespace webserver {
 		try {
 			QueueManager::getInstance()->addList(Deserializer::deserializeHintedUser(j["user"]), flags, directory);
 		} catch (const Exception& e) {
-			aRequest.setResponseError(e.getError());
+			aRequest.setResponseErrorStr(e.getError());
 			return websocketpp::http::status_code::internal_server_error;
 		}
 

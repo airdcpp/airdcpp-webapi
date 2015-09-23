@@ -39,52 +39,54 @@ namespace webserver {
 
 	}
 
-	api_return ApiRouter::handleSocketRequest(const string& aRequestBody, WebSocketPtr& aSocket, json& response_, 
-		string& error_, bool aIsSecure) noexcept {
+	void ApiRouter::handleSocketRequest(const string& aRequestBody, WebSocketPtr& aSocket, bool aIsSecure) noexcept {
 
 		dcdebug("Received socket request: %s\n", aRequestBody.c_str());
 		bool authenticated = aSocket->getSession() != nullptr;
 
+		json responseJsonData, errorJson;
+		websocketpp::http::status_code::value code;
+		int callbackId = -1;
+
 		try {
-			json j = json::parse(aRequestBody);
-			auto cb = j.find("callback_id");
-			if (cb != j.end()) {
-				response_["callback_id"] = cb.value();
+			json requestJson = json::parse(aRequestBody);
+			auto cb = requestJson.find("callback_id");
+			if (cb != requestJson.end()) {
+				callbackId = cb.value();
 			}
 
-			response_["data"] = json();
-			ApiRequest apiRequest(j["path"], j["method"], response_["data"], error_);
-			apiRequest.parseSocketRequestJson(j);
+			ApiRequest apiRequest(requestJson["path"], requestJson["method"], responseJsonData, errorJson);
+			apiRequest.parseSocketRequestJson(requestJson);
 			apiRequest.setSession(aSocket->getSession());
 
-			if (!apiRequest.validate(false, error_)) {
-				return websocketpp::http::status_code::bad_request;
-			}
+			apiRequest.validate();
 
-			return handleRequest(apiRequest, aIsSecure, aSocket);
+			code = handleRequest(apiRequest, aIsSecure, aSocket);
 		} catch (const std::exception& e) {
-			error_ = "Parsing failed: " + string(e.what());
-			return websocketpp::http::status_code::bad_request;
+			errorJson = { "message", "Parsing failed: " + string(e.what()) };
+			code = websocketpp::http::status_code::bad_request;
+		}
+
+		if (callbackId > 0) {
+			aSocket->sendApiResponse(responseJsonData, errorJson, code, callbackId);
 		}
 	}
 
 	websocketpp::http::status_code::value ApiRouter::handleHttpRequest(const string& aRequestPath,
-		const SessionPtr& aSession, const string& aRequestBody, json& output_, string& error_,
+		const SessionPtr& aSession, const string& aRequestBody, json& output_, json& error_,
 		bool aIsSecure, const string& aRequestMethod) noexcept {
 
 		dcdebug("Received HTTP request: %s\n", aRequestBody.c_str());
 		try {
 			ApiRequest apiRequest(aRequestPath, aRequestMethod, output_, error_);
-			if (!apiRequest.validate(false, error_)) {
-				return websocketpp::http::status_code::bad_request;
-			}
+			apiRequest.validate();
 
 			apiRequest.parseHttpRequestJson(aRequestBody);
 			apiRequest.setSession(aSession);
 
 			return handleRequest(apiRequest, aIsSecure, nullptr);
 		} catch (const std::exception& e) {
-			error_ = "Parsing failed: " + string(e.what());
+			error_ = { "message", "Parsing failed: " + string(e.what()) };
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -99,13 +101,13 @@ namespace webserver {
 
 		// Require auth for all other modules
 		if (!aRequest.getSession()) {
-			aRequest.setResponseError("Not authorized");
+			aRequest.setResponseErrorStr("Not authorized");
 			return websocketpp::http::status_code::unauthorized;
 		}
 
 		// Require using the same protocol that was used for logging in
 		if (aRequest.getSession()->isSecure() != aIsSecure) {
-			aRequest.setResponseError("Protocol mismatch");
+			aRequest.setResponseErrorStr("Protocol mismatch");
 			return websocketpp::http::status_code::not_acceptable;
 		}
 
@@ -113,10 +115,10 @@ namespace webserver {
 		try {
 			code = aRequest.getSession()->handleRequest(aRequest);
 		} catch (const ArgumentException& e) {
-			aRequest.setResponseError(e.what());
+			aRequest.setResponseErrorJson(e.getErrorJson());
 			code = CODE_UNPROCESSABLE_ENTITY;
 		} catch (const std::exception& e) {
-			aRequest.setResponseError(e.what());
+			aRequest.setResponseErrorStr(e.what());
 			code = websocketpp::http::status_code::bad_request;
 		}
 
@@ -125,7 +127,7 @@ namespace webserver {
 
 	api_return ApiRouter::handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception) {
 		if (aRequest.getApiVersion() != 0) {
-			aRequest.setResponseError("Invalid API version");
+			aRequest.setResponseErrorStr("Invalid API version");
 			return websocketpp::http::status_code::precondition_failed;
 		}
 
@@ -139,7 +141,7 @@ namespace webserver {
 			return sessionApi.handleSocketConnect(aRequest, aIsSecure, aSocket);
 		}
 
-		aRequest.setResponseError("Invalid command");
+		aRequest.setResponseErrorStr("Invalid command");
 		return websocketpp::http::status_code::bad_request;
 	}
 }

@@ -83,7 +83,7 @@ namespace webserver {
 		std::string str = j["pattern"];
 
 		if (str.length() < MIN_SEARCH) {
-			aRequest.setResponseError("Search string too short");
+			aRequest.setResponseErrorStr("Search string too short");
 			return websocketpp::http::status_code::bad_request;
 		}
 

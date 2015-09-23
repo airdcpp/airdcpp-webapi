@@ -27,7 +27,7 @@
 #include <client/GetSet.h>
 
 namespace webserver {
-	// WebSockets are owned by WebServerManager
+	// WebSockets are owned by WebServerManager and API modules
 
 	class WebSocket {
 	public:
@@ -39,26 +39,17 @@ namespace webserver {
 		}
 		~WebSocket();
 
-		//GETSET(time_t, lastActivity, LastActivity);
-
-		bool auth(ApiRequest& aRequest, const WebSocketPtr& aPointer);
-
 		void close(websocketpp::close::status::value aCode, const std::string& aMsg);
-
-		//SessionPtr getSession() {
-		//	return session;
-		//}
 
 		IGETSET(SessionPtr, session, Session, nullptr);
 
 		void sendPlain(const std::string& aMsg);
-		void sendApiResponse(json& aJson, const std::string& error, websocketpp::http::status_code::value code);
-		api_return handle(ApiRequest& aRequest) noexcept;
+		void sendApiResponse(const json& aJsonResponse, const json& aErrorJson, websocketpp::http::status_code::value aCode, int aCallbackId);
 
 		WebSocket(WebSocket&) = delete;
 		WebSocket& operator=(WebSocket&) = delete;
 	protected:
-		WebSocket(bool aIsSecure, websocketpp::connection_hdl aHdl/*, ApiModule* aHandler*/);
+		WebSocket(bool aIsSecure, websocketpp::connection_hdl aHdl);
 	private:
 		union {
 			server_plain* plainServer;
@@ -68,9 +59,6 @@ namespace webserver {
 		websocketpp::connection_hdl hdl;
 
 		bool secure;
-		//time_t started;
-		//SessionPtr session = nullptr;
-		ApiModule* handler = nullptr;
 	};
 }
 

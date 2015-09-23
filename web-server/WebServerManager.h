@@ -54,8 +54,6 @@ namespace webserver {
 			typename EndpointType::message_ptr msg, bool aIsSecure) {
 
 			WebSocketPtr socket = nullptr;
-			std::string error;
-			json returnJson;
 
 			{
 				WLock l(cs);
@@ -68,8 +66,7 @@ namespace webserver {
 				}
 			}
 
-			auto code = api.handleSocketRequest(msg->get_payload(), socket, returnJson, error, aIsSecure);
-			socket->sendApiResponse(returnJson, error, code);
+			api.handleSocketRequest(msg->get_payload(), socket, aIsSecure);
 		}
 
 		void on_init_socket(websocketpp::connection_hdl hdl) {
@@ -117,8 +114,7 @@ namespace webserver {
 			websocketpp::http::status_code::value status;
 
 			if (con->get_resource().length() >= 4 && con->get_resource().compare(0, 4, "/api") == 0) {
-				json output;
-				std::string  error;
+				json output, error;
 
 				status = api.handleHttpRequest(
 					con->get_resource().substr(4),
@@ -131,13 +127,12 @@ namespace webserver {
 					);
 
 				if (status != websocketpp::http::status_code::ok) {
-					con->append_header("Content-Type", status == CODE_UNPROCESSABLE_ENTITY ? "application/json" : "text/plain");
-					con->set_body(error);
+					con->set_body(error.dump(4));
 				} else {
-					con->append_header("Content-Type", "application/json");
 					con->set_body(output.dump());
 				}
 
+				con->append_header("Content-Type", "application/json");
 				con->set_status(status);
 			}
 			else {

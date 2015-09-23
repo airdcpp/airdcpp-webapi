@@ -62,7 +62,7 @@ namespace webserver {
 		// Find section
 		auto i = requestHandlers.find(aRequest.getApiModuleSection());
 		if (i == requestHandlers.end()) {
-			aRequest.setResponseError("Invalid API section");
+			aRequest.setResponseErrorStr("Invalid API section");
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -71,7 +71,7 @@ namespace webserver {
 		// Find method handlers
 		/*auto methodHandlers = sectionHandlers.equal_range(aRequest.getMethod());
 		if (methodHandlers.first == methodHandlers.second) {
-			aRequest.setResponseError("Method not supported for this API section");
+			aRequest.setResponseErrorStr("Method not supported for this API section");
 			return websocketpp::http::status_code::bad_request;
 		}*/
 
@@ -94,9 +94,9 @@ namespace webserver {
 
 		if (handler == sectionHandlers.end()) {
 			if (hasParamMatch) {
-				aRequest.setResponseError("Method not supported for this command");
+				aRequest.setResponseErrorStr("Method not supported for this command");
 			} else {
-				aRequest.setResponseError("Invalid parameters for this API section");
+				aRequest.setResponseErrorStr("Invalid parameters for this API section");
 			}
 
 			return websocketpp::http::status_code::bad_request;
@@ -104,7 +104,7 @@ namespace webserver {
 
 		// Check JSON payload
 		if (handler->requireJson && !aRequest.hasRequestBody()) {
-			aRequest.setResponseError("JSON body required");
+			aRequest.setResponseErrorStr("JSON body required");
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -115,13 +115,13 @@ namespace webserver {
 
 	api_return ApiModule::handleSubscribe(ApiRequest& aRequest) throw(exception) {
 		if (!socket) {
-			aRequest.setResponseError("Socket required");
+			aRequest.setResponseErrorStr("Socket required");
 			return websocketpp::http::status_code::precondition_required;
 		}
 
 		auto i = subscriptions.find(aRequest.getStringParam(0));
 		if (i == subscriptions.end()) {
-			aRequest.setResponseError("No such subscription: " + aRequest.getStringParam(0));
+			aRequest.setResponseErrorStr("No such subscription: " + aRequest.getStringParam(0));
 			return websocketpp::http::status_code::not_found;
 		}
 

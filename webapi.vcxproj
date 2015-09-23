@@ -187,6 +187,7 @@
     <ClInclude Include="api\TransferApi.h" />
     <ClInclude Include="web-server\ApiRequest.h" />
     <ClInclude Include="web-server\ApiRouter.h" />
+    <ClInclude Include="web-server\Exception.h" />
     <ClInclude Include="web-server\FileServer.h" />
     <ClInclude Include="web-server\JsonUtil.h" />
     <ClInclude Include="web-server\LazyInitWrapper.h" />

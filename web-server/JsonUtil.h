@@ -77,10 +77,10 @@ namespace webserver {
 		}
 
 		static void throwError(const string& aFieldName, ErrorType aType, const string& aMessage)  {
-			throw ArgumentException(getError(aFieldName, aType, aMessage).c_str());
+			throw ArgumentException(getError(aFieldName, aType, aMessage));
 		}
 
-		static string getError(const string& aFieldName, ErrorType aType, const string& aMessage) noexcept;
+		static json getError(const string& aFieldName, ErrorType aType, const string& aMessage) noexcept;
 	private:
 		// Convert null strings, add more conversions if needed
 		template <class T>
