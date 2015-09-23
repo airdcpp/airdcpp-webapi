@@ -188,6 +188,7 @@
     <ClInclude Include="web-server\ApiRequest.h" />
     <ClInclude Include="web-server\ApiRouter.h" />
     <ClInclude Include="web-server\FileServer.h" />
+    <ClInclude Include="web-server\JsonUtil.h" />
     <ClInclude Include="web-server\LazyInitWrapper.h" />
     <ClInclude Include="web-server\Session.h" />
     <ClInclude Include="web-server\stdinc.h" />
@@ -219,6 +220,7 @@
     <ClCompile Include="web-server\ApiRequest.cpp" />
     <ClCompile Include="web-server\ApiRouter.cpp" />
     <ClCompile Include="web-server\FileServer.cpp" />
+    <ClCompile Include="web-server\JsonUtil.cpp" />
     <ClCompile Include="web-server\Session.cpp" />
     <ClCompile Include="web-server\stdinc.cpp" />
     <ClCompile Include="web-server\WebServerManager.cpp" />

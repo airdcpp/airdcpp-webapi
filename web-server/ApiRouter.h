@@ -32,11 +32,13 @@ namespace webserver {
 		~ApiRouter();
 
 		api_return handleSocketRequest(const std::string& aRequestBody, WebSocketPtr& aSocket, json& response_, 
-			std::string& error_, bool aIsSecure);
-		api_return handleRequest(const std::string& aRequestPath, const SessionPtr& aSession, const std::string& aRequestBody, 
+			std::string& error_, bool aIsSecure) noexcept;
+		api_return handleHttpRequest(const std::string& aRequestPath, const SessionPtr& aSession, const std::string& aRequestBody, 
 			json& output_, std::string& error_, bool aIsSecure, const std::string& aRequestMethod) noexcept;
 	private:
-		api_return handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket = nullptr) throw(exception);
+		api_return handleRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) noexcept;
+
+		api_return handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception);
 
 		SessionApi sessionApi;
 	};

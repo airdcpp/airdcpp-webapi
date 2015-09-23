@@ -53,9 +53,8 @@ namespace webserver {
 		void on_message(EndpointType* aServer, websocketpp::connection_hdl hdl,
 			typename EndpointType::message_ptr msg, bool aIsSecure) {
 
-			auto code = websocketpp::http::status_code::bad_request;
 			WebSocketPtr socket = nullptr;
-			std::string  error;
+			std::string error;
 			json returnJson;
 
 			{
@@ -64,19 +63,12 @@ namespace webserver {
 				if (s != sockets.end()) {
 					socket = s->second;
 				} else {
-					//socket = make_shared<WebSocket>(aIsSecure, hdl, aServer);
-					//sockets.emplace(hdl, socket);
 					dcassert(0);
 					return;
 				}
 			}
 
-			try {
-				code = api.handleSocketRequest(msg->get_payload(), socket, returnJson, error, aIsSecure);
-			} catch (const std::exception& e) {
-				error = e.what();
-			}
-
+			auto code = api.handleSocketRequest(msg->get_payload(), socket, returnJson, error, aIsSecure);
 			socket->sendApiResponse(returnJson, error, code);
 		}
 
@@ -128,7 +120,7 @@ namespace webserver {
 				json output;
 				std::string  error;
 
-				status = api.handleRequest(
+				status = api.handleHttpRequest(
 					con->get_resource().substr(4),
 					session,
 					con->get_request_body(),
@@ -139,10 +131,9 @@ namespace webserver {
 					);
 
 				if (status != websocketpp::http::status_code::ok) {
-					con->append_header("Content-Type", "text/plain");
+					con->append_header("Content-Type", status == CODE_UNPROCESSABLE_ENTITY ? "application/json" : "text/plain");
 					con->set_body(error);
-				}
-				else {
+				} else {
 					con->append_header("Content-Type", "application/json");
 					con->set_body(output.dump());
 				}
@@ -168,7 +159,8 @@ namespace webserver {
 
 		void disconnectSockets(const std::string& aMessage) noexcept;
 
-		//void logout(const std::string& aSessionToken) noexcept;
+		// Reset sessions for associated sockets
+		void logout(const std::string& aSessionToken) noexcept;
 		bool hasSocket(const std::string& aSessionToken) noexcept;
 
 		void load() noexcept;
@@ -180,7 +172,6 @@ namespace webserver {
 		// strictly necessary, but simplifies thread management a bit.
 		boost::asio::io_service ios;
 
-		void on_http(websocketpp::connection_hdl hdl);
 		context_ptr on_tls_init(websocketpp::connection_hdl hdl);
 
 		FileServer fileServer;

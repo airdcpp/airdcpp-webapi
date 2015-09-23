@@ -16,23 +16,31 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_SESSIONAPI_H
-#define DCPLUSPLUS_DCPP_SESSIONAPI_H
-
 #include <web-server/stdinc.h>
 
-#include <client/typedefs.h>
+#include <web-server/JsonUtil.h>
 
 namespace webserver {
-	class SessionApi {
-	public:
-		SessionApi();
+	string JsonUtil::getError(const string& fieldName, ErrorType aType, const string& aMessage) noexcept {
+		auto errorTypeToString = [](ErrorType aType) {
+			switch (aType) {
+			case ERROR_MISSING: return "missing_field";
+			case ERROR_INVALID: return "invalid";
+			case ERROR_EXISTS: return "already_exists";
+			}
 
-		api_return handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket = nullptr) throw(exception);
-		api_return handleSocketConnect(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception);
-		api_return handleLogout(ApiRequest& aRequest) throw(exception);
-	private:
-	};
+			return "error";
+		};
+
+		json error = {
+			{ "message",  aMessage },
+			{ "errors",{
+				{ "field", fieldName },
+				{ "code", errorTypeToString(aType) }
+			}
+			}
+		};
+
+		return error.dump(4);
+	}
 }
-
-#endif

@@ -21,6 +21,7 @@
 #include <api/SessionApi.h>
 
 #include <web-server/WebSocket.h>
+#include <web-server/WebServerManager.h>
 #include <web-server/WebUserManager.h>
 
 namespace webserver {
@@ -50,18 +51,14 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return SessionApi::handleLogout(ApiRequest& aRequest, const WebSocketPtr& aSocket) throw(exception) {
+	api_return SessionApi::handleLogout(ApiRequest& aRequest) throw(exception) {
 		if (!aRequest.getSession()) {
 			aRequest.setResponseError("Not authorized");
 			return websocketpp::http::status_code::unauthorized;
 		}
 
 		WebUserManager::getInstance()->logout(aRequest.getSession());
-
-		if (aSocket) {
-			aSocket->getSession()->setSocket(nullptr);
-			aSocket->setSession(nullptr);
-		}
+		WebServerManager::getInstance()->logout(aRequest.getSession()->getToken());
 
 		return websocketpp::http::status_code::ok;
 	}

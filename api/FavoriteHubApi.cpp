@@ -18,6 +18,7 @@
 
 #include <api/FavoriteHubApi.h>
 #include <api/FavoriteHubUtils.h>
+#include <web-server/JsonUtil.h>
 
 #include <client/AirUtil.h>
 #include <client/ClientManager.h>
@@ -51,53 +52,39 @@ namespace webserver {
 	}
 
 	string FavoriteHubApi::updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) {
-		string name, server;
+		//string name, server;
 		ShareProfilePtr shareProfile = nullptr;
 
-		auto i = j.find("name");
-		if (i != j.end()) {
-			name = (*i).get<string>();
-			if (name.empty()) {
-				return STRING(NAME_REQUIRED);
+		auto name = JsonUtil::getOptionalField<string>("name", j, false, aNewHub);
+		auto server = JsonUtil::getOptionalField<string>("hub_url", j, false, aNewHub);
+		if (server) {
+			if (!FavoriteManager::getInstance()->isUnique(*server, aEntry->getToken())) {
+				JsonUtil::throwError("hub_url", JsonUtil::ERROR_EXISTS, STRING(FAVORITE_HUB_ALREADY_EXISTS));
 			}
-		} else if (aNewHub) {
-			return STRING(NAME_REQUIRED);
 		}
 
-		i = j.find("hub_url");
-		if (i != j.end()) {
-			server = (*i).get<string>();
-			if (server.empty()) {
-				return STRING(INCOMPLETE_FAV_HUB);
-			}
+		{
+			auto shareProfileToken = JsonUtil::getOptionalField<ProfileToken>("share_profile", j, false, false);
+			if (shareProfileToken) {
+				//ProfileToken token = *shareProfileToken;
+				if (!AirUtil::isAdcHub(!server ? aEntry->getServerStr() : *server) && *shareProfileToken != SETTING(DEFAULT_SP)) {
+					JsonUtil::throwError("share_profile", JsonUtil::ERROR_INVALID, "Share profiles can't be changed for NMDC hubs");
+				}
 
-			if (!FavoriteManager::getInstance()->isUnique(server, aEntry->getToken())) {
-				return STRING(FAVORITE_HUB_ALREADY_EXISTS);
-			}
-		} else if (aNewHub) {
-			return STRING(INCOMPLETE_FAV_HUB);
-		}
-
-		i = j.find("share_profile");
-		if (i != j.end()) {
-			ProfileToken token = *i;
-			if (!AirUtil::isAdcHub(server.empty() ? aEntry->getServerStr() : server) && token != SETTING(DEFAULT_SP)) {
-				return "Share profiles can't be changed for NMDC hubs";
-			}
-
-			shareProfile = ShareManager::getInstance()->getShareProfile(token, false);
-			if (!shareProfile) {
-				return "Invalid share profile";
+				shareProfile = ShareManager::getInstance()->getShareProfile(*shareProfileToken, false);
+				if (!shareProfile) {
+					JsonUtil::throwError("share_profile", JsonUtil::ERROR_INVALID, "Invalid share profile");
+				}
 			}
 		}
 
 		// We have valid values
-		if (!name.empty()) {
-			aEntry->setName(name);
+		if (name) {
+			aEntry->setName(*name);
 		}
 
-		if (!server.empty()) {
-			aEntry->setServerStr(server);
+		if (server) {
+			aEntry->setServerStr(*server);
 		}
 
 		if (shareProfile) {
@@ -119,15 +106,15 @@ namespace webserver {
 		for (auto i : json::iterator_wrapper(j)) {
 			auto key = i.key();
 			if (key == "auto_connect") {
-				aEntry->setAutoConnect(i.value());
+				aEntry->setAutoConnect(JsonUtil::parseValue<bool>("auto_connect", i.value()));
 			} else if (key == "hub_description") {
-				aEntry->setDescription(toString(i.value()));
+				aEntry->setDescription(JsonUtil::parseValue<string>("hub_description", i.value()));
 			} else if (key == "password") {
-				aEntry->setPassword(toString(i.value()));
+				aEntry->setPassword(JsonUtil::parseValue<string>("password", i.value()));
 			} else if (key == "nick") {
-				aEntry->get(HubSettings::Nick) = toString(i.value());
+				aEntry->get(HubSettings::Nick) = JsonUtil::parseValue<string>("nick", i.value());
 			} else if (key == "user_description") {
-				aEntry->get(HubSettings::Description) = toString(i.value());
+				aEntry->get(HubSettings::Description) = JsonUtil::parseValue<string>("user_description", i.value());
 			}
 		}
 	}

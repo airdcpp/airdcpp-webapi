@@ -40,40 +40,35 @@ namespace webserver {
 	}
 
 	api_return ApiRouter::handleSocketRequest(const string& aRequestBody, WebSocketPtr& aSocket, json& response_, 
-		string& error_, bool aIsSecure) {
+		string& error_, bool aIsSecure) noexcept {
 
 		dcdebug("Received socket request: %s\n", aRequestBody.c_str());
 		bool authenticated = aSocket->getSession() != nullptr;
 
-		json j = json::parse(aRequestBody);
-		auto cb = j.find("callback_id");
-		if (cb != j.end()) {
-			response_["callback_id"] = cb.value();
-		}
+		try {
+			json j = json::parse(aRequestBody);
+			auto cb = j.find("callback_id");
+			if (cb != j.end()) {
+				response_["callback_id"] = cb.value();
+			}
 
-		response_["data"] = json();
-		ApiRequest apiRequest(j["path"], j["method"], response_["data"], error_);
-		apiRequest.parseSocketRequestJson(j);
-		apiRequest.setSession(aSocket->getSession());
+			response_["data"] = json();
+			ApiRequest apiRequest(j["path"], j["method"], response_["data"], error_);
+			apiRequest.parseSocketRequestJson(j);
+			apiRequest.setSession(aSocket->getSession());
 
-		if (!apiRequest.validate(false, error_)) {
+			if (!apiRequest.validate(false, error_)) {
+				return websocketpp::http::status_code::bad_request;
+			}
+
+			return handleRequest(apiRequest, aIsSecure, aSocket);
+		} catch (const std::exception& e) {
+			error_ = "Parsing failed: " + string(e.what());
 			return websocketpp::http::status_code::bad_request;
 		}
-
-		// Special case because we may not have a session yet
-		if (apiRequest.getApiModule() == "session") {
-			return handleSessionRequest(apiRequest, aIsSecure, aSocket);
-		}
-
-		if (!authenticated) {
-			error_ = "Not authorized";
-			return websocketpp::http::status_code::unauthorized;
-		}
-
-		return aSocket->getSession()->handleRequest(apiRequest);
 	}
 
-	websocketpp::http::status_code::value ApiRouter::handleRequest(const string& aRequestPath,
+	websocketpp::http::status_code::value ApiRouter::handleHttpRequest(const string& aRequestPath,
 		const SessionPtr& aSession, const string& aRequestBody, json& output_, string& error_,
 		bool aIsSecure, const string& aRequestMethod) noexcept {
 
@@ -87,28 +82,7 @@ namespace webserver {
 			apiRequest.parseHttpRequestJson(aRequestBody);
 			apiRequest.setSession(aSession);
 
-			// Special case because we may not have the session yet
-			if (apiRequest.getApiModule() == "session") {
-				return handleSessionRequest(apiRequest, aIsSecure);
-			}
-
-			// Require auth for all other modules
-			if (!aSession) {
-				error_ = "Not authorized";
-				return websocketpp::http::status_code::unauthorized;
-			}
-
-			// Require using the same protocol that was used for logging in
-			if (aSession->isSecure() != aIsSecure) {
-				error_ = "Protocol mismatch";
-				return websocketpp::http::status_code::not_acceptable;
-			}
-
-			auto ret = aSession->handleRequest(apiRequest);
-			if (ret != websocketpp::http::status_code::ok) {
-				//output_ = apiRequest.get
-			}
-			return ret;
+			return handleRequest(apiRequest, aIsSecure, nullptr);
 		} catch (const std::exception& e) {
 			error_ = "Parsing failed: " + string(e.what());
 			return websocketpp::http::status_code::bad_request;
@@ -117,7 +91,39 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	websocketpp::http::status_code::value ApiRouter::handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception) {
+	api_return ApiRouter::handleRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) noexcept {
+		// Special case because we may not have the session yet
+		if (aRequest.getApiModule() == "session") {
+			return handleSessionRequest(aRequest, aIsSecure, aSocket);
+		}
+
+		// Require auth for all other modules
+		if (!aRequest.getSession()) {
+			aRequest.setResponseError("Not authorized");
+			return websocketpp::http::status_code::unauthorized;
+		}
+
+		// Require using the same protocol that was used for logging in
+		if (aRequest.getSession()->isSecure() != aIsSecure) {
+			aRequest.setResponseError("Protocol mismatch");
+			return websocketpp::http::status_code::not_acceptable;
+		}
+
+		int code;
+		try {
+			code = aRequest.getSession()->handleRequest(aRequest);
+		} catch (const ArgumentException& e) {
+			aRequest.setResponseError(e.what());
+			code = CODE_UNPROCESSABLE_ENTITY;
+		} catch (const std::exception& e) {
+			aRequest.setResponseError(e.what());
+			code = websocketpp::http::status_code::bad_request;
+		}
+
+		return static_cast<api_return>(code);
+	}
+
+	api_return ApiRouter::handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception) {
 		if (aRequest.getApiVersion() != 0) {
 			aRequest.setResponseError("Invalid API version");
 			return websocketpp::http::status_code::precondition_failed;
@@ -127,7 +133,7 @@ namespace webserver {
 			if (aRequest.getMethod() == ApiRequest::METHOD_POST) {
 				return sessionApi.handleLogin(aRequest, aIsSecure, aSocket);
 			} else if (aRequest.getMethod() == ApiRequest::METHOD_DELETE) {
-				return sessionApi.handleLogout(aRequest, aSocket);
+				return sessionApi.handleLogout(aRequest);
 			}
 		} else if (aRequest.getApiModuleSection() == "socket") {
 			return sessionApi.handleSocketConnect(aRequest, aIsSecure, aSocket);

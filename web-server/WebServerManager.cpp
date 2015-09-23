@@ -164,18 +164,23 @@ namespace webserver {
 
 	}
 
-	/*void WebServerManager::logout(const string& aSessionToken) noexcept {
-		RLock l(cs);
-		for (const auto& s: sockets | map_values) {
-			if (!s->getSession()) {
-				continue;
-			}
+	void WebServerManager::logout(const string& aSessionToken) noexcept {
+		vector<WebSocketPtr> sessionSockets;
 
-			if (s->getSession()->getToken() == aSessionToken) {
-				s->close(websocketpp::close::status::normal, "Logout");
+		{
+			RLock l(cs);
+			boost::algorithm::copy_if(sockets | map_values, back_inserter(sessionSockets),
+				[&](const WebSocketPtr& aSocket) {
+				return aSocket->getSession() && aSocket->getSession()->getToken() == aSessionToken;
 			}
-		};
-	}*/
+			);
+		}
+
+		for (const auto& s : sessionSockets) {
+			s->getSession()->setSocket(nullptr);
+			s->setSession(nullptr);
+		}
+	}
 
 	bool WebServerManager::hasSocket(const string& aSessionToken) noexcept{
 		RLock l(cs);

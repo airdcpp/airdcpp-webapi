@@ -27,12 +27,15 @@
 
 #include <client/stdinc.h>
 #include <client/StringTokenizer.h>
+
 #include <json/json.hpp>
+
 #include <websocketpp/http/constants.hpp>
 #include <websocketpp/config/asio.hpp>
 #include <websocketpp/server.hpp>
 
 #include <boost/range/algorithm/copy.hpp>
+#include <boost/algorithm/cxx11/copy_if.hpp>
 
 // define types for two different server endpoints, one for each config we are
 // using
@@ -41,7 +44,12 @@ typedef websocketpp::server<websocketpp::config::asio_tls> server_tls;
 typedef websocketpp::http::status_code::value api_return;
 
 using namespace dcpp;
-using nlohmann::json;
+
+using json = nlohmann::json;
+
+using ArgumentException = std::invalid_argument;
+
+#define CODE_UNPROCESSABLE_ENTITY 422
 
 namespace webserver {
 	class ApiRequest;
