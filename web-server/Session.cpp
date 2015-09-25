@@ -20,6 +20,7 @@
 #include <web-server/Session.h>
 #include <web-server/ApiRequest.h>
 
+#include <api/FavoriteDirectoryApi.h>
 #include <api/FavoriteHubApi.h>
 #include <api/HistoryApi.h>
 #include <api/HubApi.h>
@@ -37,6 +38,7 @@ namespace webserver {
 	Session::Session(WebUserPtr& aUser, const string& aToken, bool aIsSecure) : 
 		user(aUser), token(aToken), started(GET_TICK()), lastActivity(lastActivity), secure(aIsSecure) {
 
+		ADD_MODULE("favorite_directories", FavoriteDirectoryApi);
 		ADD_MODULE("favorite_hubs", FavoriteHubApi);
 		ADD_MODULE("histories", HistoryApi);
 		ADD_MODULE("hubs", HubApi);
@@ -48,6 +50,7 @@ namespace webserver {
 	}
 
 	Session::~Session() {
+		dcdebug("Session %s was deleted\n", token.c_str());
 	}
 
 	ApiModule* Session::getModule(const string& aModule) {

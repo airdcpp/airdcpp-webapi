@@ -87,6 +87,8 @@ namespace webserver {
 
 		void onSocketRemoved() noexcept;
 	private:
+		api_return handleFindDupePaths(ApiRequest& aRequest) throw(exception);
+
 		api_return handleRemoveBundle(ApiRequest& aRequest) throw(exception);
 		//api_return handleRemoveTempItem(ApiRequest& aRequest) throw(exception);
 		//api_return handleRemoveFileList(ApiRequest& aRequest) throw(exception);

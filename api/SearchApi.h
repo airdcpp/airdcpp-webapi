@@ -35,6 +35,8 @@ namespace webserver {
 		SearchApi();
 		~SearchApi();
 
+		void onSocketRemoved() noexcept;
+
 		int getVersion() const noexcept {
 			return 0;
 		}

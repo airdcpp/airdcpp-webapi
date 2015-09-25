@@ -17,6 +17,7 @@
 */
 
 #include <web-server/stdinc.h>
+#include <web-server/JsonUtil.h>
 
 #include <api/common/Deserializer.h>
 
@@ -24,7 +25,7 @@
 
 namespace webserver {
 	UserPtr Deserializer::deserializeUser(const json& aJson) throw(exception) {
-		std::string cidStr = aJson["cid"];
+		auto cidStr = JsonUtil::getField<string>("cid", aJson, false);
 		if (!Encoder::isBase32(cidStr.c_str())) {
 			throw exception("Invalid CID");
 		}
@@ -34,11 +35,11 @@ namespace webserver {
 	}
 
 	HintedUser Deserializer::deserializeHintedUser(const json& aJson) throw(exception) {
-		return HintedUser(deserializeUser(aJson), aJson["hub_url"]);
+		return HintedUser(deserializeUser(aJson), JsonUtil::getField<string>("hub_url", aJson, false));
 	}
 
 	TTHValue Deserializer::deserializeTTH(const json& aJson) throw(exception) {
-		std::string tthStr = aJson["tth"];
+		auto tthStr = JsonUtil::getField<string>("tth", aJson, false);
 		if (!Encoder::isBase32(tthStr.c_str())) {
 			throw exception("Invalid TTH");
 		}
@@ -47,25 +48,29 @@ namespace webserver {
 	}
 
 	QueueItemBase::Priority Deserializer::deserializePriority(const json& aJson, bool allowDefault) throw(exception) {
-		int priority = aJson["priority"];
-
 		int minAllowed = allowDefault ? QueueItemBase::DEFAULT : QueueItemBase::PAUSED_FORCE;
-		if (priority < minAllowed || priority > QueueItemBase::HIGHEST) {
-			throw exception("Invalid priority");
+
+		auto priority = JsonUtil::getEnumField<int>("priority", aJson, !allowDefault, minAllowed, QueueItemBase::HIGHEST);
+		if (!priority) {
+			return QueueItemBase::Priority::DEFAULT;
 		}
 
-		return static_cast<QueueItemBase::Priority>(priority);
+		return static_cast<QueueItemBase::Priority>(*priority);
 	}
 
 	void Deserializer::deserializeDownloadParams(const json& aJson, DownloadHandler aHandler) {
-		const string target = aJson["target"];
-		int targetType = aJson["target_type"];
-		if (targetType < 0 || targetType >= TargetUtil::TARGET_LAST) {
-			throw exception("Invalid target type");
+		auto target = JsonUtil::getOptionalField<string>("target", aJson);
+		if (!target) {
+			target = SETTING(DOWNLOAD_DIRECTORY);
+		}
+
+		auto targetType = JsonUtil::getEnumField<int>("target_type", aJson, false, 0, TargetUtil::TARGET_LAST-1);
+		if (!targetType) {
+			targetType = TargetUtil::TARGET_PATH;
 		}
 
 		auto priority = deserializePriority(aJson, true);
 
-		aHandler(target, static_cast<TargetUtil::TargetType>(targetType), priority);
+		aHandler(*target, static_cast<TargetUtil::TargetType>(*targetType), priority);
 	}
 }

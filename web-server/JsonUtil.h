@@ -31,6 +31,22 @@ namespace webserver {
 			ERROR_LAST
 		};
 
+		// Return enum field with range validation
+		template <typename T, typename JsonT>
+		static optional<T> getEnumField(const string& aFieldName, const JsonT& aJson, bool aRequired, int aMin, int aMax) {
+			auto value = getOptionalField<T>(aFieldName, aJson, false, aRequired);
+			if (value) {
+				if (*value < aMin || *value > aMax) {
+					throwError(aFieldName, ERROR_INVALID,
+						"Value " + Util::toString(*value) + " is not in range " + 
+						Util::toString(aMin) + " - " + Util::toString(aMax));
+				}
+			}
+
+			return value;
+		}
+
+		// Can be used to return null values for non-existing fields. Behaves similar to getField when throwIfMissing is true.
 		template <typename T, typename JsonT>
 		static optional<T> getOptionalField(const string& aFieldName, const JsonT& aJson, bool aAllowEmpty = true, bool throwIfMissing = false) {
 			if (throwIfMissing) {
@@ -45,6 +61,7 @@ namespace webserver {
 			return parseValue<T>(aFieldName, *p, aAllowEmpty);
 		}
 
+		// Find and parse the given field. Throws if not found.
 		template <typename T, typename JsonT>
 		static T getField(const string& aFieldName, const JsonT& aJson, bool aAllowEmpty = true) {
 			auto p = aJson.find(aFieldName);
@@ -55,6 +72,7 @@ namespace webserver {
 			return parseValue<T>(aFieldName, *p, aAllowEmpty);
 		}
 
+		// Get value from the given JSON element
 		template <typename T, typename JsonT>
 		static T parseValue(const string& aFieldName, const JsonT& aJson, bool aAllowEmpty = true) {
 			if (!aJson.is_null()) {

@@ -50,7 +50,6 @@ using namespace dcpp;
 using json = nlohmann::json;
 
 using ArgumentException = webserver::JsonException;
-//using ArgumentException = std::invalid_argument;
 
 #define CODE_UNPROCESSABLE_ENTITY 422
 

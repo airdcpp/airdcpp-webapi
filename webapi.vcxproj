@@ -104,7 +104,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;BOOST_ALL_NO_LIB;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(ProjectDir);$(SolutionDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\zlib;$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(ProjectDir);$(SolutionDir)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4996;</DisableSpecificWarnings>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -151,7 +151,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;BOOST_ALL_NO_LIB;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);_SCL_SECURE_NO_WARNINGS;</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\zlib;$(ProjectDir);$(SolutionDir)\openssl\include;$(SolutionDir)\boost;$(SolutionDir);$(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -172,6 +172,7 @@
     <ClInclude Include="api\common\PropertyFilter.h" />
     <ClInclude Include="api\common\Serializer.h" />
     <ClInclude Include="api\ApiModule.h" />
+    <ClInclude Include="api\FavoriteDirectoryApi.h" />
     <ClInclude Include="api\FavoriteHubApi.h" />
     <ClInclude Include="api\FavoriteHubUtils.h" />
     <ClInclude Include="api\HistoryApi.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="api\common\Format.cpp" />
     <ClCompile Include="api\common\PropertyFilter.cpp" />
     <ClCompile Include="api\common\Serializer.cpp" />
+    <ClCompile Include="api\FavoriteDirectoryApi.cpp" />
     <ClCompile Include="api\FavoriteHubApi.cpp" />
     <ClCompile Include="api\FavoriteHubUtils.cpp" />
     <ClCompile Include="api\HistoryApi.cpp" />

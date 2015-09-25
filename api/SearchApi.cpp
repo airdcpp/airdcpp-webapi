@@ -19,7 +19,6 @@
 #include <api/SearchApi.h>
 #include <api/SearchUtils.h>
 
-//#include <client/AirUtil.h>
 #include <client/ScopedFunctor.h>
 
 const unsigned int MIN_SEARCH = 2;
@@ -40,6 +39,10 @@ namespace webserver {
 
 	SearchApi::~SearchApi() {
 		SearchManager::getInstance()->removeListener(this);
+	}
+
+	void SearchApi::onSocketRemoved() noexcept {
+		searchView.onSocketRemoved();
 	}
 
 	SearchResultInfo::List SearchApi::getResultList() {
@@ -72,13 +75,6 @@ namespace webserver {
 	}
 
 	api_return SearchApi::handlePostSearch(ApiRequest& aRequest) {
-		/*
-		if(m_lastSearch && m_lastSearch + 3*1000 < TimerManager::getInstance()->getTick()) {
-		core::Log::get()->log("Wait a moment before a new search");
-		return;
-		}
-		*/
-
 		decltype(auto) j = aRequest.getRequestBody();
 		std::string str = j["pattern"];
 
@@ -102,7 +98,6 @@ namespace webserver {
 		curSearch = shared_ptr<SearchQuery>(newSearch);
 
 		SettingsManager::getInstance()->addToHistory(str, SettingsManager::HISTORY_SEARCH);
-		//lastSearch = GET_TICK();
 		currentSearchToken = Util::toString(Util::rand());
 
 		auto queueTime = SearchManager::getInstance()->search(str, 0, type, SearchManager::SIZE_DONTCARE, currentSearchToken, Search::MANUAL);

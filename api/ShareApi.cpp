@@ -18,6 +18,8 @@
 
 #include <api/ShareApi.h>
 #include <api/common/Serializer.h>
+#include <api/common/Deserializer.h>
+#include <web-server/JsonUtil.h>
 
 #include <client/ShareManager.h>
 #include <client/HubEntry.h>
@@ -27,6 +29,9 @@ namespace webserver {
 		ShareManager::getInstance()->addListener(this);
 
 		METHOD_HANDLER("profiles", ApiRequest::METHOD_GET, (), false, ShareApi::handleGetProfiles);
+		METHOD_HANDLER("roots", ApiRequest::METHOD_GET, (), false, ShareApi::handleGetRoots);
+
+		METHOD_HANDLER("find_dupe_paths", ApiRequest::METHOD_POST, (), true, ShareApi::handleFindDupePaths);
 	}
 
 	ShareApi::~ShareApi() {
@@ -46,6 +51,46 @@ namespace webserver {
 		}
 
 		aRequest.setResponseBody(j);
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return ShareApi::handleGetRoots(ApiRequest& aRequest) throw(exception) {
+		json ret;
+
+		auto roots = ShareManager::getInstance()->getGroupedDirectories();
+		for (const auto& vPath : roots) {
+			json parentJson;
+			parentJson["name"] = vPath.first;
+			for (const auto& realPath : vPath.second) {
+				parentJson["paths"].push_back(realPath);
+			}
+
+			ret.push_back(parentJson);
+		}
+
+		aRequest.setResponseBody(ret);
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return ShareApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
+		decltype(auto) requestJson = aRequest.getRequestBody();
+
+		json ret;
+
+		StringList paths;
+		auto path = JsonUtil::getOptionalField<string>("path", requestJson, false, false);
+		if (path) {
+			paths = ShareManager::getInstance()->getDirPaths(*path);
+		} else {
+			auto tth = Deserializer::deserializeTTH(requestJson);
+			paths = ShareManager::getInstance()->getRealPaths(tth);
+		}
+
+		for (const auto& p : paths) {
+			ret.push_back(p);
+		}
+
+		aRequest.setResponseBody(ret);
 		return websocketpp::http::status_code::ok;
 	}
 }

@@ -17,6 +17,7 @@
 */
 
 #include <web-server/stdinc.h>
+#include <web-server/JsonUtil.h>
 
 #include <api/QueueApi.h>
 #include <api/QueueUtils.h>
@@ -66,6 +67,8 @@ namespace webserver {
 		METHOD_HANDLER("filelist", ApiRequest::METHOD_POST, (), true, QueueApi::handleAddFilelist);
 		METHOD_HANDLER("filelist", ApiRequest::METHOD_GET, (TOKEN_PARAM), false, QueueApi::handleGetFile);
 		METHOD_HANDLER("filelist", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, QueueApi::handleRemoveFile);
+
+		METHOD_HANDLER("find_dupe_paths", ApiRequest::METHOD_POST, (), true, QueueApi::handleFindDupePaths);
 	}
 
 	QueueApi::~QueueApi() {
@@ -75,6 +78,28 @@ namespace webserver {
 
 	void QueueApi::onSocketRemoved() noexcept {
 		bundleView.onSocketRemoved();
+	}
+
+	api_return QueueApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
+		decltype(auto) requestJson = aRequest.getRequestBody();
+
+		json ret;
+
+		StringList paths;
+		auto path = JsonUtil::getOptionalField<string>("path", requestJson, false, false);
+		if (path) {
+			paths = QueueManager::getInstance()->getDirPaths(*path);
+		} else {
+			auto tth = Deserializer::deserializeTTH(requestJson);
+			paths = QueueManager::getInstance()->getTargets(tth);
+		}
+
+		for (const auto& p : paths) {
+			ret.push_back(p);
+		}
+
+		aRequest.setResponseBody(ret);
+		return websocketpp::http::status_code::ok;
 	}
 
 	// BUNDLES

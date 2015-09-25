@@ -16,29 +16,26 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_SHAREAPI_H
-#define DCPLUSPLUS_DCPP_SHAREAPI_H
+#ifndef DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
+#define DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
 
 #include <web-server/stdinc.h>
 
 #include <api/ApiModule.h>
 
 #include <client/typedefs.h>
-#include <client/ShareManagerListener.h>
 
 namespace webserver {
-	class ShareApi : public ApiModule, private ShareManagerListener {
+	class FavoriteDirectoryApi : public ApiModule {
 	public:
-		ShareApi();
-		~ShareApi();
+		FavoriteDirectoryApi();
+		~FavoriteDirectoryApi();
 
 		int getVersion() const noexcept {
 			return 0;
 		}
 	private:
-		api_return handleGetProfiles(ApiRequest& aRequest) throw(exception);
-		api_return handleGetRoots(ApiRequest& aRequest) throw(exception);
-		api_return handleFindDupePaths(ApiRequest& aRequest) throw(exception);
+		api_return handleGetDirectories(ApiRequest& aRequest) throw(exception);
 	};
 }
 

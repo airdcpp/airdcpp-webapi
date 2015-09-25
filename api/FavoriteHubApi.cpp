@@ -94,14 +94,6 @@ namespace webserver {
 	}
 
 	void FavoriteHubApi::updateSimpleProperties(FavoriteHubEntryPtr& aEntry, json& j) {
-		auto toString = [](const json& aJson) {
-			if (aJson.is_null()) {
-				return Util::emptyString;
-			}
-
-			return aJson.get<std::string>();
-		};
-
 		for (auto i : json::iterator_wrapper(j)) {
 			auto key = i.key();
 			if (key == "auto_connect") {

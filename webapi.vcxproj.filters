@@ -132,6 +132,9 @@
     <ClInclude Include="web-server\Exception.h">
       <Filter>Header Files\web-server</Filter>
     </ClInclude>
+    <ClInclude Include="api\FavoriteDirectoryApi.h">
+      <Filter>Header Files\api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api\QueueApi.cpp">
@@ -214,6 +217,9 @@
     </ClCompile>
     <ClCompile Include="web-server\JsonUtil.cpp">
       <Filter>Source Files\web-server</Filter>
+    </ClCompile>
+    <ClCompile Include="api\FavoriteDirectoryApi.cpp">
+      <Filter>Source Files\api</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
