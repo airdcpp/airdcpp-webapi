@@ -19,6 +19,8 @@
 #include <api/SearchApi.h>
 #include <api/SearchUtils.h>
 
+#include <api/common/Deserializer.h>
+
 #include <client/ScopedFunctor.h>
 
 const unsigned int MIN_SEARCH = 2;
@@ -35,6 +37,8 @@ namespace webserver {
 
 		METHOD_HANDLER("query", ApiRequest::METHOD_POST, (), true, SearchApi::handlePostSearch);
 		METHOD_HANDLER("types", ApiRequest::METHOD_GET, (), false, SearchApi::handleGetTypes);
+
+		METHOD_HANDLER("result", ApiRequest::METHOD_POST, (TOKEN_PARAM, EXACT_PARAM("download")), false, SearchApi::handleDownload);
 	}
 
 	SearchApi::~SearchApi() {
@@ -49,6 +53,25 @@ namespace webserver {
 		SearchResultInfo::List ret;
 		boost::range::copy(results | map_values, back_inserter(ret));
 		return ret;
+	}
+
+	api_return SearchApi::handleDownload(ApiRequest& aRequest) {
+		SearchResultInfoPtr result = nullptr;
+
+		{
+			RLock l(cs);
+			auto i = find_if(results | map_values, [&](const SearchResultInfoPtr& aSI) { return aSI->getToken() == aRequest.getTokenParam(0); });
+			if (i.base() == results.end()) {
+				return websocketpp::http::status_code::not_found;
+			}
+
+			result = *i;
+		}
+
+		return Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), [&](const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPrio) {
+			return result->download(aTarget, aTargetType, aPrio);
+		});
+		//return Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), std::bind(&SearchResultInfo::download, result, _1, _2, _3));
 	}
 
 	api_return SearchApi::handleGetTypes(ApiRequest& aRequest) {

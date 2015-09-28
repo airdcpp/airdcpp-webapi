@@ -88,9 +88,12 @@ namespace webserver {
 	websocketpp::http::status_code::value FileServer::handleRequest(const string& aRequestPath, const SessionPtr& aSession, 
 		const string& aRequestBody, string& output_, string& contentType) noexcept {
 
+		dcdebug("Requesting file %s\n", aRequestPath.c_str());
+
+		// Forward all requests for non-static files to index
 		std::string request = aRequestPath;
-		if (request == "/") {
-			request += "index.html";
+		if (request.find("/build") != 0) {
+			request = "/index.html";
 		}
 
 		auto extension = Util::getFileExt(request);

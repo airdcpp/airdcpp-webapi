@@ -133,7 +133,7 @@ namespace webserver {
 		void on(QueueManagerListener::StatusUpdated, const QueueItemPtr& aQI) noexcept;
 
 		void onFileUpdated(const QueueItemPtr& qi);
-		void onBundleUpdated(const BundlePtr& aBundle, const PropertyIdSet& aUpdatedProperties);
+		void onBundleUpdated(const BundlePtr& aBundle, const PropertyIdSet& aUpdatedProperties, const string& aSubscription = "bundle_updated");
 
 		PropertyItemHandler<BundlePtr> bundlePropertyHandler;
 

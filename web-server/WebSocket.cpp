@@ -36,6 +36,7 @@ namespace webserver {
 		j["code"] = aCode;
 
 		if (aCode != websocketpp::http::status_code::ok) {
+			dcdebug("Socket request %d failed: %s\n", aCallbackId, aErrorJson.dump().c_str());
 			j["error"] = aErrorJson;
 		} else if (!aResponseJson.is_null()) {
 			j["data"] = aResponseJson;

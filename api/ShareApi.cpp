@@ -80,7 +80,7 @@ namespace webserver {
 		StringList paths;
 		auto path = JsonUtil::getOptionalField<string>("path", requestJson, false, false);
 		if (path) {
-			paths = ShareManager::getInstance()->getDirPaths(*path);
+			paths = ShareManager::getInstance()->getDirPaths(Util::toNmdcFile(*path));
 		} else {
 			auto tth = Deserializer::deserializeTTH(requestJson);
 			paths = ShareManager::getInstance()->getRealPaths(tth);

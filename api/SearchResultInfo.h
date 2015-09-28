@@ -31,6 +31,8 @@
 #include <client/TargetUtil.h>
 
 namespace webserver {
+	typedef uint32_t ResultToken;
+
 	class SearchResultInfo {
 	public:
 		typedef shared_ptr<SearchResultInfo> Ptr;
@@ -46,7 +48,7 @@ namespace webserver {
 		size_t hits = 0;
 
 		void addItem(const SearchResultInfo::Ptr& aResult) noexcept;
-		void download(const string& aTarget, QueueItemBase::Priority p, TargetUtil::TargetType aTargetType);
+		api_return download(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority p);
 
 		SearchResultInfo* parent = nullptr;
 		SearchResultInfo::List children;
@@ -91,7 +93,7 @@ namespace webserver {
 		string country;
 		double matchRelevancy = 0;
 		double sourceScoreFactor = 0.01;
-		uint32_t token;
+		ResultToken token;
 
 		static FastCriticalSection cs;
 	};

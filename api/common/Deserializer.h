@@ -26,7 +26,7 @@
 #include <client/TargetUtil.h>
 
 namespace webserver {
-	typedef std::function<void(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPriority)> DownloadHandler;
+	typedef std::function<api_return(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPriority)> DownloadHandler;
 
 	class Deserializer {
 	public:
@@ -35,7 +35,7 @@ namespace webserver {
 		static TTHValue deserializeTTH(const json& aJson) throw(exception);
 		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault) throw(exception);
 
-		static void deserializeDownloadParams(const json& aJson, DownloadHandler aHandler);
+		static api_return deserializeDownloadParams(const json& aJson, DownloadHandler aHandler);
 	};
 }
 

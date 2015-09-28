@@ -86,7 +86,7 @@ namespace webserver {
 		return (hits * sourceScoreFactor) + matchRelevancy;
 	}
 
-	void SearchResultInfo::download(const string& aTarget, QueueItemBase::Priority p, TargetUtil::TargetType aTargetType) {
+	api_return SearchResultInfo::download(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPrio) {
 		bool fileDownload = sr->getType() == SearchResult::TYPE_FILE;
 
 		// names/case sizes may differ for grouped results
@@ -97,7 +97,7 @@ namespace webserver {
 					path = aTarget.back() == PATH_SEPARATOR ? aTarget + sr->getFileName() : aTarget;
 				}
 
-				QueueManager::getInstance()->createFileBundle(*path, sr->getSize(), sr->getTTH(), sr->getUser(), sr->getDate(), 0, p);
+				QueueManager::getInstance()->createFileBundle(*path, sr->getSize(), sr->getTTH(), sr->getUser(), sr->getDate(), 0, aPrio);
 			}
 			else {
 				if (!path) {
@@ -106,7 +106,7 @@ namespace webserver {
 				}
 
 				DirectoryListingManager::getInstance()->addDirectoryDownload(aSR->getFilePath(), *path, aSR->getUser(), aTarget, aTargetType,
-					NO_CHECK, p, false, 0, false, false);
+					NO_CHECK, aPrio, false, 0, false, false);
 			}
 		};
 
@@ -123,5 +123,7 @@ namespace webserver {
 			//perform for the parent
 			download(sr);
 		}
+
+		return websocketpp::http::status_code::ok;
 	}
 }

@@ -42,6 +42,7 @@ namespace webserver {
 		subscriptions["bundle_added"];
 		subscriptions["bundle_removed"];
 		subscriptions["bundle_updated"];
+		subscriptions["bundle_status"];
 		subscriptions["bundle_tick"];
 
 		subscriptions["file_updated"];
@@ -88,7 +89,7 @@ namespace webserver {
 		StringList paths;
 		auto path = JsonUtil::getOptionalField<string>("path", requestJson, false, false);
 		if (path) {
-			paths = QueueManager::getInstance()->getDirPaths(*path);
+			paths = QueueManager::getInstance()->getDirPaths(Util::toNmdcFile(*path));
 		} else {
 			auto tth = Deserializer::deserializeTTH(requestJson);
 			paths = QueueManager::getInstance()->getTargets(tth);
@@ -141,10 +142,10 @@ namespace webserver {
 		try {
 			b = QueueManager::getInstance()->createFileBundle(
 				j["target"],
-				j["size"],
+				JsonUtil::getField<int64_t>("size", j),
 				Deserializer::deserializeTTH(j),
 				Deserializer::deserializeHintedUser(j["user"]),
-				j["date"],
+				JsonUtil::getField<time_t>("date", j),
 				0,
 				Deserializer::deserializePriority(j, true)
 				);
@@ -329,13 +330,13 @@ namespace webserver {
 
 		//send("file_updated", QueueUtils::serializeQueueItem(aQI));
 	}
-	void QueueApi::onBundleUpdated(const BundlePtr& aBundle, const PropertyIdSet& aUpdatedProperties) {
+	void QueueApi::onBundleUpdated(const BundlePtr& aBundle, const PropertyIdSet& aUpdatedProperties, const string& aSubscription) {
 		bundleView.onItemUpdated(aBundle, aUpdatedProperties);
 
-		if (!subscriptions["bundle_updated"])
+		if (!subscriptions[aSubscription])
 			return;
 
-		send("bundle_updated", Serializer::serializeItem(aBundle, bundlePropertyHandler));
+		send(aSubscription, Serializer::serializeItem(aBundle, bundlePropertyHandler));
 	}
 
 	void QueueApi::on(DownloadManagerListener::BundleTick, const BundleList& tickBundles, uint64_t /*aTick*/) noexcept {
@@ -364,7 +365,7 @@ namespace webserver {
 		onBundleUpdated(aBundle, { PROP_PRIORITY });
 	}
 	void QueueApi::on(QueueManagerListener::BundleStatusChanged, const BundlePtr& aBundle) noexcept {
-		onBundleUpdated(aBundle, { PROP_STATUS });
+		onBundleUpdated(aBundle, { PROP_STATUS }, "bundle_status");
 	}
 	void QueueApi::on(QueueManagerListener::BundleSources, const BundlePtr& aBundle) noexcept {
 		onBundleUpdated(aBundle, { PROP_SOURCES });

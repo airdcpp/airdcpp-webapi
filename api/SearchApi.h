@@ -77,8 +77,10 @@ namespace webserver {
 	private:
 		SearchResultInfo::List getResultList();
 
-		api_return SearchApi::handlePostSearch(ApiRequest& aRequest);
-		api_return SearchApi::handleGetTypes(ApiRequest& aRequest);
+		api_return handlePostSearch(ApiRequest& aRequest);
+		api_return handleGetTypes(ApiRequest& aRequest);
+
+		api_return handleDownload(ApiRequest& aRequest);
 
 		void on(SearchManagerListener::SR, const SearchResultPtr& aResult) noexcept;
 
