@@ -21,18 +21,18 @@
 #include <api/common/Serializer.h>
 #include <api/common/Format.h>
 
-//#include <client/AdcHub.h>
-#include <client/AirUtil.h>
-#include <client/Bundle.h>
-#include <client/Client.h>
-#include <client/ClientManager.h>
-#include <client/ChatMessage.h>
-#include <client/DirectoryListing.h>
-#include <client/GeoManager.h>
-#include <client/OnlineUser.h>
-#include <client/QueueItem.h>
-#include <client/QueueManager.h>
-#include <client/SearchManager.h>
+//#include <airdcpp/AdcHub.h>
+#include <airdcpp/AirUtil.h>
+#include <airdcpp/Bundle.h>
+#include <airdcpp/Client.h>
+#include <airdcpp/ClientManager.h>
+#include <airdcpp/ChatMessage.h>
+#include <airdcpp/DirectoryListing.h>
+#include <airdcpp/GeoManager.h>
+#include <airdcpp/OnlineUser.h>
+#include <airdcpp/QueueItem.h>
+#include <airdcpp/QueueManager.h>
+#include <airdcpp/SearchManager.h>
 
 namespace webserver {
 	json Serializer::serializeUser(const UserPtr& aUser) noexcept {

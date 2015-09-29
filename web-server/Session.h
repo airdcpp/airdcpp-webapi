@@ -26,8 +26,8 @@
 
 #include <api/ApiModule.h>
 
-#include <client/GetSet.h>
-#include <client/typedefs.h>
+#include <airdcpp/GetSet.h>
+#include <airdcpp/typedefs.h>
 
 namespace webserver {
 	// Sessions are owned by WebUserManager and WebSockets (websockets are closed when session is removed)

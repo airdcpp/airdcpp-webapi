@@ -18,8 +18,8 @@
 
 #include <api/HubApi.h>
 
-#include <client/ClientManager.h>
-#include <client/HubEntry.h>
+#include <airdcpp/ClientManager.h>
+#include <airdcpp/HubEntry.h>
 
 namespace webserver {
 	HubApi::HubApi() {

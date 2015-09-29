@@ -22,9 +22,9 @@
 #include <web-server/stdinc.h>
 #include <web-server/ApiRequest.h>
 
-//#include <client/typedefs.h>
-//#include <client/GetSet.h>
-#include <client/StringMatch.h>
+//#include <airdcpp/typedefs.h>
+//#include <airdcpp/GetSet.h>
+#include <airdcpp/StringMatch.h>
 
 namespace webserver {
 	class WebSocket;

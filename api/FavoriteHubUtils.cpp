@@ -21,7 +21,7 @@
 
 #include <api/common/Format.h>
 
-#include <client/FavoriteManager.h>
+#include <airdcpp/FavoriteManager.h>
 
 namespace webserver {
 	FavoriteHubEntryList FavoriteHubUtils::getEntryList() noexcept {

@@ -21,7 +21,7 @@
 
 #include <api/common/Deserializer.h>
 
-#include <client/ScopedFunctor.h>
+#include <airdcpp/ScopedFunctor.h>
 
 const unsigned int MIN_SEARCH = 2;
 

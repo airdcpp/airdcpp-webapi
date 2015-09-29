@@ -22,8 +22,8 @@
 #include <web-server/stdinc.h>
 #include <web-server/WebServerManager.h>
 
-#include <client/typedefs.h>
-#include <client/TaskQueue.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/TaskQueue.h>
 
 #include <api/ApiModule.h>
 #include <api/common/PropertyFilter.h>

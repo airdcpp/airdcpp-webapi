@@ -23,7 +23,7 @@
 
 #include <api/SessionApi.h>
 
-#include <client/typedefs.h>
+#include <airdcpp/typedefs.h>
 
 namespace webserver {
 	class ApiRouter {

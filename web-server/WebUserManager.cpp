@@ -21,8 +21,8 @@
 #include <web-server/WebUserManager.h>
 #include <web-server/WebServerManager.h>
 
-#include <client/typedefs.h>
-#include <client/Util.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/Util.h>
 
 namespace webserver {
 	WebUserManager::WebUserManager() {

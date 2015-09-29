@@ -20,10 +20,10 @@
 #include <api/FavoriteHubUtils.h>
 #include <web-server/JsonUtil.h>
 
-#include <client/AirUtil.h>
-#include <client/ClientManager.h>
-#include <client/FavoriteManager.h>
-#include <client/ShareManager.h>
+#include <airdcpp/AirUtil.h>
+#include <airdcpp/ClientManager.h>
+#include <airdcpp/FavoriteManager.h>
+#include <airdcpp/ShareManager.h>
 
 namespace webserver {
 	FavoriteHubApi::FavoriteHubApi() : itemHandler(properties, FavoriteHubUtils::getEntryList,

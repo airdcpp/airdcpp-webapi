@@ -19,7 +19,7 @@
 #include <web-server/stdinc.h>
 #include <web-server/WebSocket.h>
 
-#include <client/Util.h>
+#include <airdcpp/Util.h>
 
 namespace webserver {
 	WebSocket::WebSocket(bool aIsSecure, websocketpp::connection_hdl aHdl) :
@@ -63,8 +63,7 @@ namespace webserver {
 		try {
 			if (secure) {
 				tlsServer->close(hdl, aCode, aMsg);
-			}
-			else {
+			} else {
 				plainServer->close(hdl, aCode, aMsg);
 			}
 		} catch (const std::exception& e) {

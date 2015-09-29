@@ -21,7 +21,7 @@
 
 #include <json/json.hpp>
 
-#include <client/debug.h>
+#include <airdcpp/debug.h>
 
 namespace webserver {
 	using json = nlohmann::json;

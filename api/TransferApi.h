@@ -24,9 +24,9 @@
 
 #include <api/ApiModule.h>
 
-#include <client/typedefs.h>
-#include <client/DownloadManagerListener.h>
-#include <client/UploadManagerListener.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/DownloadManagerListener.h>
+#include <airdcpp/UploadManagerListener.h>
 
 namespace webserver {
 	class TransferApi : public ApiModule, private DownloadManagerListener, private UploadManagerListener {

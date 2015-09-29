@@ -18,8 +18,8 @@
 
 #include <api/common/PropertyFilter.h>
 
-#include <client/TimerManager.h>
-#include <client/Util.h>
+#include <airdcpp/TimerManager.h>
+#include <airdcpp/Util.h>
 
 namespace webserver {
 

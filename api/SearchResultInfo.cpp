@@ -19,9 +19,9 @@
 #include <api/SearchApi.h>
 #include <api/SearchUtils.h>
 
-#include <client/GeoManager.h>
-#include <client/DirectoryListingManager.h>
-#include <client/QueueManager.h>
+#include <airdcpp/GeoManager.h>
+#include <airdcpp/DirectoryListingManager.h>
+#include <airdcpp/QueueManager.h>
 
 #include <boost/range/numeric.hpp>
 

@@ -24,9 +24,9 @@
 #include <api/ApiModule.h>
 #include <api/common/ListViewController.h>
 
-#include <client/typedefs.h>
-#include <client/FavoriteManagerListener.h>
-#include <client/HubEntry.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/FavoriteManagerListener.h>
+#include <airdcpp/HubEntry.h>
 
 namespace webserver {
 	class FavoriteHubApi : public ApiModule, private FavoriteManagerListener {

@@ -21,10 +21,10 @@
 
 #include <web-server/stdinc.h>
 
-#include <client/CriticalSection.h>
-#include <client/SimpleXML.h>
-#include <client/Singleton.h>
-#include <client/TimerManager.h>
+#include <airdcpp/CriticalSection.h>
+#include <airdcpp/SimpleXML.h>
+#include <airdcpp/Singleton.h>
+#include <airdcpp/TimerManager.h>
 
 #include <web-server/WebUser.h>
 #include <web-server/Session.h>

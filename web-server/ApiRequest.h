@@ -21,8 +21,8 @@
 
 #include <web-server/stdinc.h>
 
-#include <client/typedefs.h>
-#include <client/GetSet.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/GetSet.h>
 
 namespace webserver {
 	class ApiRequest {

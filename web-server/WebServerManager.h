@@ -29,7 +29,7 @@
 #include "WebSocket.h"
 #include "WebUserManager.h"
 
-#include <client/Singleton.h>
+#include <airdcpp/Singleton.h>
 
 #include <iostream>
 

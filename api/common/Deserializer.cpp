@@ -21,7 +21,7 @@
 
 #include <api/common/Deserializer.h>
 
-#include <client/ClientManager.h>
+#include <airdcpp/ClientManager.h>
 
 namespace webserver {
 	UserPtr Deserializer::deserializeUser(const json& aJson) throw(exception) {

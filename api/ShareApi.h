@@ -23,8 +23,8 @@
 
 #include <api/ApiModule.h>
 
-#include <client/typedefs.h>
-#include <client/ShareManagerListener.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/ShareManagerListener.h>
 
 namespace webserver {
 	class ShareApi : public ApiModule, private ShareManagerListener {

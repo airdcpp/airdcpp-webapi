@@ -19,7 +19,7 @@
 #include <api/FavoriteDirectoryApi.h>
 //#include <web-server/JsonUtil.h>
 
-#include <client/FavoriteManager.h>
+#include <airdcpp/FavoriteManager.h>
 
 namespace webserver {
 	FavoriteDirectoryApi::FavoriteDirectoryApi() {

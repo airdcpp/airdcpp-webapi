@@ -24,7 +24,7 @@
 #include <web-server/Session.h>
 #include <web-server/ApiRequest.h>
 
-#include <client/GetSet.h>
+#include <airdcpp/GetSet.h>
 
 namespace webserver {
 	// WebSockets are owned by WebServerManager and API modules

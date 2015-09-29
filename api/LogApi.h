@@ -23,8 +23,8 @@
 
 #include <api/ApiModule.h>
 
-#include <client/typedefs.h>
-#include <client/LogManagerListener.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/LogManagerListener.h>
 
 namespace webserver {
 	class LogApi : public ApiModule, private LogManagerListener {

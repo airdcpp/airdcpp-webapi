@@ -23,9 +23,9 @@
 #include <web-server/WebUserManager.h>
 #include <web-server/WebSocket.h>
 
-#include <client/File.h>
-#include <client/Util.h>
-#include <client/StringTokenizer.h>
+#include <airdcpp/File.h>
+#include <airdcpp/Util.h>
+#include <airdcpp/StringTokenizer.h>
 
 #include <sstream>
 

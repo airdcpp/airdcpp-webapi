@@ -22,7 +22,7 @@
 
 #include <api/common/Serializer.h>
 
-#include <client/LogManager.h>
+#include <airdcpp/LogManager.h>
 
 namespace webserver {
 	LogApi::LogApi() {

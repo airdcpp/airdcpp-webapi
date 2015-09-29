@@ -23,10 +23,10 @@
 #include <api/QueueApi.h>
 #include <api/common/Format.h>
 
-#include <client/AirUtil.h>
-#include <client/Bundle.h>
-#include <client/QueueItem.h>
-#include <client/QueueManager.h>
+#include <airdcpp/AirUtil.h>
+#include <airdcpp/Bundle.h>
+#include <airdcpp/QueueItem.h>
+#include <airdcpp/QueueManager.h>
 
 #include <boost/range/algorithm/copy.hpp>
 

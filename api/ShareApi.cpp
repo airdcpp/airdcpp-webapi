@@ -21,8 +21,8 @@
 #include <api/common/Deserializer.h>
 #include <web-server/JsonUtil.h>
 
-#include <client/ShareManager.h>
-#include <client/HubEntry.h>
+#include <airdcpp/ShareManager.h>
+#include <airdcpp/HubEntry.h>
 
 namespace webserver {
 	ShareApi::ShareApi() {

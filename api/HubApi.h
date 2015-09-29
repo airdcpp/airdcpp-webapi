@@ -23,9 +23,9 @@
 
 #include <api/ApiModule.h>
 
-#include <client/typedefs.h>
-#include <client/Client.h>
-#include <client/ClientManagerListener.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/Client.h>
+#include <airdcpp/ClientManagerListener.h>
 
 namespace webserver {
 	class HubApi : public ApiModule, private ClientManagerListener {

@@ -25,8 +25,8 @@
 #include <api/common/Serializer.h>
 #include <api/common/Deserializer.h>
 
-#include <client/QueueManager.h>
-#include <client/DownloadManager.h>
+#include <airdcpp/QueueManager.h>
+#include <airdcpp/DownloadManager.h>
 
 #include <boost/range/algorithm/copy.hpp>
 

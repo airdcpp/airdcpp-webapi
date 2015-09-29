@@ -19,8 +19,8 @@
 #ifndef DCPP_PROPERTYFILTER_H
 #define DCPP_PROPERTYFILTER_H
 
-#include <client/stdinc.h>
-#include <client/StringMatch.h>
+#include <airdcpp/stdinc.h>
+#include <airdcpp/StringMatch.h>
 
 #include <api/common/Property.h>
 

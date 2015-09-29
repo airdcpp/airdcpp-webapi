@@ -21,14 +21,14 @@
 
 #include <web-server/stdinc.h>
 
-#include <client/typedefs.h>
-#include <client/GetSet.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/GetSet.h>
 
-#include <client/AirUtil.h>
-//#include <client/UserInfoBase.h>
-#include <client/SearchResult.h>
-#include <client/QueueItemBase.h>
-#include <client/TargetUtil.h>
+#include <airdcpp/AirUtil.h>
+//#include <airdcpp/UserInfoBase.h>
+#include <airdcpp/SearchResult.h>
+#include <airdcpp/QueueItemBase.h>
+#include <airdcpp/TargetUtil.h>
 
 namespace webserver {
 	typedef uint32_t ResultToken;

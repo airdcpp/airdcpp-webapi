@@ -21,10 +21,10 @@
 
 #include <web-server/stdinc.h>
 
-#include <client/typedefs.h>
+#include <airdcpp/typedefs.h>
 
-#include <client/DownloadManagerListener.h>
-#include <client/QueueManagerListener.h>
+#include <airdcpp/DownloadManagerListener.h>
+#include <airdcpp/QueueManagerListener.h>
 
 #include <api/ApiModule.h>
 #include <api/common/ListViewController.h>

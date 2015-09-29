@@ -18,9 +18,9 @@
 
 #include "Format.h"
 
-#include <client/ResourceManager.h>
-#include <client/ClientManager.h>
-#include <client/GeoManager.h>
+#include <airdcpp/ResourceManager.h>
+#include <airdcpp/ClientManager.h>
+#include <airdcpp/GeoManager.h>
 
 #include <boost/range/algorithm/copy.hpp>
 

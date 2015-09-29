@@ -30,7 +30,7 @@
 #include <api/ShareApi.h>
 #include <api/TransferApi.h>
 
-#include <client/TimerManager.h>
+#include <airdcpp/TimerManager.h>
 
 namespace webserver {
 #define ADD_MODULE(name, type) (apiHandlers.emplace(name, LazyModuleWrapper([] { return make_unique<type>(); })))

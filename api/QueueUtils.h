@@ -21,8 +21,8 @@
 
 #include <web-server/stdinc.h>
 
-#include <client/typedefs.h>
-#include <client/QueueItemBase.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/QueueItemBase.h>
 
 namespace webserver {
 	class QueueUtils {

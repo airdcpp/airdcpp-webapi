@@ -20,7 +20,7 @@
 #define DCPLUSPLUS_DCPP_WEBUSER_H
 
 #include <web-server/stdinc.h>
-#include <client/GetSet.h>
+#include <airdcpp/GetSet.h>
 
 namespace webserver {
 	class WebUser;

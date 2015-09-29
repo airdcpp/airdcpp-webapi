@@ -23,8 +23,8 @@
 
 #include <api/ApiModule.h>
 
-#include <client/typedefs.h>
-#include <client/SettingsManager.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/SettingsManager.h>
 
 namespace webserver {
 	class HistoryApi : public ApiModule {

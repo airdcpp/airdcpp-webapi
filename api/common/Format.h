@@ -21,7 +21,7 @@
 
 #include <web-server/stdinc.h>
 
-#include <client/typedefs.h>
+#include <airdcpp/typedefs.h>
 
 namespace webserver {
 	class Format {

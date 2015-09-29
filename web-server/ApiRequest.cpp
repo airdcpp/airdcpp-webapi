@@ -19,8 +19,8 @@
 #include <web-server/stdinc.h>
 #include <web-server/ApiRequest.h>
 
-#include <client/StringTokenizer.h>
-#include <client/Util.h>
+#include <airdcpp/StringTokenizer.h>
+#include <airdcpp/Util.h>
 
 namespace webserver {
 	ApiRequest::ApiRequest(const string& aUrl, const string& aMethod, json& output_, json& error_) noexcept : responseJsonData(output_), responseJsonError(error_) {

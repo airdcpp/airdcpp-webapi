@@ -23,8 +23,8 @@
 
 #include <api/common/Serializer.h>
 
-#include <client/DownloadManager.h>
-#include <client/UploadManager.h>
+#include <airdcpp/DownloadManager.h>
+#include <airdcpp/UploadManager.h>
 
 namespace webserver {
 	TransferApi::TransferApi() : timer(WebServerManager::getInstance()->addTimer([this] { onTimer(); }, 1000)) {

@@ -20,8 +20,8 @@
 
 #include <web-server/FileServer.h>
 
-#include <client/File.h>
-#include <client/Util.h>
+#include <airdcpp/File.h>
+#include <airdcpp/Util.h>
 
 #include <sstream>
 

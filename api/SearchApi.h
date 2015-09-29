@@ -25,9 +25,9 @@
 #include <api/SearchResultInfo.h>
 #include <api/common/ListViewController.h>
 
-#include <client/typedefs.h>
-#include <client/SearchManager.h>
-#include <client/SearchQuery.h>
+#include <airdcpp/typedefs.h>
+#include <airdcpp/SearchManager.h>
+#include <airdcpp/SearchQuery.h>
 
 namespace webserver {
 	class SearchApi : public ApiModule, private SearchManagerListener {

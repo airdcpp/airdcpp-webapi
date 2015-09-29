@@ -19,10 +19,10 @@
 #include <web-server/stdinc.h>
 #include <web-server/WebServerManager.h>
 
-#include <client/typedefs.h>
+#include <airdcpp/typedefs.h>
 
-#include <client/LogManager.h>
-#include <client/SettingsManager.h>
+#include <airdcpp/LogManager.h>
+#include <airdcpp/SettingsManager.h>
 
 #define CONFIG_NAME "WebServer.xml"
 #define CONFIG_DIR Util::PATH_USER_CONFIG
