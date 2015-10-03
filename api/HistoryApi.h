@@ -29,7 +29,7 @@
 namespace webserver {
 	class HistoryApi : public ApiModule {
 	public:
-		HistoryApi();
+		HistoryApi(Session* aSession);
 		~HistoryApi();
 
 		int getVersion() const noexcept {

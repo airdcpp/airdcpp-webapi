@@ -32,7 +32,7 @@ namespace webserver {
 		static json serializeResult(const SearchResultInfoPtr& aResult, int aPropertyName) noexcept;
 
 		static int compareResults(const SearchResultInfoPtr& a, const SearchResultInfoPtr& b, int aPropertyName) noexcept;
-		static std::string  getStringInfo(const SearchResultInfoPtr& a, int aPropertyName) noexcept;
+		static std::string getStringInfo(const SearchResultInfoPtr& a, int aPropertyName) noexcept;
 		static double getNumericInfo(const SearchResultInfoPtr& a, int aPropertyName) noexcept;
 	};
 }

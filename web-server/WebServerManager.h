@@ -156,7 +156,7 @@ namespace webserver {
 
 		// Reset sessions for associated sockets
 		void logout(const std::string& aSessionToken) noexcept;
-		bool hasSocket(const std::string& aSessionToken) noexcept;
+		WebSocketPtr getSocket(const std::string& aSessionToken) noexcept;
 
 		void load() noexcept;
 		void save() const noexcept;

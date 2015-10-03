@@ -16,45 +16,45 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_TRANSFERAPI_H
-#define DCPLUSPLUS_DCPP_TRANSFERAPI_H
+#ifndef DCPLUSPLUS_DCPP_PRIVATEMESSAGEAPI_H
+#define DCPLUSPLUS_DCPP_PRIVATEMESSAGEAPI_H
 
 #include <web-server/stdinc.h>
-#include <web-server/Timer.h>
 
 #include <api/ApiModule.h>
+#include <api/PrivateChatInfo.h>
 
 #include <airdcpp/typedefs.h>
-#include <airdcpp/DownloadManagerListener.h>
-#include <airdcpp/UploadManagerListener.h>
+#include <airdcpp/MessageManager.h>
 
 namespace webserver {
-	class TransferApi : public ApiModule, private DownloadManagerListener, private UploadManagerListener {
+	class PrivateChatApi : public ApiModule, private MessageManagerListener {
 	public:
-		TransferApi(Session* aSession);
-		~TransferApi();
+		PrivateChatApi(Session* aSession);
+		~PrivateChatApi();
+
+		void onSocketRemoved() noexcept;
 
 		int getVersion() const noexcept {
 			return 0;
 		}
 	private:
-		void onTimer();
+		api_return handleChat(ApiRequest& aRequest) throw(exception);
+		api_return handlePostChat(ApiRequest& aRequest) throw(exception);
+		api_return handleDeleteChat(ApiRequest& aRequest) throw(exception);
 
-		void on(DownloadManagerListener::Tick, const DownloadList& aDownloads) noexcept;
-		void on(DownloadManagerListener::BundleTick, const BundleList& bundles, uint64_t aTick) noexcept;
+		api_return handleGetThreads(ApiRequest& aRequest) throw(exception);
 
-		void on(UploadManagerListener::Tick, const UploadList& aUploads) noexcept;
-		void on(UploadManagerListener::BundleTick, const UploadBundleList& bundles) noexcept;
+		PrivateChatInfoPtr findChat(const string& aCidStr) throw(exception);
 
-		json previousStats;
+		PrivateChatInfo::List getUsers();
 
-		int lastUploadBundles = 0;
-		int lastDownloadBundles = 0;
+		PrivateChatInfo::Map chats;
 
-		int lastUploads = 0;
-		int lastDownloads = 0;
+		void on(MessageManagerListener::ChatCreated, const PrivateChatPtr& aChat, bool aReceivedMessage) noexcept;
+		void on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept;
 
-		TimerPtr timer;
+		mutable SharedMutex cs;
 	};
 }
 

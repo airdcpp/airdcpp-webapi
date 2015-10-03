@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2011-2015 AirDC++ Project
+* Copyright (C) 2012-2015 AirDC++ Project
 *
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -16,27 +16,26 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
-#define DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
+
+#ifndef DCPLUSPLUS_DCPP_SESSIONLISTENER_H
+#define DCPLUSPLUS_DCPP_SESSIONLISTENER_H
 
 #include <web-server/stdinc.h>
 
-#include <api/ApiModule.h>
-
-#include <airdcpp/typedefs.h>
-
 namespace webserver {
-	class FavoriteDirectoryApi : public ApiModule {
-	public:
-		FavoriteDirectoryApi(Session* aSession);
-		~FavoriteDirectoryApi();
 
-		int getVersion() const noexcept {
-			return 0;
-		}
-	private:
-		api_return handleGetDirectories(ApiRequest& aRequest) throw(exception);
+	class SessionListener {
+	public:
+		virtual ~SessionListener() { }
+		template<int I>	struct X { enum { TYPE = I }; };
+
+		typedef X<0> SocketConnected;
+		typedef X<1> SocketDisconnected;
+
+		virtual void on(SocketConnected, const WebSocketPtr&) noexcept { }
+		virtual void on(SocketDisconnected) noexcept { }
 	};
+
 }
 
-#endif
+#endif // !defined(DCPLUSPLUS_DCPP_SESSIONLISTENER_H)

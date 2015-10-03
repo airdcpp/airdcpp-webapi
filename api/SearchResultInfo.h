@@ -78,7 +78,7 @@ namespace webserver {
 		double getTotalRelevancy() const;
 		double getMatchRelevancy() const { return matchRelevancy; }
 
-		uint32_t getToken() const noexcept {
+		ResultToken getToken() const noexcept {
 			return token;
 		}
 

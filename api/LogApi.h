@@ -29,7 +29,7 @@
 namespace webserver {
 	class LogApi : public ApiModule, private LogManagerListener {
 	public:
-		LogApi();
+		LogApi(Session* aSession);
 		~LogApi();
 
 		int getVersion() const noexcept {

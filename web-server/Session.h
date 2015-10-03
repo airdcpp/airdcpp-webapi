@@ -22,16 +22,18 @@
 #include <web-server/stdinc.h>
 
 #include <web-server/LazyInitWrapper.h>
+#include <web-server/SessionListener.h>
 #include <web-server/WebUser.h>
 
 #include <api/ApiModule.h>
 
 #include <airdcpp/GetSet.h>
 #include <airdcpp/typedefs.h>
+#include <airdcpp/Speaker.h>
 
 namespace webserver {
 	// Sessions are owned by WebUserManager and WebSockets (websockets are closed when session is removed)
-	class Session {
+	class Session : public Speaker<SessionListener> {
 	public:
 		Session(WebUserPtr& aUser, const std::string& aToken, bool aIsSecure);
 		~Session();
@@ -57,7 +59,8 @@ namespace webserver {
 		Session& operator=(Session&) = delete;
 		//IGETSET(WebSocketPtr, socket, Socket, nullptr);
 
-		void setSocket(const WebSocketPtr& aSocket) noexcept;
+		void onSocketConnected(const WebSocketPtr& aSocket) noexcept;
+		void onSocketDisconnected() noexcept;
 	private:
 		typedef LazyInitWrapper<ApiModule> LazyModuleWrapper;
 		std::map<std::string , LazyModuleWrapper> apiHandlers;

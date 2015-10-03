@@ -21,6 +21,7 @@
 
 #include <web-server/stdinc.h>
 #include <web-server/ApiRequest.h>
+#include <web-server/SessionListener.h>
 
 //#include <airdcpp/typedefs.h>
 //#include <airdcpp/GetSet.h>
@@ -28,7 +29,7 @@
 
 namespace webserver {
 	class WebSocket;
-	class ApiModule {
+	class ApiModule : private SessionListener {
 	public:
 #define NUM_PARAM (StringMatch::getSearch(R"(\d+)", StringMatch::REGEX))
 #define TOKEN_PARAM NUM_PARAM
@@ -39,23 +40,33 @@ namespace webserver {
 
 #define BRACED_INIT_LIST(...) {__VA_ARGS__}
 #define METHOD_HANDLER(section, method, params, requireJson, func) (requestHandlers[section].push_back(ApiModule::RequestHandler(method, requireJson, BRACED_INIT_LIST params, std::bind(&func, this, placeholders::_1))))
+#define MODULE_HANDLER(section, param, func) (requestHandlers[section].push_back(ApiModule::RequestHandler(param, std::bind(&func, this, placeholders::_1))))
 
-		ApiModule();
+		ApiModule(Session* aSession);
 		virtual ~ApiModule();
 
 		typedef vector<StringMatch> ParamList;
 		struct RequestHandler {
 			typedef std::vector<RequestHandler> List;
 			typedef std::function<api_return(ApiRequest& aRequest)> HandlerFunction;
+
+			// Regular handler
 			RequestHandler(ApiRequest::Method aMethod, bool aRequireJson, ParamList&& aParams, HandlerFunction aFunction) :
 				method(aMethod), requireJson(aRequireJson), params(move(aParams)), f(aFunction) { }
 
-			const ApiRequest::Method method;
-			const bool requireJson;
+			// Sub handler
+			RequestHandler(const StringMatch& aMatch, HandlerFunction aFunction) :
+				params({ aMatch }), f(aFunction) { }
+
+			const ApiRequest::Method method = ApiRequest::METHOD_LAST;
+			const bool requireJson = false;
 			const ParamList params;
 			const HandlerFunction f;
 
 			bool matchParams(const ApiRequest::RequestParamList& aParams) const noexcept;
+			bool isModuleHandler() const noexcept {
+				return method == ApiRequest::METHOD_LAST;
+			}
 		};
 
 		typedef std::map<std::string , bool> SubscriptionMap;
@@ -63,9 +74,13 @@ namespace webserver {
 
 		api_return handleRequest(ApiRequest& aRequest) throw(exception);
 
-		void setSocket(const WebSocketPtr& aSocket) noexcept;
+		virtual void on(SessionListener::SocketConnected, const WebSocketPtr&) noexcept;
+		virtual void on(SessionListener::SocketDisconnected) noexcept;
 
-		virtual int getVersion() const noexcept = 0;
+		virtual int getVersion() const noexcept {
+			dcdebug("Root module should always have version specified");
+			return -1;
+		}
 		virtual void onSocketRemoved() noexcept { }
 
 		ApiModule(ApiModule&) = delete;
@@ -73,7 +88,13 @@ namespace webserver {
 
 		bool send(const json& aJson);
 		bool send(const string& aSubscription, const json& aJson);
+
+		Session* getSession() const noexcept {
+			return session;
+		}
 	protected:
+		Session* session;
+
 		RequestHandlerMap requestHandlers;
 		SubscriptionMap subscriptions;
 

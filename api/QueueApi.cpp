@@ -31,7 +31,7 @@
 #include <boost/range/algorithm/copy.hpp>
 
 namespace webserver {
-	QueueApi::QueueApi() : 
+	QueueApi::QueueApi(Session* aSession) : ApiModule(aSession),
 			bundlePropertyHandler(bundleProperties, QueueUtils::getBundleList, 
 				QueueUtils::getStringInfo, QueueUtils::getNumericInfo, QueueUtils::compareBundles, QueueUtils::serializeBundleProperty),
 			bundleView("bundle_view", this, bundlePropertyHandler) {

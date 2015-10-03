@@ -32,7 +32,7 @@
 namespace webserver {
 	class SearchApi : public ApiModule, private SearchManagerListener {
 	public:
-		SearchApi();
+		SearchApi(Session* aSession);
 		~SearchApi();
 
 		void onSocketRemoved() noexcept;

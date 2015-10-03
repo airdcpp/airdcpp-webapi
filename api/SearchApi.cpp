@@ -26,7 +26,7 @@
 const unsigned int MIN_SEARCH = 2;
 
 namespace webserver {
-	SearchApi::SearchApi() : itemHandler(properties, std::bind(&SearchApi::getResultList, this), 
+	SearchApi::SearchApi(Session* aSession) : ApiModule(aSession), itemHandler(properties, std::bind(&SearchApi::getResultList, this),
 		SearchUtils::getStringInfo, SearchUtils::getNumericInfo, SearchUtils::compareResults, SearchUtils::serializeResult), 
 		searchView("search_view", this, itemHandler) {
 

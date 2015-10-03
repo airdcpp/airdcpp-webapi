@@ -16,27 +16,20 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
-#define DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
-
-#include <web-server/stdinc.h>
-
-#include <api/ApiModule.h>
-
-#include <airdcpp/typedefs.h>
+#include <api/FilelistInfo.h>
+#include <api/FilelistUtils.h>
 
 namespace webserver {
-	class FavoriteDirectoryApi : public ApiModule {
-	public:
-		FavoriteDirectoryApi(Session* aSession);
-		~FavoriteDirectoryApi();
+	FilelistInfo::FilelistInfo(Session* aSession, const DirectoryListingPtr& aFilelist) : ApiModule(aSession), dl(aFilelist), itemHandler(properties, std::bind(&FilelistInfo::getCurrentViewItems, this),
+		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
+		directoryView("filelist_view", this, itemHandler) {
 
-		int getVersion() const noexcept {
-			return 0;
-		}
-	private:
-		api_return handleGetDirectories(ApiRequest& aRequest) throw(exception);
-	};
+
+	}
+
+	FilelistItemInfo::List FilelistInfo::getCurrentViewItems() {
+		FilelistItemInfo::List ret;
+		//boost::range::copy(directoryI | map_values, back_inserter(ret));
+		return ret;
+	}
 }
-
-#endif

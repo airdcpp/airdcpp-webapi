@@ -106,7 +106,7 @@ namespace webserver {
 				}
 
 				DirectoryListingManager::getInstance()->addDirectoryDownload(aSR->getFilePath(), *path, aSR->getUser(), aTarget, aTargetType,
-					NO_CHECK, aPrio, false, 0, false, false);
+					false, aPrio, false, 0, false, false);
 			}
 		};
 

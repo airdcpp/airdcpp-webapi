@@ -16,27 +16,23 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
-#define DCPLUSPLUS_DCPP_FAVORITEDIRECTORYAPI_H
+#include <api/PrivateChatInfo.h>
+#include <api/common/Serializer.h>
 
-#include <web-server/stdinc.h>
-
-#include <api/ApiModule.h>
-
-#include <airdcpp/typedefs.h>
+#include <airdcpp/PrivateChat.h>
 
 namespace webserver {
-	class FavoriteDirectoryApi : public ApiModule {
-	public:
-		FavoriteDirectoryApi(Session* aSession);
-		~FavoriteDirectoryApi();
+	PrivateChatInfo::PrivateChatInfo(Session* aSession, const PrivateChatPtr& aChat) : ApiModule(aSession), chat(aChat) {
 
-		int getVersion() const noexcept {
-			return 0;
-		}
-	private:
-		api_return handleGetDirectories(ApiRequest& aRequest) throw(exception);
-	};
+	}
+
+	json PrivateChatInfo::serialize() const noexcept {
+		return Serializer::serializeUser(chat->getUser());
+	}
+
+	//FilelistItemInfo::List FilelistInfo::getCurrentViewItems() {
+	//	FilelistItemInfo::List ret;
+		//boost::range::copy(directoryI | map_values, back_inserter(ret));
+	//	return ret;
+	//}
 }
-
-#endif

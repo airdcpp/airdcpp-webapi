@@ -28,6 +28,7 @@ namespace webserver {
 	}
 
 	WebSocket::~WebSocket() {
+		dcdebug("Websocket was deleted\n");
 	}
 
 	void WebSocket::sendApiResponse(const json& aResponseJson, const json& aErrorJson, websocketpp::http::status_code::value aCode, int aCallbackId) {

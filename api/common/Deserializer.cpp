@@ -24,14 +24,17 @@
 #include <airdcpp/ClientManager.h>
 
 namespace webserver {
-	UserPtr Deserializer::deserializeUser(const json& aJson) throw(exception) {
-		auto cidStr = JsonUtil::getField<string>("cid", aJson, false);
-		if (!Encoder::isBase32(cidStr.c_str())) {
+	CID Deserializer::deserializeCID(const string& aCID) throw(exception) {
+		if (!Encoder::isBase32(aCID.c_str())) {
 			throw exception("Invalid CID");
 		}
 
-		auto cid = CID(cidStr);
-		return ClientManager::getInstance()->findUser(cid);
+		return CID(aCID);
+	}
+
+	UserPtr Deserializer::deserializeUser(const json& aJson) throw(exception) {
+		auto cidStr = JsonUtil::getField<string>("cid", aJson, false);
+		return ClientManager::getInstance()->findUser(deserializeCID(cidStr));
 	}
 
 	HintedUser Deserializer::deserializeHintedUser(const json& aJson) throw(exception) {

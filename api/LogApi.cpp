@@ -25,7 +25,7 @@
 #include <airdcpp/LogManager.h>
 
 namespace webserver {
-	LogApi::LogApi() {
+	LogApi::LogApi(Session* aSession) : ApiModule(aSession) {
 		LogManager::getInstance()->addListener(this);
 
 		subscriptions["log_message"];

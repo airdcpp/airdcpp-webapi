@@ -79,7 +79,7 @@ namespace webserver {
 		}
 
 		removedTokens.erase(remove_if(removedTokens.begin(), removedTokens.end(), [](const string& aToken) {
-			return !WebServerManager::getInstance()->hasSocket(aToken);
+			return !WebServerManager::getInstance()->getSocket(aToken);
 		}), removedTokens.end());
 
 		if (!removedTokens.empty()) {

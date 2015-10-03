@@ -177,16 +177,18 @@ namespace webserver {
 		}
 
 		for (const auto& s : sessionSockets) {
-			s->getSession()->setSocket(nullptr);
+			s->getSession()->onSocketDisconnected();
 			s->setSession(nullptr);
 		}
 	}
 
-	bool WebServerManager::hasSocket(const string& aSessionToken) noexcept{
+	WebSocketPtr WebServerManager::getSocket(const std::string& aSessionToken) noexcept {
 		RLock l(cs);
-		return find_if(sockets | map_values, [&](const WebSocketPtr& s) {
-			return s->getSession()->getToken() == aSessionToken;
-		}).base() != sockets.end();
+		auto i = find_if(sockets | map_values, [&](const WebSocketPtr& s) {
+			return s->getSession() && s->getSession()->getToken() == aSessionToken;
+		});
+
+		return i.base() == sockets.end() ? nullptr : *i;
 	}
 
 	TimerPtr WebServerManager::addTimer(Timer::CallBack&& aCallBack, time_t aIntervalMillis) noexcept {
@@ -209,7 +211,7 @@ namespace webserver {
 		}
 
 		if (socket->getSession()) {
-			socket->getSession()->setSocket(nullptr);
+			socket->getSession()->onSocketDisconnected();
 		}
 	}
 

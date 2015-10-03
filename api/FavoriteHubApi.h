@@ -31,7 +31,7 @@
 namespace webserver {
 	class FavoriteHubApi : public ApiModule, private FavoriteManagerListener {
 	public:
-		FavoriteHubApi();
+		FavoriteHubApi(Session* aSession);
 		~FavoriteHubApi();
 
 		int getVersion() const noexcept {

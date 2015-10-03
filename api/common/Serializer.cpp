@@ -51,7 +51,7 @@ namespace webserver {
 		};
 	}
 
-	/*json Serializer::serializeChatMessage(const ChatMessage& aMessage) noexcept {
+	json Serializer::serializeChatMessage(const ChatMessage& aMessage) noexcept {
 		return {
 			{ "text", aMessage.format() },
 			{ "from", serializeOnlineUser(aMessage.from) },
@@ -66,6 +66,7 @@ namespace webserver {
 			{ "cid", aUser->getUser()->getCID().toBase32() },
 			{ "nick", aUser->getIdentity().getNick() },
 			{ "hub_url", aUser->getHubUrl() },
+			{ "hub_name", aUser->getClient().getHubName() }
 		};
 	}
 
@@ -73,10 +74,9 @@ namespace webserver {
 		return {
 			{ "name", aClient->getHubName() },
 			{ "hub_url", aClient->getHubUrl() },
-			{ "description", aClient->getHubDescription() },
-			//{ "hub_url", aClient-> },
+			{ "description", aClient->getHubDescription() }
 		};
-	}*/
+	}
 
 	std::string typeNameToString(const string& aName) {
 		switch (aName[0]) {

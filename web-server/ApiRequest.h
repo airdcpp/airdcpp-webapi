@@ -61,6 +61,8 @@ namespace webserver {
 			return parameters;
 		}
 
+		void popParam(size_t aCount = 1) noexcept;
+
 		const std::string& getStringParam(int pos) const noexcept;
 
 		// Use different naming to avoid accidentally using wrong conversion...

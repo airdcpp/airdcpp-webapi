@@ -43,7 +43,7 @@ namespace webserver {
 		};
 
 		if (aSocket) {
-			session->setSocket(aSocket);
+			session->onSocketConnected(aSocket);
 			aSocket->setSession(session);
 		}
 
@@ -77,7 +77,7 @@ namespace webserver {
 			return websocketpp::http::status_code::bad_request;
 		}
 
-		session->setSocket(aSocket);
+		session->onSocketConnected(aSocket);
 		aSocket->setSession(session);
 
 		return websocketpp::http::status_code::ok;

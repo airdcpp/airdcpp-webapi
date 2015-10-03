@@ -18,38 +18,47 @@
 
 #include <web-server/stdinc.h>
 #include <web-server/WebSocket.h>
+#include <web-server/WebServerManager.h>
 
 #include <api/ApiModule.h>
 
 namespace webserver {
-	ApiModule::ApiModule() {
+	ApiModule::ApiModule(Session* aSession) : session(aSession) {
+		socket = WebServerManager::getInstance()->getSocket(aSession->getToken());
+
+		aSession->addListener(this);
+
 		METHOD_HANDLER("listener", ApiRequest::METHOD_POST, (STR_PARAM), false, ApiModule::handleSubscribe);
 		METHOD_HANDLER("listener", ApiRequest::METHOD_DELETE, (STR_PARAM), false, ApiModule::handleUnsubscribe);
 	}
 
 	ApiModule::~ApiModule() {
-		setSocket(nullptr);
+		session->removeListener(this);
+		socket = nullptr;
 	}
 
-	void ApiModule::setSocket(const WebSocketPtr& aSocket) noexcept {
-		if (!aSocket) {
-			// Disable all subscriptions
-			for (auto& s : subscriptions) {
-				s.second = false;
-			}
-
-			onSocketRemoved();
-		}
-
+	void ApiModule::on(SessionListener::SocketConnected, const WebSocketPtr& aSocket) noexcept {
 		socket = aSocket;
 	}
 
+	void ApiModule::on(SessionListener::SocketDisconnected) noexcept {
+		// Disable all subscriptions
+		for (auto& s : subscriptions) {
+			s.second = false;
+		}
+
+		socket = nullptr;
+
+		//TODO: remove
+		onSocketRemoved();
+	}
+
 	bool ApiModule::RequestHandler::matchParams(const ApiRequest::RequestParamList& aParams) const noexcept {
-		if (aParams.size() != params.size()) {
+		if (isModuleHandler() ? aParams.size() <= params.size() : aParams.size() != params.size()) {
 			return false;
 		}
 
-		for (auto i = 0; i < aParams.size(); i++) {
+		for (auto i = 0; i < params.size(); i++) {
 			if (!params[i].match(aParams[i])) {
 				return false;
 			}
@@ -68,23 +77,17 @@ namespace webserver {
 
 		const auto& sectionHandlers = i->second;
 
-		// Find method handlers
-		/*auto methodHandlers = sectionHandlers.equal_range(aRequest.getMethod());
-		if (methodHandlers.first == methodHandlers.second) {
-			aRequest.setResponseErrorStr("Method not supported for this API section");
-			return websocketpp::http::status_code::bad_request;
-		}*/
-
 		bool hasParamMatch = false; // for better error reporting
 
 		// Match parameters
 		auto handler = boost::find_if(sectionHandlers, [&](const RequestHandler& aHandler) {
+			// Regular matching
 			auto matchesParams = aHandler.matchParams(aRequest.getParameters());
 			if (!matchesParams) {
 				return false;
 			}
 
-			if (aHandler.method == aRequest.getMethod()) {
+			if (aHandler.method == aRequest.getMethod() || aHandler.isModuleHandler()) {
 				return true;
 			}
 

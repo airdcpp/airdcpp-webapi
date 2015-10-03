@@ -25,7 +25,7 @@
 #include <airdcpp/HubEntry.h>
 
 namespace webserver {
-	ShareApi::ShareApi() {
+	ShareApi::ShareApi(Session* aSession) : ApiModule(aSession) {
 		ShareManager::getInstance()->addListener(this);
 
 		METHOD_HANDLER("profiles", ApiRequest::METHOD_GET, (), false, ShareApi::handleGetProfiles);

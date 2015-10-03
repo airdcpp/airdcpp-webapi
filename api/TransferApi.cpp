@@ -27,7 +27,7 @@
 #include <airdcpp/UploadManager.h>
 
 namespace webserver {
-	TransferApi::TransferApi() : timer(WebServerManager::getInstance()->addTimer([this] { onTimer(); }, 1000)) {
+	TransferApi::TransferApi(Session* aSession) : ApiModule(aSession), timer(WebServerManager::getInstance()->addTimer([this] { onTimer(); }, 1000)) {
 		DownloadManager::getInstance()->addListener(this);
 		UploadManager::getInstance()->addListener(this);
 

@@ -29,7 +29,7 @@
 namespace webserver {
 	class ShareApi : public ApiModule, private ShareManagerListener {
 	public:
-		ShareApi();
+		ShareApi(Session* aSession);
 		~ShareApi();
 
 		int getVersion() const noexcept {

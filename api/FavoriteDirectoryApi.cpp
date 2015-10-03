@@ -22,7 +22,7 @@
 #include <airdcpp/FavoriteManager.h>
 
 namespace webserver {
-	FavoriteDirectoryApi::FavoriteDirectoryApi() {
+	FavoriteDirectoryApi::FavoriteDirectoryApi(Session* aSession) : ApiModule(aSession) {
 		METHOD_HANDLER("directories", ApiRequest::METHOD_GET, (), false, FavoriteDirectoryApi::handleGetDirectories);
 	}
 

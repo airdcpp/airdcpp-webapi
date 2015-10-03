@@ -22,9 +22,11 @@
 
 #include <api/FavoriteDirectoryApi.h>
 #include <api/FavoriteHubApi.h>
+#include <api/FilelistApi.h>
 #include <api/HistoryApi.h>
 #include <api/HubApi.h>
 #include <api/LogApi.h>
+#include <api/PrivateChatApi.h>
 #include <api/QueueApi.h>
 #include <api/SearchApi.h>
 #include <api/ShareApi.h>
@@ -33,16 +35,18 @@
 #include <airdcpp/TimerManager.h>
 
 namespace webserver {
-#define ADD_MODULE(name, type) (apiHandlers.emplace(name, LazyModuleWrapper([] { return make_unique<type>(); })))
+#define ADD_MODULE(name, type) (apiHandlers.emplace(name, LazyModuleWrapper([this] { return make_unique<type>(this); })))
 
 	Session::Session(WebUserPtr& aUser, const string& aToken, bool aIsSecure) : 
 		user(aUser), token(aToken), started(GET_TICK()), lastActivity(lastActivity), secure(aIsSecure) {
 
 		ADD_MODULE("favorite_directories", FavoriteDirectoryApi);
 		ADD_MODULE("favorite_hubs", FavoriteHubApi);
+		ADD_MODULE("filelists", FilelistApi);
 		ADD_MODULE("histories", HistoryApi);
 		ADD_MODULE("hubs", HubApi);
 		ADD_MODULE("log", LogApi);
+		ADD_MODULE("private_chat", PrivateChatApi);
 		ADD_MODULE("queue", QueueApi);
 		ADD_MODULE("search", SearchApi);
 		ADD_MODULE("share", ShareApi);
@@ -73,9 +77,11 @@ namespace webserver {
 		return websocketpp::http::status_code::not_found;
 	}
 
-	void Session::setSocket(const WebSocketPtr& aSocket) noexcept {
-		for (auto& h : apiHandlers | map_values) {
-			h->setSocket(aSocket);
-		}
+	void Session::onSocketConnected(const WebSocketPtr& aSocket) noexcept {
+		fire(SessionListener::SocketConnected(), aSocket);
+	}
+
+	void Session::onSocketDisconnected() noexcept {
+		fire(SessionListener::SocketDisconnected());
 	}
 }

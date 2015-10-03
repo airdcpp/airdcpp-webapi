@@ -16,28 +16,42 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_DESERIALIZER_H
-#define DCPLUSPLUS_DCPP_DESERIALIZER_H
+#ifndef DCPLUSPLUS_DCPP_PRIVATEMESSAGE_H
+#define DCPLUSPLUS_DCPP_PRIVATEMESSAGE_H
 
 #include <web-server/stdinc.h>
 
 #include <airdcpp/typedefs.h>
-#include <airdcpp/QueueItemBase.h>
-#include <airdcpp/TargetUtil.h>
+#include <airdcpp/GetSet.h>
+
+#include <airdcpp/ChatMessage.h>
+#include <airdcpp/User.h>
+
+#include <api/ApiModule.h>
 
 namespace webserver {
-	typedef std::function<api_return(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPriority)> DownloadHandler;
-
-	class Deserializer {
+	class PrivateChatInfo : public ApiModule {
 	public:
-		static CID deserializeCID(const string& aCID) throw(exception);
-		static UserPtr deserializeUser(const json& aJson) throw(exception);
-		static HintedUser deserializeHintedUser(const json& aJson) throw(exception);
-		static TTHValue deserializeTTH(const json& aJson) throw(exception);
-		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault) throw(exception);
+		json serialize() const noexcept;
 
-		static api_return deserializeDownloadParams(const json& aJson, DownloadHandler aHandler);
+		typedef shared_ptr<PrivateChatInfo> Ptr;
+		typedef vector<Ptr> List;
+		typedef unordered_map<CID, Ptr> Map;
+
+		PrivateChatInfo(Session* aSession, const PrivateChatPtr& aChat);
+		~PrivateChatInfo() {	}
+
+		//const UserPtr& getUser() const { return sr->getUser().user; }
+		//const string& getHubUrl() const { return sr->getUser().hint; }
+
+		PrivateChatPtr getChat() const noexcept { return chat; }
+	private:
+		//PrivateMessage::List getCurrentViewItems();
+
+		PrivateChatPtr chat;
 	};
+
+	typedef PrivateChatInfo::Ptr PrivateChatInfoPtr;
 }
 
 #endif

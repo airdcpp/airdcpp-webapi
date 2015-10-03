@@ -85,6 +85,10 @@ namespace webserver {
 		parameters.pop_front();
 	}
 
+	void ApiRequest::popParam(size_t aCount) noexcept {
+		parameters.erase(parameters.begin(), parameters.begin() + aCount);
+	}
+
 	uint32_t ApiRequest::getTokenParam(int pos) const noexcept {
 		return Util::toUInt32(parameters[pos]);
 	}

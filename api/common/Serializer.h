@@ -29,9 +29,8 @@
 namespace webserver {
 	class Serializer {
 	public:
-		/*
 		static json serializeChatMessage(const ChatMessage& aMessage) noexcept;
-		static json serializeClient(const Client* aClient) noexcept;*/
+		static json serializeClient(const Client* aClient) noexcept;
 
 		static json serializeUser(const UserPtr& aUser) noexcept;
 		static json serializeHintedUser(const HintedUser& aUser) noexcept;

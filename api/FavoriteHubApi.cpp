@@ -26,7 +26,7 @@
 #include <airdcpp/ShareManager.h>
 
 namespace webserver {
-	FavoriteHubApi::FavoriteHubApi() : itemHandler(properties, FavoriteHubUtils::getEntryList,
+	FavoriteHubApi::FavoriteHubApi(Session* aSession) : ApiModule(aSession), itemHandler(properties, FavoriteHubUtils::getEntryList,
 		FavoriteHubUtils::getStringInfo, FavoriteHubUtils::getNumericInfo, FavoriteHubUtils::compareEntries, FavoriteHubUtils::serializeHub),
 		view("favorite_hub_view", this, itemHandler) {
 

@@ -30,7 +30,7 @@
 namespace webserver {
 	class HubApi : public ApiModule, private ClientManagerListener {
 	public:
-		HubApi();
+		HubApi(Session* aSession);
 		~HubApi();
 
 		int getVersion() const noexcept {
@@ -38,6 +38,8 @@ namespace webserver {
 		}
 	private:
 		api_return handleConnect(ApiRequest& aRequest) throw(exception);
+		api_return handleDisconnect(ApiRequest& aRequest) throw(exception);
+		api_return handleSearchNicks(ApiRequest& aRequest) throw(exception);
 	};
 }
 

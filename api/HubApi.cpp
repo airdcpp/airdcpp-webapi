@@ -18,14 +18,19 @@
 
 #include <api/HubApi.h>
 
+#include <api/common/Serializer.h>
+#include <web-server/JsonUtil.h>
+
 #include <airdcpp/ClientManager.h>
 #include <airdcpp/HubEntry.h>
 
 namespace webserver {
-	HubApi::HubApi() {
+	HubApi::HubApi(Session* aSession) : ApiModule(aSession) {
 		ClientManager::getInstance()->addListener(this);
 
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (), true, HubApi::handleConnect);
+		METHOD_HANDLER("hub", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, HubApi::handleDisconnect);
+		METHOD_HANDLER("search_nicks", ApiRequest::METHOD_POST, (), true, HubApi::handleSearchNicks);
 	}
 
 	HubApi::~HubApi() {
@@ -42,6 +47,27 @@ namespace webserver {
 		//r->setDescription(entry->getDescription());
 		ClientManager::getInstance()->createClient(r, SETTING(DEFAULT_SP));
 
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return HubApi::handleDisconnect(ApiRequest& aRequest) throw(exception) {
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return HubApi::handleSearchNicks(ApiRequest& aRequest) throw(exception) {
+		decltype(auto) reqJson = aRequest.getRequestBody();
+
+		auto pattern = JsonUtil::getField<string>("pattern", reqJson);
+		auto maxResults = JsonUtil::getField<size_t>("max_results", reqJson);
+
+		auto users = ClientManager::getInstance()->searchNicks(pattern, maxResults);
+
+		json retJson;
+		for (const auto& u : users) {
+			retJson.push_back(Serializer::serializeOnlineUser(u));
+		}
+
+		aRequest.setResponseBody(retJson);
 		return websocketpp::http::status_code::ok;
 	}
 }

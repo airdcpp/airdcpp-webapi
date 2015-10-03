@@ -78,7 +78,7 @@ namespace webserver {
 			TYPE_TIME
 		};*/
 
-		QueueApi();
+		QueueApi(Session* aSession);
 		~QueueApi();
 
 		int getVersion() const noexcept {

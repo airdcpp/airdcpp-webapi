@@ -20,7 +20,7 @@
 #include <api/common/Serializer.h>
 
 namespace webserver {
-	HistoryApi::HistoryApi() {
+	HistoryApi::HistoryApi(Session* aSession) : ApiModule(aSession) {
 		METHOD_HANDLER("items", ApiRequest::METHOD_GET, (NUM_PARAM), false, HistoryApi::handleGetHistory);
 		METHOD_HANDLER("item", ApiRequest::METHOD_POST, (NUM_PARAM), true, HistoryApi::handlePostHistory);
 	}

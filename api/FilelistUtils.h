@@ -16,27 +16,24 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_DESERIALIZER_H
-#define DCPLUSPLUS_DCPP_DESERIALIZER_H
+#ifndef DCPLUSPLUS_DCPP_FILELISTUTILS_H
+#define DCPLUSPLUS_DCPP_FILELISTUTILS_H
+
+#include <api/FilelistInfo.h>
+//#include <api/SearchResultInfo.h>
 
 #include <web-server/stdinc.h>
 
 #include <airdcpp/typedefs.h>
-#include <airdcpp/QueueItemBase.h>
-#include <airdcpp/TargetUtil.h>
 
 namespace webserver {
-	typedef std::function<api_return(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPriority)> DownloadHandler;
-
-	class Deserializer {
+	class FilelistUtils {
 	public:
-		static CID deserializeCID(const string& aCID) throw(exception);
-		static UserPtr deserializeUser(const json& aJson) throw(exception);
-		static HintedUser deserializeHintedUser(const json& aJson) throw(exception);
-		static TTHValue deserializeTTH(const json& aJson) throw(exception);
-		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault) throw(exception);
+		static json serializeItem(const FilelistItemInfoPtr& aResult, int aPropertyName) noexcept;
 
-		static api_return deserializeDownloadParams(const json& aJson, DownloadHandler aHandler);
+		static int compareItems(const FilelistItemInfoPtr& a, const FilelistItemInfoPtr& b, int aPropertyName) noexcept;
+		static std::string getStringInfo(const FilelistItemInfoPtr& a, int aPropertyName) noexcept;
+		static double getNumericInfo(const FilelistItemInfoPtr& a, int aPropertyName) noexcept;
 	};
 }
 
