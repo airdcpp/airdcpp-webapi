@@ -26,7 +26,7 @@
 #include <airdcpp/Bundle.h>
 #include <airdcpp/Client.h>
 #include <airdcpp/ClientManager.h>
-#include <airdcpp/ChatMessage.h>
+#include <airdcpp/Message.h>
 #include <airdcpp/DirectoryListing.h>
 #include <airdcpp/GeoManager.h>
 #include <airdcpp/OnlineUser.h>
@@ -35,10 +35,44 @@
 #include <airdcpp/SearchManager.h>
 
 namespace webserver {
+	StringSet Serializer::getUserFlags(const UserPtr& aUser) noexcept {
+		StringSet ret;
+		if (aUser->isSet(User::BOT)) {
+			ret.insert("bot");
+		}
+
+		if (aUser->isSet(User::FAVORITE)) {
+			ret.insert("favorite");
+		}
+
+		if (aUser->isSet(User::IGNORED)) {
+			ret.insert("ignored");
+		}
+
+		if (aUser == ClientManager::getInstance()->getMe()) {
+			ret.insert("me");
+		}
+
+		if (aUser->isSet(User::NMDC)) {
+			ret.insert("nmdc");
+		}
+
+		if (!aUser->isOnline()) {
+			ret.insert("offline");
+		}
+
+		//if (aUser->isSet(User::PASSIVE)) {
+		//	ret.insert("passive");
+		//}
+
+		return ret;
+	}
+
 	json Serializer::serializeUser(const UserPtr& aUser) noexcept {
 		return{
 			{ "cid", aUser->getCID().toBase32() },
-			{ "nicks", Util::listToString(ClientManager::getInstance()->getHubNames(aUser->getCID())) }
+			{ "nicks", Util::listToString(ClientManager::getInstance()->getHubNames(aUser->getCID())) },
+			{ "flags", getUserFlags(aUser) }
 		};
 	}
 
@@ -48,16 +82,40 @@ namespace webserver {
 			{ "nicks", ClientManager::getInstance()->getFormatedNicks(aUser) },
 			{ "hub_url", aUser.hint },
 			{ "hub_names", ClientManager::getInstance()->getFormatedHubNames(aUser) },
+			{ "flags", getUserFlags(aUser) }
 		};
 	}
 
-	json Serializer::serializeChatMessage(const ChatMessage& aMessage) noexcept {
+	json Serializer::serializeMessage(const Message& aMessage) noexcept {
+		if (aMessage.type == Message::TYPE_CHAT) {
+			return{
+				{ "chat_message", serializeChatMessage(aMessage.chatMessage) }
+			};
+		}
+
+		return{
+			{ "log_message", serializeLogMessage(aMessage.logMessage) }
+		};
+	}
+
+	json Serializer::serializeChatMessage(const ChatMessagePtr& aMessage) noexcept {
 		return {
-			{ "text", aMessage.format() },
-			{ "from", serializeOnlineUser(aMessage.from) },
-			{ "to", serializeOnlineUser(aMessage.to) },
-			{ "reply_to", serializeOnlineUser(aMessage.replyTo) },
-			{ "time", aMessage.timestamp }
+			{ "id", aMessage->getId()},
+			{ "text", aMessage->getText() },
+			{ "from", serializeOnlineUser(aMessage->getFrom()) },
+			{ "to", serializeOnlineUser(aMessage->getTo()) },
+			{ "reply_to", serializeOnlineUser(aMessage->getReplyTo()) },
+			{ "time", aMessage->getTime() },
+			{ "is_read", aMessage->getRead() }
+		};
+	}
+
+	json Serializer::serializeLogMessage(const LogMessagePtr& aMessageData) noexcept {
+		return{
+			{ "id", aMessageData->getId() },
+			{ "text", aMessageData->getText() },
+			{ "time", aMessageData->getTime() },
+			{ "severity", static_cast<int>(aMessageData->getTime()) }
 		};
 	}
 

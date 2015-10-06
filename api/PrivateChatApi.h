@@ -26,14 +26,13 @@
 
 #include <airdcpp/typedefs.h>
 #include <airdcpp/MessageManager.h>
+#include <airdcpp/PrivateChat.h>
 
 namespace webserver {
-	class PrivateChatApi : public ApiModule, private MessageManagerListener {
+	class PrivateChatApi : public ApiModule, private MessageManagerListener, private PrivateChatListener {
 	public:
 		PrivateChatApi(Session* aSession);
 		~PrivateChatApi();
-
-		void onSocketRemoved() noexcept;
 
 		int getVersion() const noexcept {
 			return 0;
@@ -53,6 +52,20 @@ namespace webserver {
 
 		void on(MessageManagerListener::ChatCreated, const PrivateChatPtr& aChat, bool aReceivedMessage) noexcept;
 		void on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept;
+
+		void on(PrivateChatListener::Close, PrivateChat*) noexcept;
+		void on(PrivateChatListener::UserUpdated, PrivateChat*) noexcept;
+		void on(PrivateChatListener::PMStatus, PrivateChat*, uint8_t) noexcept;
+		void on(PrivateChatListener::CCPMStatusUpdated, PrivateChat*) noexcept;
+		void on(PrivateChatListener::MessagesRead, PrivateChat*) noexcept;
+		void on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr&) noexcept;
+
+		static json serializeChat(const PrivateChatPtr& aChat) noexcept;
+		static json serializeCCPMState(uint8_t aState) noexcept;
+
+		void onSessionUpdated(const PrivateChat* aChat, const json& aData) noexcept;
+
+		void sendUnread(PrivateChat* aChat) noexcept;
 
 		mutable SharedMutex cs;
 	};

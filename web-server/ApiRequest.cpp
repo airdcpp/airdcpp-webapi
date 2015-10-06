@@ -79,10 +79,6 @@ namespace webserver {
 		}
 
 		apiVersion = Util::toInt(version.substr(1));
-
-		// API Module section
-		apiSection = parameters.front();
-		parameters.pop_front();
 	}
 
 	void ApiRequest::popParam(size_t aCount) noexcept {

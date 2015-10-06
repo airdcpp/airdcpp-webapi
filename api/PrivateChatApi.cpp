@@ -17,7 +17,6 @@
 */
 
 #include <api/PrivateChatApi.h>
-//#include <api/SearchUtils.h>
 
 #include <api/common/Deserializer.h>
 #include <api/common/Serializer.h>
@@ -29,16 +28,16 @@ namespace webserver {
 
 		MessageManager::getInstance()->addListener(this);
 
-		subscriptions["chat_created"];
-		subscriptions["chat_removed"];
-		subscriptions["chat_updated"];
+		subscriptions["chat_session_created"];
+		subscriptions["chat_session_removed"];
+		subscriptions["chat_session_updated"];
 
-		METHOD_HANDLER("chats", ApiRequest::METHOD_GET, (), false, PrivateChatApi::handleGetThreads);
+		METHOD_HANDLER("sessions", ApiRequest::METHOD_GET, (), false, PrivateChatApi::handleGetThreads);
 
-		METHOD_HANDLER("chat", ApiRequest::METHOD_DELETE, (CID_PARAM), false, PrivateChatApi::handleDeleteChat);
-		METHOD_HANDLER("chat", ApiRequest::METHOD_POST, (), true, PrivateChatApi::handlePostChat);
+		METHOD_HANDLER("session", ApiRequest::METHOD_DELETE, (CID_PARAM), false, PrivateChatApi::handleDeleteChat);
+		METHOD_HANDLER("session", ApiRequest::METHOD_POST, (), true, PrivateChatApi::handlePostChat);
 
-		MODULE_HANDLER("chat", CID_PARAM, PrivateChatApi::handleChat);
+		MODULE_HANDLER("session", CID_PARAM, PrivateChatApi::handleChat);
 
 		auto rawChats = MessageManager::getInstance()->getChats();
 		for (const auto& c : rawChats) {
@@ -63,7 +62,7 @@ namespace webserver {
 	api_return PrivateChatApi::handleChat(ApiRequest& aRequest) throw(exception) {
 		auto chat = findChat(aRequest.getStringParam(0));
 		if (!chat) {
-			aRequest.setResponseErrorStr("Chat not found");
+			aRequest.setResponseErrorStr("Chat session not found");
 			return websocketpp::http::status_code::not_found;
 		}
 
@@ -74,7 +73,7 @@ namespace webserver {
 	api_return PrivateChatApi::handlePostChat(ApiRequest& aRequest) throw(exception) {
 		auto c = MessageManager::getInstance()->addChat(Deserializer::deserializeHintedUser(aRequest.getRequestBody()), false);
 		if (!c) {
-			aRequest.setResponseErrorStr("Chat exists");
+			aRequest.setResponseErrorStr("Chat session exists");
 			return websocketpp::http::status_code::bad_request;
 		}
 
@@ -84,7 +83,7 @@ namespace webserver {
 	api_return PrivateChatApi::handleDeleteChat(ApiRequest& aRequest) throw(exception) {
 		auto chat = findChat(aRequest.getStringParam(0));
 		if (!chat) {
-			aRequest.setResponseErrorStr("Chat not found");
+			aRequest.setResponseErrorStr("Chat session not found");
 			return websocketpp::http::status_code::not_found;
 		}
 
@@ -98,7 +97,7 @@ namespace webserver {
 		{
 			RLock l(cs);
 			for (const auto& c : chats | map_values) {
-				retJson.push_back(c->serialize());
+				retJson.push_back(serializeChat(c->getChat()));
 			}
 		}
 
@@ -107,14 +106,22 @@ namespace webserver {
 	}
 
 	void PrivateChatApi::on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept {
-	
-	}
+		{
+			WLock l(cs);
+			chats.erase(aChat->getUser()->getCID());
+		}
 
-	void PrivateChatApi::on(MessageManagerListener::ChatCreated, const PrivateChatPtr& aChat, bool aReceivedMessage) noexcept {
-		if (!subscriptions["chat_created"]) {
+		aChat->removeListener(this);
+		if (!subscriptions["chat_session_removed"]) {
 			return;
 		}
 
+		send("chat_session_removed", {
+			{ "cid", aChat->getUser()->getCID().toBase32() }
+		});
+	}
+
+	void PrivateChatApi::on(MessageManagerListener::ChatCreated, const PrivateChatPtr& aChat, bool aReceivedMessage) noexcept {
 		auto chatInfo = make_shared<PrivateChatInfo>(session, aChat);
 
 		{
@@ -122,7 +129,77 @@ namespace webserver {
 			chats.emplace(aChat->getUser()->getCID(), chatInfo);
 		}
 
-		send("chat_created", chatInfo->serialize());
+		aChat->addListener(this);
+
+		if (!subscriptions["chat_session_created"]) {
+			return;
+		}
+
+		send("chat_session_created", serializeChat(aChat));
+	}
+
+	json PrivateChatApi::serializeChat(const PrivateChatPtr& aChat) noexcept {
+		return {
+			{ "user", Serializer::serializeHintedUser(aChat->getHintedUser()) },
+			{ "ccpm_state", serializeCCPMState(aChat->getCCPMState()) },
+			{ "unread_count", aChat->getCache().countUnread() }
+		};
+	}
+
+	json PrivateChatApi::serializeCCPMState(uint8_t aState) noexcept {
+		return {
+			{ "id", aState },
+			{ "str", PrivateChat::ccpmStateToString(aState) }
+		};
+	}
+
+	void PrivateChatApi::on(PrivateChatListener::Close, PrivateChat* aChat) noexcept {
+
+	}
+
+	void PrivateChatApi::on(PrivateChatListener::UserUpdated, PrivateChat* aChat) noexcept {
+		onSessionUpdated(aChat, {
+			{ "user", Serializer::serializeHintedUser(aChat->getHintedUser()) }
+		});
+	}
+
+	void PrivateChatApi::on(PrivateChatListener::PMStatus, PrivateChat* aChat, uint8_t aSeverity) noexcept {
+
+	}
+
+	void PrivateChatApi::on(PrivateChatListener::CCPMStatusUpdated, PrivateChat* aChat) noexcept {
+		onSessionUpdated(aChat, {
+			{ serializeCCPMState(aChat->getCCPMState()) }
+		});
+	}
+
+	void PrivateChatApi::on(PrivateMessage, PrivateChat* aChat, const ChatMessagePtr& aMessage) noexcept {
+		if (aMessage->getRead()) {
+			return;
+		}
+
+		sendUnread(aChat);
+	}
+
+	void PrivateChatApi::on(PrivateChatListener::MessagesRead, PrivateChat* aChat) noexcept {
+		sendUnread(aChat);
+	}
+
+	void PrivateChatApi::sendUnread(PrivateChat* aChat) noexcept {
+		onSessionUpdated(aChat, {
+			{ "unread_count", aChat->getCache().countUnread() }
+		});
+	}
+
+	void PrivateChatApi::onSessionUpdated(const PrivateChat* aChat, const json& aData) noexcept {
+		if (!subscriptions["chat_session_updated"]) {
+			return;
+		}
+
+		send("chat_session_updated", {
+			{ "id", aChat->getUser()->getCID().toBase32() },
+			{ "properties", aData }
+		});
 	}
 
 	PrivateChatInfo::List PrivateChatApi::getUsers() {

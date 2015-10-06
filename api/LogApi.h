@@ -37,11 +37,10 @@ namespace webserver {
 		}
 		//websocketpp::http::status_code::value handleRequest(ApiRequest& aRequest, const SessionPtr& aSession, const json& aJson, std::string& output_) throw(exception);
 	private:
-		static json serializeMessage(const LogMessage& aMessageData) noexcept;
 		api_return handleGetLog(ApiRequest& aRequest)  throw(exception);
 
 		// LogManagerListener
-		void on(LogManagerListener::Message, const LogMessage& aMessageData) noexcept;
+		void on(LogManagerListener::Message, const LogMessagePtr& aMessageData) noexcept;
 	};
 }
 

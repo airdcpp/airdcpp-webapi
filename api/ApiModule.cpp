@@ -53,13 +53,18 @@ namespace webserver {
 		onSocketRemoved();
 	}
 
-	bool ApiModule::RequestHandler::matchParams(const ApiRequest::RequestParamList& aParams) const noexcept {
-		if (isModuleHandler() ? aParams.size() <= params.size() : aParams.size() != params.size()) {
+	bool ApiModule::RequestHandler::matchParams(const ApiRequest::RequestParamList& aRequestParams) const noexcept {
+		if (isModuleHandler()) {
+			// The request needs to contain more params than the handler has (submodule section is required)
+			if (aRequestParams.size() <= params.size()) {
+				return false;
+			}
+		} else if (aRequestParams.size() != params.size()) {
 			return false;
 		}
 
 		for (auto i = 0; i < params.size(); i++) {
-			if (!params[i].match(aParams[i])) {
+			if (!params[i].match(aRequestParams[i])) {
 				return false;
 			}
 		}
@@ -69,12 +74,13 @@ namespace webserver {
 
 	api_return ApiModule::handleRequest(ApiRequest& aRequest) throw(exception) {
 		// Find section
-		auto i = requestHandlers.find(aRequest.getApiModuleSection());
+		auto i = requestHandlers.find(aRequest.getStringParam(0));
 		if (i == requestHandlers.end()) {
 			aRequest.setResponseErrorStr("Invalid API section");
 			return websocketpp::http::status_code::bad_request;
 		}
 
+		aRequest.popParam();
 		const auto& sectionHandlers = i->second;
 
 		bool hasParamMatch = false; // for better error reporting

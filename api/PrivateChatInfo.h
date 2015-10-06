@@ -24,29 +24,30 @@
 #include <airdcpp/typedefs.h>
 #include <airdcpp/GetSet.h>
 
-#include <airdcpp/ChatMessage.h>
+#include <airdcpp/Message.h>
+#include <airdcpp/PrivateChat.h>
 #include <airdcpp/User.h>
 
 #include <api/ApiModule.h>
 
 namespace webserver {
-	class PrivateChatInfo : public ApiModule {
+	class PrivateChatInfo : public SubApiModule<std::string>, private PrivateChatListener {
 	public:
-		json serialize() const noexcept;
-
 		typedef shared_ptr<PrivateChatInfo> Ptr;
 		typedef vector<Ptr> List;
 		typedef unordered_map<CID, Ptr> Map;
 
 		PrivateChatInfo(Session* aSession, const PrivateChatPtr& aChat);
-		~PrivateChatInfo() {	}
-
-		//const UserPtr& getUser() const { return sr->getUser().user; }
-		//const string& getHubUrl() const { return sr->getUser().hint; }
+		~PrivateChatInfo();
 
 		PrivateChatPtr getChat() const noexcept { return chat; }
 	private:
-		//PrivateMessage::List getCurrentViewItems();
+		void on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr&) noexcept;
+		void on(PrivateChatListener::StatusMessage, PrivateChat*, const string&, uint8_t /*severity*/) noexcept;
+
+		api_return handleGetMessages(ApiRequest& aRequest) throw(exception);
+		api_return handlePostMessage(ApiRequest& aRequest) throw(exception);
+		api_return handleSetRead(ApiRequest& aRequest) throw(exception);
 
 		PrivateChatPtr chat;
 	};

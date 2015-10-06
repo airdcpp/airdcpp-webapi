@@ -19,6 +19,7 @@
 #include <api/HubApi.h>
 
 #include <api/common/Serializer.h>
+
 #include <web-server/JsonUtil.h>
 
 #include <airdcpp/ClientManager.h>
@@ -38,19 +39,22 @@ namespace webserver {
 	}
 
 	api_return HubApi::handleConnect(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) req = aRequest.getRequestBody();
+		decltype(auto) reqJson = aRequest.getRequestBody();
 
-		const string address = req["hub_url"];
+		auto address = JsonUtil::getField<string>("hub_url", reqJson, false);
 
 		RecentHubEntryPtr r = new RecentHubEntry(address);
-		//r->setName(entry->getName());
-		//r->setDescription(entry->getDescription());
-		ClientManager::getInstance()->createClient(r, SETTING(DEFAULT_SP));
+		auto client = ClientManager::getInstance()->createClient(r, SETTING(DEFAULT_SP));
+		if (!client) {
+			aRequest.setResponseErrorStr("Hub exists");
+			return websocketpp::http::status_code::bad_request;
+		}
 
 		return websocketpp::http::status_code::ok;
 	}
 
 	api_return HubApi::handleDisconnect(ApiRequest& aRequest) throw(exception) {
+		//ClientManager::getInstance()->putClient();
 		return websocketpp::http::status_code::ok;
 	}
 

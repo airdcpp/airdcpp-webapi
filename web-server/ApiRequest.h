@@ -49,10 +49,6 @@ namespace webserver {
 			return apiModule;
 		}
 
-		const std::string& getApiModuleSection() const noexcept {
-			return apiSection;
-		}
-
 		Method getMethod() const noexcept {
 			return method;
 		}
@@ -97,8 +93,7 @@ namespace webserver {
 	private:
 		RequestParamList parameters;
 		int apiVersion = -1;
-		std::string  apiModule;
-		std::string  apiSection;
+		std::string apiModule;
 
 		Method method = METHOD_LAST;
 

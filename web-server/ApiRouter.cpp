@@ -131,13 +131,13 @@ namespace webserver {
 			return websocketpp::http::status_code::precondition_failed;
 		}
 
-		if (aRequest.getApiModuleSection() == "auth") {
+		if (aRequest.getStringParam(0) == "auth") {
 			if (aRequest.getMethod() == ApiRequest::METHOD_POST) {
 				return sessionApi.handleLogin(aRequest, aIsSecure, aSocket);
 			} else if (aRequest.getMethod() == ApiRequest::METHOD_DELETE) {
 				return sessionApi.handleLogout(aRequest);
 			}
-		} else if (aRequest.getApiModuleSection() == "socket") {
+		} else if (aRequest.getStringParam(0) == "socket") {
 			return sessionApi.handleSocketConnect(aRequest, aIsSecure, aSocket);
 		}
 

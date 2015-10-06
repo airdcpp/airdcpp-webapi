@@ -29,6 +29,23 @@
 
 namespace webserver {
 	class WebSocket;
+
+	template<class IdType>
+	class SubApiModule : public ApiModule {
+	public:
+		SubApiModule(Session* aSession, const IdType& aId) : ApiModule(aSession), id(aId) { }
+
+		bool send(const string& aSubscription, const json& aJson) {
+			json j;
+			j["event"] = aSubscription;
+			j["data"] = aJson;
+			j["id"] = id;
+			return ApiModule::send(j);
+		}
+	protected:
+		IdType id;
+	};
+
 	class ApiModule : private SessionListener {
 	public:
 #define NUM_PARAM (StringMatch::getSearch(R"(\d+)", StringMatch::REGEX))
@@ -69,6 +86,11 @@ namespace webserver {
 			}
 		};
 
+		/*template<class T>
+		void sendPropertyUpdate(const T& aId, const json& aPropertyData) {
+			
+		}*/
+
 		typedef std::map<std::string , bool> SubscriptionMap;
 		typedef std::map<std::string, RequestHandler::List> RequestHandlerMap;
 
@@ -86,8 +108,8 @@ namespace webserver {
 		ApiModule(ApiModule&) = delete;
 		ApiModule& operator=(ApiModule&) = delete;
 
-		bool send(const json& aJson);
-		bool send(const string& aSubscription, const json& aJson);
+		virtual bool send(const json& aJson);
+		virtual bool send(const string& aSubscription, const json& aJson);
 
 		Session* getSession() const noexcept {
 			return session;

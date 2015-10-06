@@ -48,6 +48,9 @@ namespace webserver {
 	}
 
 	void WebServerManager::start() {
+		SettingsManager::getInstance()->setDefault(SettingsManager::PM_MESSAGE_CACHE, 200);
+		SettingsManager::getInstance()->setDefault(SettingsManager::HUB_MESSAGE_CACHE, 200);
+
 		load();
 
 		// initialize asio with our external io_service rather than an internal one
@@ -87,14 +90,14 @@ namespace webserver {
 			endpoint_plain.start_accept();
 		}
 		catch (const websocketpp::exception& e) {
-			LogManager::getInstance()->message("Failed to set up plain server: " + string(e.what()), LogManager::LOG_ERROR);
+			LogManager::getInstance()->message("Failed to set up plain server: " + string(e.what()), LogMessage::SEV_ERROR);
 		}
 
 		try {
 			endpoint_tls.listen(443);
 			endpoint_tls.start_accept();
 		} catch (const websocketpp::exception& e) {
-			LogManager::getInstance()->message("Failed to set up secure server: " + string(e.what()), LogManager::LOG_ERROR);
+			LogManager::getInstance()->message("Failed to set up secure server: " + string(e.what()), LogMessage::SEV_ERROR);
 		}
 
 		// Start the ASIO io_service run loop running both endpoints

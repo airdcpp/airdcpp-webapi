@@ -37,29 +37,20 @@ namespace webserver {
 		LogManager::getInstance()->removeListener(this);
 	}
 
-	json LogApi::serializeMessage(const LogMessage& aMessageData) noexcept {
-		return{
-			{ "id", aMessageData.id },
-			{ "text", aMessageData.message },
-			{ "time", aMessageData.time },
-			{ "severity", static_cast<int>(aMessageData.severity) }
-		};
-	}
-
 	api_return LogApi::handleGetLog(ApiRequest& aRequest)  throw(exception) {
 		auto j = Serializer::serializeFromEnd(
 			aRequest.getRangeParam(0),
 			LogManager::getInstance()->getLastLogs(),
-			serializeMessage);
+			Serializer::serializeLogMessage);
 
 		aRequest.setResponseBody(j);
 		return websocketpp::http::status_code::ok;
 	}
 
-	void LogApi::on(LogManagerListener::Message, const LogMessage& aMessageData) noexcept {
+	void LogApi::on(LogManagerListener::Message, const LogMessagePtr& aMessageData) noexcept {
 		if (!subscriptions["log_message"])
 			return;
 
-		send("log_message", serializeMessage(aMessageData));
+		send("log_message", Serializer::serializeLogMessage(aMessageData));
 	}
 }
