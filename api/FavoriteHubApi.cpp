@@ -32,8 +32,6 @@ namespace webserver {
 
 		FavoriteManager::getInstance()->addListener(this);
 
-		view.getApiHandlers(requestHandlers, subscriptions);
-
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (), true, FavoriteHubApi::handleAddHub);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, FavoriteHubApi::handleRemoveHub);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_PATCH, (TOKEN_PARAM), true, FavoriteHubApi::handleUpdateHub);
@@ -45,10 +43,6 @@ namespace webserver {
 
 	FavoriteHubApi::~FavoriteHubApi() {
 		FavoriteManager::getInstance()->removeListener(this);
-	}
-
-	void FavoriteHubApi::onSocketRemoved() noexcept {
-		view.onSocketRemoved();
 	}
 
 	string FavoriteHubApi::updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub) {

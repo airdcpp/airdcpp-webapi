@@ -21,6 +21,7 @@
 
 #include <web-server/stdinc.h>
 #include <web-server/WebServerManager.h>
+#include <web-server/SessionListener.h>
 
 #include <airdcpp/typedefs.h>
 #include <airdcpp/TaskQueue.h>
@@ -32,7 +33,7 @@
 namespace webserver {
 
 	template<class T, int PropertyCount>
-	class ListViewController {
+	class ListViewController : private SessionListener {
 	public:
 		typedef typename PropertyItemHandler<T>::ItemList ItemList;
 
@@ -40,18 +41,11 @@ namespace webserver {
 			module(aModule), viewName(aViewName), itemHandler(aItemHandler), filter(aItemHandler.properties),
 			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 200))
 		{
+			aModule->getSession()->addListener(this);
 
-		}
+			// Magic for the following defines
+			decltype(auto) requestHandlers = aModule->getRequestHandlers();
 
-		~ListViewController() {
-			timer->stop(true);
-		}
-
-		int getSortProperty() const noexcept {
-			return sortPropery;
-		}
-
-		void getApiHandlers(ApiModule::RequestHandlerMap& requestHandlers, ApiModule::SubscriptionMap& subscriptions) {
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_POST, (EXACT_PARAM("filter")), true, ListViewController::handlePostFilter);
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (EXACT_PARAM("filter")), false, ListViewController::handleDeleteFilter);
 
@@ -61,7 +55,17 @@ namespace webserver {
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_GET, (EXACT_PARAM("items"), NUM_PARAM, NUM_PARAM), false, ListViewController::handleGetItems);
 		}
 
-		void onSocketRemoved() {
+		~ListViewController() {
+			module->getSession()->removeListener(this);
+
+			timer->stop(true);
+		}
+
+		int getSortProperty() const noexcept {
+			return sortPropery;
+		}
+
+		void on(SessionListener::SocketDisconnected) noexcept {
 			reset();
 		}
 

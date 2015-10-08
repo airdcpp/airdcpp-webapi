@@ -28,26 +28,49 @@
 #include <airdcpp/PrivateChat.h>
 #include <airdcpp/User.h>
 
-#include <api/ApiModule.h>
+#include <api/HierarchicalApiModule.h>
 
 namespace webserver {
-	class PrivateChatInfo : public SubApiModule<std::string>, private PrivateChatListener {
+	class PrivateChatInfo;
+
+	class PrivateChatInfo : public SubApiModule<CID, PrivateChatInfo>, private PrivateChatListener {
 	public:
-		typedef shared_ptr<PrivateChatInfo> Ptr;
+		static StringList subscriptionList;
+
+		typedef ParentApiModule<CID, PrivateChatInfo> ParentType;
+		typedef PrivateChatInfo* Ptr;
 		typedef vector<Ptr> List;
 		typedef unordered_map<CID, Ptr> Map;
 
-		PrivateChatInfo(Session* aSession, const PrivateChatPtr& aChat);
+		PrivateChatInfo(ParentType* aParentModule, const PrivateChatPtr& aChat);
 		~PrivateChatInfo();
 
 		PrivateChatPtr getChat() const noexcept { return chat; }
-	private:
-		void on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr&) noexcept;
-		void on(PrivateChatListener::StatusMessage, PrivateChat*, const string&, uint8_t /*severity*/) noexcept;
 
+		static json serializeCCPMState(uint8_t aState) noexcept;
+	private:
 		api_return handleGetMessages(ApiRequest& aRequest) throw(exception);
 		api_return handlePostMessage(ApiRequest& aRequest) throw(exception);
 		api_return handleSetRead(ApiRequest& aRequest) throw(exception);
+
+		api_return handleDisconnectCCPM(ApiRequest& aRequest) throw(exception);
+		api_return handleConnectCCPM(ApiRequest& aRequest) throw(exception);
+
+		api_return handleStartTyping(ApiRequest& aRequest) throw(exception);
+		api_return handleEndTyping(ApiRequest& aRequest) throw(exception);
+
+		void on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr&) noexcept;
+		void on(PrivateChatListener::StatusMessage, PrivateChat*, const string&, uint8_t /*severity*/) noexcept;
+
+		void on(PrivateChatListener::Close, PrivateChat*) noexcept;
+		void on(PrivateChatListener::UserUpdated, PrivateChat*) noexcept;
+		void on(PrivateChatListener::PMStatus, PrivateChat*, uint8_t) noexcept;
+		void on(PrivateChatListener::CCPMStatusUpdated, PrivateChat*) noexcept;
+		void on(PrivateChatListener::MessagesRead, PrivateChat*) noexcept;
+
+
+		void onSessionUpdated(const json& aData) noexcept;
+		void sendUnread() noexcept;
 
 		PrivateChatPtr chat;
 	};

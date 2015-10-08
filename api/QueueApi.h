@@ -84,8 +84,6 @@ namespace webserver {
 		int getVersion() const noexcept {
 			return 0;
 		}
-
-		void onSocketRemoved() noexcept;
 	private:
 		api_return handleFindDupePaths(ApiRequest& aRequest) throw(exception);
 

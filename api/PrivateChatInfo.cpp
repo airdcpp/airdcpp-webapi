@@ -17,28 +17,59 @@
 */
 
 #include <api/PrivateChatInfo.h>
+#include <api/ApiModule.h>
 #include <api/common/Serializer.h>
+
 #include <web-server/JsonUtil.h>
 
 #include <airdcpp/PrivateChat.h>
 
 namespace webserver {
-	PrivateChatInfo::PrivateChatInfo(Session* aSession, const PrivateChatPtr& aChat) : 
-		SubApiModule(aSession, aChat->getUser()->getCID().toBase32()), chat(aChat) {
+	StringList PrivateChatInfo::subscriptionList = {
+		"chat_session_updated",
+		"private_chat_message",
+		"private_chat_status"
+	};
+
+	PrivateChatInfo::PrivateChatInfo(ParentType* aParentModule, const PrivateChatPtr& aChat) :
+		SubApiModule(aParentModule, aChat->getUser()->getCID().toBase32(), subscriptionList), chat(aChat) {
 
 		chat->addListener(this);
 
-		subscriptions["private_chat_message"];
-		subscriptions["private_chat_status"];
-
 		METHOD_HANDLER("messages", ApiRequest::METHOD_GET, (NUM_PARAM), false, PrivateChatInfo::handleGetMessages);
 		METHOD_HANDLER("message", ApiRequest::METHOD_POST, (), true, PrivateChatInfo::handlePostMessage);
+
+		METHOD_HANDLER("ccpm", ApiRequest::METHOD_POST, (), false, PrivateChatInfo::handlePostMessage);
+		METHOD_HANDLER("ccpm", ApiRequest::METHOD_DELETE, (), false, PrivateChatInfo::handlePostMessage);
+
+		METHOD_HANDLER("typing", ApiRequest::METHOD_POST, (), false, PrivateChatInfo::handlePostMessage);
+		METHOD_HANDLER("typing", ApiRequest::METHOD_DELETE, (), false, PrivateChatInfo::handlePostMessage);
 
 		METHOD_HANDLER("read", ApiRequest::METHOD_POST, (), false, PrivateChatInfo::handleSetRead);
 	}
 
 	PrivateChatInfo::~PrivateChatInfo() {
 		chat->removeListener(this);
+	}
+
+	api_return PrivateChatInfo::handleStartTyping(ApiRequest& aRequest) throw(exception) {
+		chat->sendPMInfo(PrivateChat::TYPING_ON);
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return PrivateChatInfo::handleEndTyping(ApiRequest& aRequest) throw(exception) {
+		chat->sendPMInfo(PrivateChat::TYPING_OFF);
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return PrivateChatInfo::handleDisconnectCCPM(ApiRequest& aRequest) throw(exception) {
+		chat->closeCC(false, true);
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return PrivateChatInfo::handleConnectCCPM(ApiRequest& aRequest) throw(exception) {
+		chat->startCC();
+		return websocketpp::http::status_code::ok;
 	}
 
 	api_return PrivateChatInfo::handleSetRead(ApiRequest& aRequest) throw(exception) {
@@ -71,8 +102,12 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	void PrivateChatInfo::on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr& aMessage) noexcept {
-		if (!subscriptions["private_chat_message"]) {
+	void PrivateChatInfo::on(PrivateChatListener::PrivateMessage, PrivateChat* aChat, const ChatMessagePtr& aMessage) noexcept {
+		if (!aMessage->getRead()) {
+			sendUnread();
+		}
+
+		if (!subscriptionActive("private_chat_message")) {
 			return;
 		}
 
@@ -80,7 +115,7 @@ namespace webserver {
 	}
 
 	void PrivateChatInfo::on(PrivateChatListener::StatusMessage, PrivateChat*, const string& aMessage, uint8_t aSeverity) noexcept {
-		if (!subscriptions["private_chat_status"]) {
+		if (!subscriptionActive("private_chat_status")) {
 			return;
 		}
 
@@ -88,5 +123,50 @@ namespace webserver {
 			{ "text", aMessage },
 			{ "severity", aSeverity }
 		});
+	}
+
+	json PrivateChatInfo::serializeCCPMState(uint8_t aState) noexcept {
+		return{
+			{ "id", aState },
+			{ "str", PrivateChat::ccpmStateToString(aState) }
+		};
+	}
+
+	void PrivateChatInfo::on(PrivateChatListener::Close, PrivateChat*) noexcept {
+
+	}
+
+	void PrivateChatInfo::on(PrivateChatListener::UserUpdated, PrivateChat*) noexcept {
+		onSessionUpdated({
+			{ "user", Serializer::serializeHintedUser(chat->getHintedUser()) }
+		});
+	}
+
+	void PrivateChatInfo::on(PrivateChatListener::PMStatus, PrivateChat*, uint8_t aSeverity) noexcept {
+
+	}
+
+	void PrivateChatInfo::on(PrivateChatListener::CCPMStatusUpdated, PrivateChat*) noexcept {
+		onSessionUpdated({
+			{ serializeCCPMState(chat->getCCPMState()) }
+		});
+	}
+
+	void PrivateChatInfo::on(PrivateChatListener::MessagesRead, PrivateChat*) noexcept {
+		sendUnread();
+	}
+
+	void PrivateChatInfo::sendUnread() noexcept {
+		onSessionUpdated({
+			{ "unread_count", chat->getCache().countUnread() }
+		});
+	}
+
+	void PrivateChatInfo::onSessionUpdated(const json& aData) noexcept {
+		if (!subscriptionActive("chat_session_updated")) {
+			return;
+		}
+
+		send("chat_session_updated", aData);
 	}
 }

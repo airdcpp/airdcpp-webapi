@@ -23,29 +23,10 @@
 #include <web-server/ApiRequest.h>
 #include <web-server/SessionListener.h>
 
-//#include <airdcpp/typedefs.h>
-//#include <airdcpp/GetSet.h>
 #include <airdcpp/StringMatch.h>
 
 namespace webserver {
 	class WebSocket;
-
-	template<class IdType>
-	class SubApiModule : public ApiModule {
-	public:
-		SubApiModule(Session* aSession, const IdType& aId) : ApiModule(aSession), id(aId) { }
-
-		bool send(const string& aSubscription, const json& aJson) {
-			json j;
-			j["event"] = aSubscription;
-			j["data"] = aJson;
-			j["id"] = id;
-			return ApiModule::send(j);
-		}
-	protected:
-		IdType id;
-	};
-
 	class ApiModule : private SessionListener {
 	public:
 #define NUM_PARAM (StringMatch::getSearch(R"(\d+)", StringMatch::REGEX))
@@ -57,9 +38,8 @@ namespace webserver {
 
 #define BRACED_INIT_LIST(...) {__VA_ARGS__}
 #define METHOD_HANDLER(section, method, params, requireJson, func) (requestHandlers[section].push_back(ApiModule::RequestHandler(method, requireJson, BRACED_INIT_LIST params, std::bind(&func, this, placeholders::_1))))
-#define MODULE_HANDLER(section, param, func) (requestHandlers[section].push_back(ApiModule::RequestHandler(param, std::bind(&func, this, placeholders::_1))))
 
-		ApiModule(Session* aSession);
+		ApiModule(Session* aSession, const StringList* aSubscriptions = nullptr);
 		virtual ~ApiModule();
 
 		typedef vector<StringMatch> ParamList;
@@ -91,7 +71,8 @@ namespace webserver {
 			
 		}*/
 
-		typedef std::map<std::string , bool> SubscriptionMap;
+		//typedef std::map<std::string , bool> SubscriptionMap;
+		typedef std::map<const string, bool> SubscriptionMap;
 		typedef std::map<std::string, RequestHandler::List> RequestHandlerMap;
 
 		api_return handleRequest(ApiRequest& aRequest) throw(exception);
@@ -103,7 +84,6 @@ namespace webserver {
 			dcdebug("Root module should always have version specified");
 			return -1;
 		}
-		virtual void onSocketRemoved() noexcept { }
 
 		ApiModule(ApiModule&) = delete;
 		ApiModule& operator=(ApiModule&) = delete;
@@ -114,16 +94,40 @@ namespace webserver {
 		Session* getSession() const noexcept {
 			return session;
 		}
+
+		virtual void setSubscriptionState(const string& aSubscription, bool active) noexcept {
+			subscriptions[aSubscription] = active;
+		}
+
+		virtual bool subscriptionActive(const string& aSubscription) const noexcept {
+			auto s = subscriptions.find(aSubscription);
+			dcassert(s != subscriptions.end());
+			return s->second;
+		}
+
+		virtual bool subscriptionExists(const string& aSubscription) const noexcept {
+			auto i = subscriptions.find(aSubscription);
+			return i != subscriptions.end();
+		}
+
+		virtual void createSubscription(const string& aSubscription) noexcept {
+			subscriptions[aSubscription];
+		}
+
+		RequestHandlerMap& getRequestHandlers() noexcept {
+			return requestHandlers;
+		}
 	protected:
 		Session* session;
 
 		RequestHandlerMap requestHandlers;
-		SubscriptionMap subscriptions;
-
-		api_return handleSubscribe(ApiRequest& aRequest) throw(exception);
-		api_return handleUnsubscribe(ApiRequest& aRequest) throw(exception);
 
 		WebSocketPtr socket = nullptr;
+
+		virtual api_return handleSubscribe(ApiRequest& aRequest) throw(exception);
+		virtual api_return handleUnsubscribe(ApiRequest& aRequest) throw(exception);
+	private:
+		SubscriptionMap subscriptions;
 	};
 
 	typedef std::unique_ptr<ApiModule> HandlerPtr;

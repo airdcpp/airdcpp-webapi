@@ -39,17 +39,15 @@ namespace webserver {
 		QueueManager::getInstance()->addListener(this);
 		DownloadManager::getInstance()->addListener(this);
 
-		subscriptions["bundle_added"];
-		subscriptions["bundle_removed"];
-		subscriptions["bundle_updated"];
-		subscriptions["bundle_status"];
-		subscriptions["bundle_tick"];
+		createSubscription("bundle_added");
+		createSubscription("bundle_removed");
+		createSubscription("bundle_updated");
+		createSubscription("bundle_status");
+		createSubscription("bundle_tick");
 
-		subscriptions["file_updated"];
-		subscriptions["file_removed"];
-		subscriptions["file_updated"];
-
-		bundleView.getApiHandlers(requestHandlers, subscriptions);
+		createSubscription("file_updated");
+		createSubscription("file_removed");
+		createSubscription("file_updated");
 
 		METHOD_HANDLER("bundles", ApiRequest::METHOD_GET, (NUM_PARAM, NUM_PARAM), false, QueueApi::handleGetBundles);
 
@@ -75,10 +73,6 @@ namespace webserver {
 	QueueApi::~QueueApi() {
 		QueueManager::getInstance()->removeListener(this);
 		DownloadManager::getInstance()->removeListener(this);
-	}
-
-	void QueueApi::onSocketRemoved() noexcept {
-		bundleView.onSocketRemoved();
 	}
 
 	api_return QueueApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
@@ -298,34 +292,34 @@ namespace webserver {
 	// LISTENERS
 	void QueueApi::on(QueueManagerListener::BundleAdded, const BundlePtr& aBundle) noexcept {
 		bundleView.onItemAdded(aBundle);
-		if (!subscriptions["bundle_added"])
+		if (!subscriptionActive("bundle_added"))
 			return;
 
 		send("bundle_added", Serializer::serializeItem(aBundle, bundlePropertyHandler));
 	}
 	void QueueApi::on(QueueManagerListener::BundleRemoved, const BundlePtr& aBundle) noexcept {
 		bundleView.onItemRemoved(aBundle);
-		if (!subscriptions["bundle_removed"])
+		if (!subscriptionActive("bundle_removed"))
 			return;
 
 		send("bundle_removed", Serializer::serializeItem(aBundle, bundlePropertyHandler));
 	}
 
 	void QueueApi::on(QueueManagerListener::Removed, const QueueItemPtr& aQI, bool /*finished*/) noexcept {
-		if (!subscriptions["file_removed"])
+		if (!subscriptionActive("file_removed"))
 			return;
 
 		//send("file_removed", QueueUtils::serializeQueueItem(aQI));
 	}
 	void QueueApi::on(QueueManagerListener::Added, QueueItemPtr& aQI) noexcept {
-		if (!subscriptions["file_added"])
+		if (!subscriptionActive("file_added"))
 			return;
 
 		//send("file_added", QueueUtils::serializeQueueItem(aQI));
 	}
 
 	void QueueApi::onFileUpdated(const QueueItemPtr& aQI) {
-		if (!subscriptions["file_updated"])
+		if (!subscriptionActive("file_updated"))
 			return;
 
 		//send("file_updated", QueueUtils::serializeQueueItem(aQI));
@@ -333,7 +327,7 @@ namespace webserver {
 	void QueueApi::onBundleUpdated(const BundlePtr& aBundle, const PropertyIdSet& aUpdatedProperties, const string& aSubscription) {
 		bundleView.onItemUpdated(aBundle, aUpdatedProperties);
 
-		if (!subscriptions[aSubscription])
+		if (!subscriptionActive(aSubscription))
 			return;
 
 		send(aSubscription, Serializer::serializeItem(aBundle, bundlePropertyHandler));
@@ -341,7 +335,7 @@ namespace webserver {
 
 	void QueueApi::on(DownloadManagerListener::BundleTick, const BundleList& tickBundles, uint64_t /*aTick*/) noexcept {
 		bundleView.onItemsUpdated(tickBundles, { PROP_SPEED, PROP_SECONDS_LEFT, PROP_BYTES_DOWNLOADED, PROP_STATUS });
-		if (!subscriptions["bundle_tick"])
+		if (!subscriptionActive("bundle_tick"))
 			return;
 
 		json j;

@@ -178,6 +178,7 @@
     <ClInclude Include="api\FilelistInfo.h" />
     <ClInclude Include="api\FilelistApi.h" />
     <ClInclude Include="api\FilelistUtils.h" />
+    <ClInclude Include="api\HierarchicalApiModule.h" />
     <ClInclude Include="api\HistoryApi.h" />
     <ClInclude Include="api\HubApi.h" />
     <ClInclude Include="api\LogApi.h" />

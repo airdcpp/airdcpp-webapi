@@ -26,29 +26,13 @@ namespace webserver {
 
 		DirectoryListingManager::getInstance()->addListener(this);
 
-		subscriptions["list_created"];
-		subscriptions["list_removed"];
-		//searchView.getApiHandlers(requestHandlers, subscriptions);
+		createSubscription("list_created");
+		createSubscription("list_removed");
 
-		MODULE_HANDLER("filelist", TOKEN_PARAM, FilelistApi::handleFilelist);
-	}
-
-	api_return FilelistApi::handleFilelist(ApiRequest& aRequest) {
-		auto i = lists.find(aRequest.getTokenParam(0));
-		if (i != lists.end()) {
-			aRequest.setResponseErrorStr("Filelist not found");
-			return websocketpp::http::status_code::not_found;
-		}
-
-		aRequest.popParam();
-		return i->second->handleRequest(aRequest);
+		//MODULE_HANDLER("filelist", TOKEN_PARAM, FilelistApi::handleFilelist);
 	}
 
 	FilelistApi::~FilelistApi() {
 		DirectoryListingManager::getInstance()->removeListener(this);
-	}
-
-	void FilelistApi::onSocketRemoved() noexcept {
-		//searchView.onSocketRemoved();
 	}
 }

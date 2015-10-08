@@ -23,8 +23,14 @@
 #include <api/ApiModule.h>
 
 namespace webserver {
-	ApiModule::ApiModule(Session* aSession) : session(aSession) {
+	ApiModule::ApiModule(Session* aSession, const StringList* aSubscriptions) : session(aSession) {
 		socket = WebServerManager::getInstance()->getSocket(aSession->getToken());
+
+		if (aSubscriptions) {
+			for (const auto& s : *aSubscriptions) {
+				subscriptions.emplace(s, false);
+			}
+		}
 
 		aSession->addListener(this);
 
@@ -48,9 +54,6 @@ namespace webserver {
 		}
 
 		socket = nullptr;
-
-		//TODO: remove
-		onSocketRemoved();
 	}
 
 	bool ApiModule::RequestHandler::matchParams(const ApiRequest::RequestParamList& aRequestParams) const noexcept {
@@ -128,20 +131,20 @@ namespace webserver {
 			return websocketpp::http::status_code::precondition_required;
 		}
 
-		auto i = subscriptions.find(aRequest.getStringParam(0));
-		if (i == subscriptions.end()) {
-			aRequest.setResponseErrorStr("No such subscription: " + aRequest.getStringParam(0));
+		decltype(auto) subscription = aRequest.getStringParam(0);
+		if (!subscriptionExists(subscription)) {
+			aRequest.setResponseErrorStr("No such subscription: " + subscription);
 			return websocketpp::http::status_code::not_found;
 		}
 
-		i->second = true;
+		setSubscriptionState(subscription, true);
 		return websocketpp::http::status_code::ok;
 	}
 
 	api_return ApiModule::handleUnsubscribe(ApiRequest& aRequest) throw(exception) {
-		auto i = subscriptions.find(aRequest.getStringParam(0));
-		if (i != subscriptions.end()) {
-			i->second = false;
+		auto subscription = aRequest.getStringParam(0);
+		if (subscriptionExists(subscription)) {
+			setSubscriptionState(subscription, false);
 			return websocketpp::http::status_code::ok;
 		}
 

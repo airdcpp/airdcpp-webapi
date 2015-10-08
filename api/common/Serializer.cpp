@@ -61,10 +61,6 @@ namespace webserver {
 			ret.insert("offline");
 		}
 
-		//if (aUser->isSet(User::PASSIVE)) {
-		//	ret.insert("passive");
-		//}
-
 		return ret;
 	}
 
@@ -77,12 +73,27 @@ namespace webserver {
 	}
 
 	json Serializer::serializeHintedUser(const HintedUser& aUser) noexcept {
+		auto flags = getUserFlags(aUser);
+		auto user = ClientManager::getInstance()->getOnlineUser(aUser);
+		if (aUser.user->isOnline()) {
+			auto user = ClientManager::getInstance()->getOnlineUser(aUser);
+			if (user) {
+				if (user->getIdentity().isAway()) {
+					flags.insert("away");
+				}
+
+				if (user->getIdentity().isOp()) {
+					flags.insert("op");
+				}
+			}
+		}
+
 		return {
 			{ "cid", aUser.user->getCID().toBase32() },
 			{ "nicks", ClientManager::getInstance()->getFormatedNicks(aUser) },
 			{ "hub_url", aUser.hint },
 			{ "hub_names", ClientManager::getInstance()->getFormatedHubNames(aUser) },
-			{ "flags", getUserFlags(aUser) }
+			{ "flags", flags }
 		};
 	}
 

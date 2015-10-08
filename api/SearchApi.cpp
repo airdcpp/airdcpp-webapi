@@ -33,7 +33,6 @@ namespace webserver {
 		SearchManager::getInstance()->addListener(this);
 
 		//subscriptions["search_result"];
-		searchView.getApiHandlers(requestHandlers, subscriptions);
 
 		METHOD_HANDLER("query", ApiRequest::METHOD_POST, (), true, SearchApi::handlePostSearch);
 		METHOD_HANDLER("types", ApiRequest::METHOD_GET, (), false, SearchApi::handleGetTypes);
@@ -43,10 +42,6 @@ namespace webserver {
 
 	SearchApi::~SearchApi() {
 		SearchManager::getInstance()->removeListener(this);
-	}
-
-	void SearchApi::onSocketRemoved() noexcept {
-		searchView.onSocketRemoved();
 	}
 
 	SearchResultInfo::List SearchApi::getResultList() {

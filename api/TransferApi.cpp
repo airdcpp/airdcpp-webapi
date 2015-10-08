@@ -31,7 +31,7 @@ namespace webserver {
 		DownloadManager::getInstance()->addListener(this);
 		UploadManager::getInstance()->addListener(this);
 
-		subscriptions["statistics"];
+		createSubscription("statistics");
 		timer->start();
 	}
 
@@ -43,7 +43,7 @@ namespace webserver {
 	}
 
 	void TransferApi::onTimer() {
-		if (!subscriptions["statistics"])
+		if (!subscriptionActive("statistics"))
 			return;
 
 		json j = {

@@ -28,7 +28,7 @@ namespace webserver {
 	LogApi::LogApi(Session* aSession) : ApiModule(aSession) {
 		LogManager::getInstance()->addListener(this);
 
-		subscriptions["log_message"];
+		createSubscription("log_message");
 
 		METHOD_HANDLER("messages", ApiRequest::METHOD_GET, (NUM_PARAM), false, LogApi::handleGetLog);
 	}
@@ -48,8 +48,9 @@ namespace webserver {
 	}
 
 	void LogApi::on(LogManagerListener::Message, const LogMessagePtr& aMessageData) noexcept {
-		if (!subscriptions["log_message"])
+		if (!subscriptionActive("log_message")) {
 			return;
+		}
 
 		send("log_message", Serializer::serializeLogMessage(aMessageData));
 	}

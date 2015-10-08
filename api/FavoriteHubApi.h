@@ -63,8 +63,6 @@ namespace webserver {
 			PROP_USER_DESCRIPTION,
 			PROP_LAST
 		};
-
-		void onSocketRemoved() noexcept;
 	private:
 		api_return handleAddHub(ApiRequest& aRequest) throw(exception);
 		api_return handleRemoveHub(ApiRequest& aRequest) throw(exception);

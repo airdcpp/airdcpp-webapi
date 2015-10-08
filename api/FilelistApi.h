@@ -33,21 +33,9 @@ namespace webserver {
 		FilelistApi(Session* aSession);
 		~FilelistApi();
 
-		void onSocketRemoved() noexcept;
-
 		int getVersion() const noexcept {
 			return 0;
 		}
-	private:
-		api_return handleFilelist(ApiRequest& aRequest);
-
-		map<uint32_t, FilelistInfoPtr> lists;
-
-		api_return handleGetList(ApiRequest& aRequest);
-
-		api_return handleDownload(ApiRequest& aRequest);
-
-		//SharedMutex cs;
 	};
 }
 
