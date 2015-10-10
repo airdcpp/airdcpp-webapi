@@ -60,7 +60,7 @@ namespace webserver {
 		{
 			auto shareProfileToken = JsonUtil::getOptionalField<ProfileToken>("share_profile", j, false, false);
 			if (shareProfileToken) {
-				if (!AirUtil::isAdcHub(!server ? aEntry->getServerStr() : *server) && *shareProfileToken != SETTING(DEFAULT_SP)) {
+				if (!AirUtil::isAdcHub(!server ? aEntry->getServer() : *server) && *shareProfileToken != SETTING(DEFAULT_SP)) {
 					JsonUtil::throwError("share_profile", JsonUtil::ERROR_INVALID, "Share profiles can't be changed for NMDC hubs");
 				}
 
@@ -77,7 +77,7 @@ namespace webserver {
 		}
 
 		if (server) {
-			aEntry->setServerStr(*server);
+			aEntry->setServer(*server);
 		}
 
 		if (shareProfilePtr) {
@@ -177,7 +177,7 @@ namespace webserver {
 			return websocketpp::http::status_code::not_found;
 		}
 
-		RecentHubEntryPtr r = new RecentHubEntry(entry->getServers()[0].first);
+		RecentHubEntryPtr r = new RecentHubEntry(entry->getServer());
 		r->setName(entry->getName());
 		r->setDescription(entry->getDescription());
 		ClientManager::getInstance()->createClient(r, entry->getShareProfile()->getToken());
@@ -191,7 +191,7 @@ namespace webserver {
 			return websocketpp::http::status_code::not_found;
 		}
 
-		ClientManager::getInstance()->putClient(entry->getServers()[0].first);
+		ClientManager::getInstance()->putClient(entry->getServer());
 		return websocketpp::http::status_code::no_content;
 	}
 

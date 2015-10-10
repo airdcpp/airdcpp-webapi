@@ -178,10 +178,12 @@
     <ClInclude Include="api\FilelistInfo.h" />
     <ClInclude Include="api\FilelistApi.h" />
     <ClInclude Include="api\FilelistUtils.h" />
+    <ClInclude Include="api\FilesystemApi.h" />
     <ClInclude Include="api\HierarchicalApiModule.h" />
     <ClInclude Include="api\HistoryApi.h" />
     <ClInclude Include="api\HubApi.h" />
     <ClInclude Include="api\LogApi.h" />
+    <ClInclude Include="api\platform\windows\Filesystem.h" />
     <ClInclude Include="api\PrivateChatInfo.h" />
     <ClInclude Include="api\PrivateChatApi.h" />
     <ClInclude Include="api\QueueApi.h" />
@@ -219,6 +221,7 @@
     <ClCompile Include="api\FilelistInfo.cpp" />
     <ClCompile Include="api\FilelistApi.cpp" />
     <ClCompile Include="api\FilelistUtils.cpp" />
+    <ClCompile Include="api\FilesystemApi.cpp" />
     <ClCompile Include="api\HistoryApi.cpp" />
     <ClCompile Include="api\HubApi.cpp" />
     <ClCompile Include="api\LogApi.cpp" />

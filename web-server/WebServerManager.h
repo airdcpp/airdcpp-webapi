@@ -123,7 +123,8 @@ namespace webserver {
 					output,
 					error,
 					aIsSecure,
-					con->get_request().get_method()
+					con->get_request().get_method(),
+					con->get_remote_endpoint()
 					);
 
 				if (status != websocketpp::http::status_code::ok) {

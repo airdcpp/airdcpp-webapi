@@ -52,6 +52,10 @@ namespace webserver {
 		// Throws for invalid parameters
 		template <class ContainerT, class FuncT>
 		static json serializeFromEnd(int aCount, const ContainerT& aList, FuncT aF) throw(std::exception) {
+			if (aList.empty()) {
+				return json::array();
+			}
+
 			if (aCount <= 0) {
 				throw std::exception("Invalid range");
 			}
@@ -74,6 +78,10 @@ namespace webserver {
 				throw std::exception("Invalid range");
 			}
 
+			if (listSize == 0) {
+				return json::array();
+			}
+
 			auto beginIter = aList.begin();
 			std::advance(beginIter, aBeginPos);
 
@@ -87,7 +95,12 @@ namespace webserver {
 		// Throws for invalid range parameters
 		template <class T>
 		static json serializeItemList(int aStart, int aCount, const PropertyItemHandler<T>& aHandler) throw(std::exception) {
-			return Serializer::serializeFromPosition(aStart, aCount, aHandler.itemListF(), [&aHandler](const T& aItem) {
+			auto list = aHandler.itemListF();
+			if (list.empty()) {
+				return json::array();
+			}
+
+			return Serializer::serializeFromPosition(aStart, aCount, list, [&aHandler](const T& aItem) {
 				return Serializer::serializeItem(aItem, aHandler);
 			});
 		}

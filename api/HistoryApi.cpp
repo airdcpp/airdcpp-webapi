@@ -32,13 +32,12 @@ namespace webserver {
 		json j;
 
 		auto history = SettingsManager::getInstance()->getHistory(toHistoryType(aRequest.getStringParam(0)));
-		for (const auto& s : history) {
-			j.push_back(s);
-			/*j.push_back({
-				{ "id", p->getToken() },
-				{ "str", p->getDisplayName() },
-				{ "default", p->isDefault() }
-			});*/
+		if (!history.empty()) {
+			for (const auto& s : history) {
+				j.push_back(s);
+			}
+		} else {
+			j = json::array();
 		}
 
 		aRequest.setResponseBody(j);

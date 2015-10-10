@@ -33,14 +33,18 @@ namespace webserver {
 		json ret;
 
 		auto directories = FavoriteManager::getInstance()->getFavoriteDirs();
-		for (const auto& vPath : directories) {
-			json parentJson;
-			parentJson["name"] = vPath.first;
-			for (const auto& realPath : vPath.second) {
-				parentJson["paths"].push_back(realPath);
-			}
+		if (!directories.empty()) {
+			for (const auto& vPath : directories) {
+				json parentJson;
+				parentJson["name"] = vPath.first;
+				for (const auto& realPath : vPath.second) {
+					parentJson["paths"].push_back(realPath);
+				}
 
-			ret.push_back(parentJson);
+				ret.push_back(parentJson);
+			}
+		} else {
+			ret = json::array();
 		}
 
 		aRequest.setResponseBody(ret);

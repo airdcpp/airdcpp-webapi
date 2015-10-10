@@ -63,7 +63,7 @@ namespace webserver {
 	std::string FavoriteHubUtils::getStringInfo(const FavoriteHubEntryPtr& aEntry, int aPropertyName) noexcept {
 		switch (aPropertyName) {
 		case FavoriteHubApi::PROP_NAME: return aEntry->getName();
-		case FavoriteHubApi::PROP_HUB_URL: return aEntry->getServerStr();
+		case FavoriteHubApi::PROP_HUB_URL: return aEntry->getServer();
 		case FavoriteHubApi::PROP_HUB_DESCRIPTION: return aEntry->getDescription();
 		case FavoriteHubApi::PROP_NICK: return aEntry->get(HubSettings::Nick);
 		case FavoriteHubApi::PROP_USER_DESCRIPTION: return aEntry->get(HubSettings::Description);

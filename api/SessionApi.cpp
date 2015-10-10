@@ -24,11 +24,40 @@
 #include <web-server/WebServerManager.h>
 #include <web-server/WebUserManager.h>
 
+#include <airdcpp/AirUtil.h>
+#include <airdcpp/version.h>
+
 namespace webserver {
 	SessionApi::SessionApi() {
 	}
 
-	websocketpp::http::status_code::value SessionApi::handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception) {
+	json SessionApi::getSystemInfo(const string& aIp) const noexcept {
+		json retJson;
+		retJson["path_separator"] = PATH_SEPARATOR_STR;
+
+		
+		// IPv4 addresses will be mapped to IPv6
+		auto ip = aIp;
+		auto v6 = aIp.find(":") != string::npos;
+		if (aIp.find("[::ffff:") == 0) {
+			auto end = aIp.rfind("]");
+			ip = aIp.substr(8, end-8);
+			v6 = false;
+		}
+
+		retJson["network_type"] = Util::isPrivateIp(ip, v6) ? "local" : "internet";
+		retJson["client_version"] = getVersionTag();
+#ifdef WIN32
+		retJson["platform"] = "windows";
+#elif APPLE
+		retJson["platform"] = "osx";
+#else
+		retJson["platform"] = "other";
+#endif
+		return retJson;
+	}
+
+	websocketpp::http::status_code::value SessionApi::handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception) {
 		decltype(auto) requestJson = aRequest.getRequestBody();
 		auto session = WebUserManager::getInstance()->authenticate(requestJson["username"], requestJson["password"], aIsSecure);
 
@@ -39,7 +68,8 @@ namespace webserver {
 
 		json retJson = {
 			{ "token", session->getToken() },
-			{ "user", session->getUser()->getUserName() }
+			{ "user", session->getUser()->getUserName() },
+			{ "system", getSystemInfo(aIp) }
 		};
 
 		if (aSocket) {

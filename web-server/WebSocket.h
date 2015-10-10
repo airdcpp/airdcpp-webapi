@@ -48,6 +48,8 @@ namespace webserver {
 
 		WebSocket(WebSocket&) = delete;
 		WebSocket& operator=(WebSocket&) = delete;
+
+		string getIp() const noexcept;
 	protected:
 		WebSocket(bool aIsSecure, websocketpp::connection_hdl aHdl);
 	private:

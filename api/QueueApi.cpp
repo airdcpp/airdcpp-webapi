@@ -89,8 +89,12 @@ namespace webserver {
 			paths = QueueManager::getInstance()->getTargets(tth);
 		}
 
-		for (const auto& p : paths) {
-			ret.push_back(p);
+		if (!paths.empty()) {
+			for (const auto& p : paths) {
+				ret.push_back(p);
+			}
+		} else {
+			ret = json::array();
 		}
 
 		aRequest.setResponseBody(ret);

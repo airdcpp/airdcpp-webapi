@@ -31,6 +31,16 @@ namespace webserver {
 		dcdebug("Websocket was deleted\n");
 	}
 
+	string WebSocket::getIp() const noexcept {
+		if (secure) {
+			auto conn = tlsServer->get_con_from_hdl(hdl);
+			return conn->get_remote_endpoint();
+		} else {
+			auto conn = plainServer->get_con_from_hdl(hdl);
+			return conn->get_remote_endpoint();
+		}
+	}
+
 	void WebSocket::sendApiResponse(const json& aResponseJson, const json& aErrorJson, websocketpp::http::status_code::value aCode, int aCallbackId) {
 		json j;
 		j["callback_id"] = aCallbackId;

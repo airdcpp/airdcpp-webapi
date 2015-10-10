@@ -74,9 +74,8 @@ namespace webserver {
 
 	json Serializer::serializeHintedUser(const HintedUser& aUser) noexcept {
 		auto flags = getUserFlags(aUser);
-		auto user = ClientManager::getInstance()->getOnlineUser(aUser);
 		if (aUser.user->isOnline()) {
-			auto user = ClientManager::getInstance()->getOnlineUser(aUser);
+			auto user = ClientManager::getInstance()->findOnlineUser(aUser);
 			if (user) {
 				if (user->getIdentity().isAway()) {
 					flags.insert("away");
@@ -164,18 +163,30 @@ namespace webserver {
 		auto typeName = SearchManager::getInstance()->getNameByExtension(ext, true);
 
 		return{
-			{ "type", typeNameToString(typeName) },
+			{ "id", "file" },
+			{ "content_type", typeNameToString(typeName) },
 			{ "str", ext }
 		};
 	}
 
 	json Serializer::serializeFolderType(size_t aFiles, size_t aDirectories) noexcept {
-		return{
-			{ "type", "directory" },
+		json retJson = {
+			{ "id", "directory" },
+			{ "str", Format::formatFolderContent(aFiles, aDirectories) }
+		};
+
+		if (aFiles >= 0 && aDirectories >= 0) {
+			retJson["files"] = aFiles;
+			retJson["directories"] = aDirectories;
+		}
+
+		return retJson;
+		/*return{
+			{ "id", "directory" },
 			{ "str", Format::formatFolderContent(aFiles, aDirectories) },
 			{ "files", aFiles },
 			{ "directories", aDirectories },
-		};
+		};*/
 	}
 
 	json Serializer::serializeIp(const string& aIP) noexcept {

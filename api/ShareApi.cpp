@@ -42,6 +42,8 @@ namespace webserver {
 		json j;
 
 		auto profiles = ShareManager::getInstance()->getProfiles();
+
+		// Profiles can't be empty
 		for (const auto& p : profiles) {
 			j.push_back({
 				{ "id", p->getToken() },
@@ -58,14 +60,18 @@ namespace webserver {
 		json ret;
 
 		auto roots = ShareManager::getInstance()->getGroupedDirectories();
-		for (const auto& vPath : roots) {
-			json parentJson;
-			parentJson["name"] = vPath.first;
-			for (const auto& realPath : vPath.second) {
-				parentJson["paths"].push_back(realPath);
-			}
+		if (!roots.empty()) {
+			for (const auto& vPath : roots) {
+				json parentJson;
+				parentJson["name"] = vPath.first;
+				for (const auto& realPath : vPath.second) {
+					parentJson["paths"].push_back(realPath);
+				}
 
-			ret.push_back(parentJson);
+				ret.push_back(parentJson);
+			}
+		} else {
+			ret = json::array();
 		}
 
 		aRequest.setResponseBody(ret);
@@ -86,8 +92,12 @@ namespace webserver {
 			paths = ShareManager::getInstance()->getRealPaths(tth);
 		}
 
-		for (const auto& p : paths) {
-			ret.push_back(p);
+		if (!paths.empty()) {
+			for (const auto& p : paths) {
+				ret.push_back(p);
+			}
+		} else {
+			ret = json::array();
 		}
 
 		aRequest.setResponseBody(ret);

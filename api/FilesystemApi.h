@@ -1,3 +1,4 @@
+#pragma once
 /*
 * Copyright (C) 2011-2015 AirDC++ Project
 *
@@ -16,30 +17,29 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_APIROUTER_H
-#define DCPLUSPLUS_DCPP_APIROUTER_H
+#ifndef DCPLUSPLUS_DCPP_FILESYSTEM_API_H
+#define DCPLUSPLUS_DCPP_FILESYSTEM_API_H
 
 #include <web-server/stdinc.h>
 
-#include <api/SessionApi.h>
+#include <api/ApiModule.h>
 
 #include <airdcpp/typedefs.h>
 
 namespace webserver {
-	class ApiRouter {
+	class FilesystemApi : public ApiModule {
 	public:
-		ApiRouter();
-		~ApiRouter();
+		FilesystemApi(Session* aSession);
+		~FilesystemApi();
 
-		void handleSocketRequest(const std::string& aRequestBody, WebSocketPtr& aSocket, bool aIsSecure) noexcept;
-		api_return handleHttpRequest(const std::string& aRequestPath, const SessionPtr& aSession, const std::string& aRequestBody, 
-			json& output_, json& error_, bool aIsSecure, const std::string& aRequestMethod, const string& aIp) noexcept;
+		int getVersion() const noexcept {
+			return 0;
+		}
 	private:
-		api_return handleRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) noexcept;
+		api_return handleListItems(ApiRequest& aRequest) throw(exception);
+		api_return handlePostDirectory(ApiRequest& aRequest) throw(exception);
 
-		api_return handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception);
-
-		SessionApi sessionApi;
+		json serializeDirectoryContent(const string& aPath, bool aDirectoriesOnly);
 	};
 }
 

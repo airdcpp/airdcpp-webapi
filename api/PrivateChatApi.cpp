@@ -74,8 +74,12 @@ namespace webserver {
 
 		{
 			RLock l(cs);
-			for (const auto& c : subModules | map_values) {
-				retJson.push_back(serializeChat(c->getChat()));
+			if (!subModules.empty()) {
+				for (const auto& c : subModules | map_values) {
+					retJson.push_back(serializeChat(c->getChat()));
+				}
+			} else {
+				retJson = json::array();
 			}
 		}
 
