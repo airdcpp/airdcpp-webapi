@@ -21,25 +21,38 @@
 
 #include <web-server/stdinc.h>
 
-#include <api/ApiModule.h>
+#include <api/HierarchicalApiModule.h>
+#include <api/HubInfo.h>
 
 #include <airdcpp/typedefs.h>
 #include <airdcpp/Client.h>
 #include <airdcpp/ClientManagerListener.h>
 
 namespace webserver {
-	class HubApi : public ApiModule, private ClientManagerListener {
+	class HubApi : public ParentApiModule<ClientToken, HubInfo>, private ClientManagerListener {
 	public:
+		static StringList subscriptionList;
+
 		HubApi(Session* aSession);
 		~HubApi();
 
 		int getVersion() const noexcept {
 			return 0;
 		}
+
+		static json serializeClient(const ClientPtr& aClient) noexcept;
 	private:
+		void addHub(const ClientPtr& aClient) noexcept;
+
+		api_return handleGetHubs(ApiRequest& aRequest) throw(exception);
+
 		api_return handleConnect(ApiRequest& aRequest) throw(exception);
 		api_return handleDisconnect(ApiRequest& aRequest) throw(exception);
 		api_return handleSearchNicks(ApiRequest& aRequest) throw(exception);
+
+
+		void on(ClientManagerListener::ClientCreated, const ClientPtr&) noexcept;
+		void on(ClientManagerListener::ClientRemoved, const ClientPtr&) noexcept;
 	};
 }
 

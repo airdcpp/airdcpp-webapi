@@ -114,15 +114,12 @@ namespace webserver {
 		send("private_chat_message", Serializer::serializeChatMessage(aMessage));
 	}
 
-	void PrivateChatInfo::on(PrivateChatListener::StatusMessage, PrivateChat*, const string& aMessage, uint8_t aSeverity) noexcept {
+	void PrivateChatInfo::on(PrivateChatListener::StatusMessage, PrivateChat*, const LogMessagePtr& aMessage) noexcept {
 		if (!subscriptionActive("private_chat_status")) {
 			return;
 		}
 
-		send("private_chat_status", {
-			{ "text", aMessage },
-			{ "severity", aSeverity }
-		});
+		send("private_chat_status", Serializer::serializeLogMessage(aMessage));
 	}
 
 	json PrivateChatInfo::serializeCCPMState(uint8_t aState) noexcept {

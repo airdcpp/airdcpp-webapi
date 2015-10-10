@@ -84,7 +84,9 @@ namespace webserver {
 		}
 
 		void setResponseErrorStr(const std::string& aError) {
-			responseJsonError = { "message", aError };
+			responseJsonError = {
+				{ "message", aError } 
+			};
 		}
 
 		void setResponseErrorJson(const json& aError) {

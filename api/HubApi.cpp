@@ -26,16 +26,91 @@
 #include <airdcpp/HubEntry.h>
 
 namespace webserver {
-	HubApi::HubApi(Session* aSession) : ApiModule(aSession) {
+	StringList HubApi::subscriptionList = {
+		"hub_created",
+		"hub_removed"
+	};
+
+	HubApi::HubApi(Session* aSession) : ParentApiModule("hub", TOKEN_PARAM, aSession, subscriptionList, HubInfo::subscriptionList, [](const string& aId) { return Util::toUInt32(aId); }) {
 		ClientManager::getInstance()->addListener(this);
 
 		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (), true, HubApi::handleConnect);
 		METHOD_HANDLER("hub", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, HubApi::handleDisconnect);
 		METHOD_HANDLER("search_nicks", ApiRequest::METHOD_POST, (), true, HubApi::handleSearchNicks);
+
+		auto rawHubs = ClientManager::getInstance()->getClients();
+		for (const auto& c : rawHubs | map_values) {
+			addHub(c);
+		}
 	}
 
 	HubApi::~HubApi() {
 		ClientManager::getInstance()->removeListener(this);
+	}
+
+	json HubApi::serializeClient(const ClientPtr& aClient) noexcept {
+		return{
+			{ "name", aClient->getHubName() },
+			{ "description", aClient->getHubDescription() },
+			{ "user_count", aClient->getUserCount() },
+			{ "share_size", aClient->getTotalShare() },
+			{ "connect_state", HubInfo::serializeConnectState(aClient) },
+			{ "unread_count", aClient->getCache().countUnread() },
+			{ "hub_url", aClient->getHubUrl() },
+			{ "id", aClient->getClientId() },
+			//{ "share_profile", Serializer::serializeShare aClient->getShareProfile() },
+		};
+	}
+
+	void HubApi::addHub(const ClientPtr& aClient) noexcept {
+		auto hubInfo = unique_ptr<HubInfo>(new HubInfo(this, aClient));
+
+		{
+			WLock l(cs);
+			subModules.emplace(aClient->getClientId(), move(hubInfo));
+		}
+	}
+
+	api_return HubApi::handleGetHubs(ApiRequest& aRequest) throw(exception) {
+		json retJson;
+
+		{
+			RLock l(cs);
+			if (!subModules.empty()) {
+				for (const auto& c : subModules | map_values) {
+					retJson.push_back(serializeClient(c->getClient()));
+				}
+			} else {
+				retJson = json::array();
+			}
+		}
+
+		aRequest.setResponseBody(retJson);
+		return websocketpp::http::status_code::ok;
+	}
+
+	void HubApi::on(ClientManagerListener::ClientCreated, const ClientPtr& aClient) noexcept {
+		addHub(aClient);
+		if (!subscriptionActive("hub_created")) {
+			return;
+		}
+
+		send("hub_created", serializeClient(aClient));
+	}
+
+	void HubApi::on(ClientManagerListener::ClientRemoved, const ClientPtr& aClient) noexcept {
+		{
+			WLock l(cs);
+			subModules.erase(aClient->getClientId());
+		}
+
+		if (!subscriptionActive("hub_removed")) {
+			return;
+		}
+
+		send("hub_removed", {
+			{ "id", aClient->getClientId() }
+		});
 	}
 
 	api_return HubApi::handleConnect(ApiRequest& aRequest) throw(exception) {

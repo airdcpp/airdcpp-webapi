@@ -40,7 +40,6 @@ namespace webserver {
 		typedef ParentApiModule<CID, PrivateChatInfo> ParentType;
 		typedef PrivateChatInfo* Ptr;
 		typedef vector<Ptr> List;
-		typedef unordered_map<CID, Ptr> Map;
 
 		PrivateChatInfo(ParentType* aParentModule, const PrivateChatPtr& aChat);
 		~PrivateChatInfo();
@@ -60,7 +59,7 @@ namespace webserver {
 		api_return handleEndTyping(ApiRequest& aRequest) throw(exception);
 
 		void on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr&) noexcept;
-		void on(PrivateChatListener::StatusMessage, PrivateChat*, const string&, uint8_t /*severity*/) noexcept;
+		void on(PrivateChatListener::StatusMessage, PrivateChat*, const LogMessagePtr&) noexcept;
 
 		void on(PrivateChatListener::Close, PrivateChat*) noexcept;
 		void on(PrivateChatListener::UserUpdated, PrivateChat*) noexcept;
