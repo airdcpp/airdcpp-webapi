@@ -133,13 +133,13 @@ namespace webserver {
 		ConvertF convertF;
 	};
 
-	template<class ParentIdType, class ItemType>
+	template<class ParentIdType, class ItemType, class ItemJsonType>
 	class SubApiModule : public ApiModule {
 	public:
 		typedef ParentApiModule<ParentIdType, ItemType> ParentType;
 
 		// aId = ID of the entity owning this module
-		SubApiModule(ParentType* aParentModule, const string& aId, const StringList& aSubscriptions) : 
+		SubApiModule(ParentType* aParentModule, const ItemJsonType& aId, const StringList& aSubscriptions) :
 			ApiModule(aParentModule->getSession(), &aSubscriptions), parentModule(aParentModule), id(aId) { }
 
 		bool send(const string& aSubscription, const json& aJson) {
@@ -169,7 +169,7 @@ namespace webserver {
 	protected:
 		ParentType* parentModule;
 
-		string id;
+		ItemJsonType id;
 	};
 }
 

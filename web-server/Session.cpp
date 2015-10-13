@@ -29,6 +29,7 @@
 #include <api/LogApi.h>
 #include <api/PrivateChatApi.h>
 #include <api/QueueApi.h>
+#include <api/RecentHubApi.h>
 #include <api/SearchApi.h>
 #include <api/ShareApi.h>
 #include <api/TransferApi.h>
@@ -50,6 +51,7 @@ namespace webserver {
 		ADD_MODULE("log", LogApi);
 		ADD_MODULE("private_chat", PrivateChatApi);
 		ADD_MODULE("queue", QueueApi);
+		ADD_MODULE("recent_hubs", RecentHubApi);
 		ADD_MODULE("search", SearchApi);
 		ADD_MODULE("share", ShareApi);
 		ADD_MODULE("transfers", TransferApi);

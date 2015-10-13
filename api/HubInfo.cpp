@@ -30,12 +30,17 @@ namespace webserver {
 	};
 
 	HubInfo::HubInfo(ParentType* aParentModule, const ClientPtr& aClient) :
-		SubApiModule(aParentModule, Util::toString(aClient->getClientId()), subscriptionList), client(aClient) {
+		SubApiModule(aParentModule, aClient->getClientId(), subscriptionList), client(aClient) {
 
 		client->addListener(this);
 
 		METHOD_HANDLER("messages", ApiRequest::METHOD_GET, (NUM_PARAM), false, HubInfo::handleGetMessages);
 		METHOD_HANDLER("message", ApiRequest::METHOD_POST, (), true, HubInfo::handlePostMessage);
+
+		METHOD_HANDLER("reconnect", ApiRequest::METHOD_POST, (), false, HubInfo::handleReconnect);
+		METHOD_HANDLER("favorite", ApiRequest::METHOD_POST, (), false, HubInfo::handleFavorite);
+		METHOD_HANDLER("password", ApiRequest::METHOD_POST, (), true, HubInfo::handlePassword);
+		METHOD_HANDLER("redirect", ApiRequest::METHOD_POST, (), false, HubInfo::handleRedirect);
 
 		METHOD_HANDLER("read", ApiRequest::METHOD_POST, (), false, HubInfo::handleSetRead);
 	}
@@ -44,24 +49,62 @@ namespace webserver {
 		client->removeListener(this);
 	}
 
+	api_return HubInfo::handleReconnect(ApiRequest& aRequest) throw(exception) {
+		client->reconnect();
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return HubInfo::handleFavorite(ApiRequest& aRequest) throw(exception) {
+		if (!client->saveFavorite()) {
+			aRequest.setResponseErrorStr(STRING(FAVORITE_HUB_ALREADY_EXISTS));
+			return websocketpp::http::status_code::bad_request;
+		}
+
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return HubInfo::handlePassword(ApiRequest& aRequest) throw(exception) {
+		auto password = JsonUtil::getField<string>("password", aRequest.getRequestBody(), false);
+
+		client->password(password);
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return HubInfo::handleRedirect(ApiRequest& aRequest) throw(exception) {
+		client->doRedirect();
+		return websocketpp::http::status_code::ok;
+	}
+
+	json HubInfo::serializeIdentity(const ClientPtr& aClient) noexcept {
+		return{
+			{ "name", aClient->getHubName() },
+			{ "description", aClient->getHubDescription() },
+			{ "user_count", aClient->getUserCount() },
+			{ "share_size", aClient->getTotalShare() },
+		};
+	}
+
 	json HubInfo::serializeConnectState(const ClientPtr& aClient) noexcept {
+		if (!aClient->getRedirectUrl().empty()) {
+			return{
+				{ "id", "redirect" },
+				{ "hub_url", aClient->getRedirectUrl() }
+			};
+		}
+
+		string id;
 		switch (aClient->getConnectState()) {
 			case Client::STATE_CONNECTING:
 			case Client::STATE_PROTOCOL:
-			case Client::STATE_IDENTIFY:  return "connecting";
-			case Client::STATE_VERIFY:  return "password";
-			case Client::STATE_NORMAL: return "connected";
-			case Client::STATE_DISCONNECTED: {
-				if (!aClient->getRedirectUrl().empty()) {
-					return "redirect";
-				}
-
-				return "disconnected";
-			}
+			case Client::STATE_IDENTIFY: id = "connecting"; break;
+			case Client::STATE_VERIFY:  id = "password"; break;
+			case Client::STATE_NORMAL: id = "connected"; break;
+			case Client::STATE_DISCONNECTED: id = "disconnected"; break;
 		}
 
-		dcassert(0);
-		return nullptr;
+		return {
+			{ "id", id }
+		};
 	}
 
 	api_return HubInfo::handleSetRead(ApiRequest& aRequest) throw(exception) {
@@ -94,7 +137,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	void HubInfo::on(ChatMessage, const Client*, const ChatMessagePtr& aMessage) noexcept {
+	void HubInfo::on(ClientListener::ChatMessage, const Client*, const ChatMessagePtr& aMessage) noexcept {
 		if (!aMessage->getRead()) {
 			sendUnread();
 		}
@@ -106,7 +149,7 @@ namespace webserver {
 		send("hub_chat_message", Serializer::serializeChatMessage(aMessage));
 	}
 
-	void HubInfo::on(StatusMessage, const Client*, const LogMessagePtr& aMessage, int aFlags) noexcept {
+	void HubInfo::on(ClientListener::StatusMessage, const Client*, const LogMessagePtr& aMessage, int aFlags) noexcept {
 		if (!subscriptionActive("hub_status_message")) {
 			return;
 		}
@@ -114,21 +157,70 @@ namespace webserver {
 		send("hub_status_message", Serializer::serializeLogMessage(aMessage));
 	}
 
-	void HubInfo::on(Disconnecting, const Client*) noexcept {
+	void HubInfo::on(ClientListener::Disconnecting, const Client*) noexcept {
 
 	}
 
-	void HubInfo::on(Redirected, const string&, const ClientPtr& aNewClient) noexcept {
+	void HubInfo::on(ClientListener::Redirected, const string&, const ClientPtr& aNewClient) noexcept {
+		client->removeListener(this);
+		client = aNewClient;
+		aNewClient->addListener(this);
+
+		sendConnectState();
+	}
+
+	/*void HubInfo::on(ClientListener::Connecting, const Client*) noexcept {
+		sendConnectState();
+	}
+
+	void HubInfo::on(ClientListener::Connected, const Client*) noexcept {
+		sendConnectState();
+	}*/
+
+	void HubInfo::on(Failed, const string&, const string&) noexcept {
+		sendConnectState();
+	}
+
+	void HubInfo::on(ClientListener::Redirect, const Client*, const string&) noexcept {
+		sendConnectState();
+	}
+
+	void HubInfo::on(ConnectStateChanged, const Client*, uint8_t aState) noexcept {
+		if (aState == Client::STATE_IDENTIFY || aState == Client::STATE_PROTOCOL) {
+			// Use the old "connecting" state still
+			return;
+		}
+
+		sendConnectState();
+	}
+
+	void HubInfo::on(ClientListener::GetPassword, const Client*) noexcept {
+		sendConnectState();
+	}
+
+	void HubInfo::on(ClientListener::HubUpdated, const Client*) noexcept {
+		onHubUpdated({
+			{ "identity", serializeIdentity(client) }
+		});
+	}
+
+	void HubInfo::on(ClientListener::HubTopic, const Client*, const string&) noexcept {
 
 	}
 
-	void HubInfo::on(MessagesRead) noexcept {
+	void HubInfo::on(ClientListener::MessagesRead, const Client*) noexcept {
 		sendUnread();
+	}
+
+	void HubInfo::sendConnectState() noexcept {
+		onHubUpdated({
+			{ "connect_state", serializeConnectState(client) }
+		});
 	}
 
 	void HubInfo::sendUnread() noexcept {
 		onHubUpdated({
-			{ "unread_count", client->getCache().countUnread() }
+			{ "unread_count", client->getCache().countUnread(Message::TYPE_CHAT) }
 		});
 	}
 

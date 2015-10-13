@@ -55,6 +55,10 @@ namespace webserver {
 			return websocketpp::http::status_code::bad_request;
 		}
 
+		aRequest.setResponseBody({
+			{ "id", c->getUser()->getCID().toBase32() }
+		});
+
 		return websocketpp::http::status_code::ok;
 	}
 
@@ -98,7 +102,7 @@ namespace webserver {
 		}
 
 		send("chat_session_removed", {
-			{ "cid", aChat->getUser()->getCID().toBase32() }
+			{ "id", aChat->getUser()->getCID().toBase32() }
 		});
 	}
 
@@ -122,9 +126,10 @@ namespace webserver {
 
 	json PrivateChatApi::serializeChat(const PrivateChatPtr& aChat) noexcept {
 		return {
+			{ "id", aChat->getUser()->getCID().toBase32() },
 			{ "user", Serializer::serializeHintedUser(aChat->getHintedUser()) },
 			{ "ccpm_state", PrivateChatInfo::serializeCCPMState(aChat->getCCPMState()) },
-			{ "unread_count", aChat->getCache().countUnread() }
+			{ "unread_count", aChat->getCache().countUnread(Message::TYPE_CHAT) }
 		};
 	}
 }

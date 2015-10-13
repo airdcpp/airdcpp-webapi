@@ -165,6 +165,9 @@
     <ClInclude Include="api\HubInfo.h">
       <Filter>Header Files\api</Filter>
     </ClInclude>
+    <ClInclude Include="api\RecentHubApi.h">
+      <Filter>Header Files\api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api\QueueApi.cpp">
@@ -271,6 +274,9 @@
     </ClCompile>
     <ClCompile Include="api\HubInfo.cpp">
       <Filter>Source Files\web-server</Filter>
+    </ClCompile>
+    <ClCompile Include="api\RecentHubApi.cpp">
+      <Filter>Source Files\api</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

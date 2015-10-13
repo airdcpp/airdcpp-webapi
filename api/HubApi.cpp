@@ -31,11 +31,14 @@ namespace webserver {
 		"hub_removed"
 	};
 
-	HubApi::HubApi(Session* aSession) : ParentApiModule("hub", TOKEN_PARAM, aSession, subscriptionList, HubInfo::subscriptionList, [](const string& aId) { return Util::toUInt32(aId); }) {
+	HubApi::HubApi(Session* aSession) : ParentApiModule("session", TOKEN_PARAM, aSession, subscriptionList, HubInfo::subscriptionList, [](const string& aId) { return Util::toUInt32(aId); }) {
 		ClientManager::getInstance()->addListener(this);
 
-		METHOD_HANDLER("hub", ApiRequest::METHOD_POST, (), true, HubApi::handleConnect);
-		METHOD_HANDLER("hub", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, HubApi::handleDisconnect);
+		METHOD_HANDLER("sessions", ApiRequest::METHOD_GET, (), false, HubApi::handleGetHubs);
+
+		METHOD_HANDLER("session", ApiRequest::METHOD_POST, (), true, HubApi::handleConnect);
+		METHOD_HANDLER("session", ApiRequest::METHOD_DELETE, (TOKEN_PARAM), false, HubApi::handleDisconnect);
+
 		METHOD_HANDLER("search_nicks", ApiRequest::METHOD_POST, (), true, HubApi::handleSearchNicks);
 
 		auto rawHubs = ClientManager::getInstance()->getClients();
@@ -50,14 +53,13 @@ namespace webserver {
 
 	json HubApi::serializeClient(const ClientPtr& aClient) noexcept {
 		return{
-			{ "name", aClient->getHubName() },
-			{ "description", aClient->getHubDescription() },
-			{ "user_count", aClient->getUserCount() },
-			{ "share_size", aClient->getTotalShare() },
+			{ "identity", HubInfo::serializeIdentity(aClient) },
 			{ "connect_state", HubInfo::serializeConnectState(aClient) },
-			{ "unread_count", aClient->getCache().countUnread() },
+			{ "unread_count", aClient->getCache().countUnread(Message::TYPE_CHAT) },
 			{ "hub_url", aClient->getHubUrl() },
 			{ "id", aClient->getClientId() },
+			{ "favorite_hub", aClient->getFavToken() },
+			{ "share_profile", aClient->getShareProfile() }
 			//{ "share_profile", Serializer::serializeShare aClient->getShareProfile() },
 		};
 	}
@@ -125,11 +127,18 @@ namespace webserver {
 			return websocketpp::http::status_code::bad_request;
 		}
 
+		aRequest.setResponseBody({
+			{ "id", client->getClientId() }
+		});
+
 		return websocketpp::http::status_code::ok;
 	}
 
 	api_return HubApi::handleDisconnect(ApiRequest& aRequest) throw(exception) {
-		//ClientManager::getInstance()->putClient();
+		if (!ClientManager::getInstance()->putClient(aRequest.getTokenParam(0))) {
+			return websocketpp::http::status_code::not_found;
+		}
+
 		return websocketpp::http::status_code::ok;
 	}
 

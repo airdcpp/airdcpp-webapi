@@ -69,7 +69,8 @@ namespace webserver {
 
 		FileFindIter end;
 		for (FileFindIter i(aPath, "*"); i != end; ++i) {
-			if (aPath == "." || aPath == "..") {
+			auto fileName = i->getFileName();
+			if (fileName == "." || fileName == "..") {
 				continue;
 			}
 
@@ -78,7 +79,7 @@ namespace webserver {
 			}
 
 			json item;
-			item["name"] = i->getFileName();
+			item["name"] = fileName;
 			if (i->isDirectory()) {
 				item["type"] = Serializer::serializeFolderType(-1, -1);
 			} else {

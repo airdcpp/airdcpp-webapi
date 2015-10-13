@@ -33,7 +33,7 @@
 namespace webserver {
 	class PrivateChatInfo;
 
-	class PrivateChatInfo : public SubApiModule<CID, PrivateChatInfo>, private PrivateChatListener {
+	class PrivateChatInfo : public SubApiModule<CID, PrivateChatInfo, std::string>, private PrivateChatListener {
 	public:
 		static StringList subscriptionList;
 

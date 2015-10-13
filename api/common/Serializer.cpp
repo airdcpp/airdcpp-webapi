@@ -109,15 +109,23 @@ namespace webserver {
 	}
 
 	json Serializer::serializeChatMessage(const ChatMessagePtr& aMessage) noexcept {
-		return {
+		json ret = {
 			{ "id", aMessage->getId()},
 			{ "text", aMessage->getText() },
 			{ "from", serializeOnlineUser(aMessage->getFrom()) },
-			{ "to", serializeOnlineUser(aMessage->getTo()) },
-			{ "reply_to", serializeOnlineUser(aMessage->getReplyTo()) },
 			{ "time", aMessage->getTime() },
 			{ "is_read", aMessage->getRead() }
 		};
+
+		if (aMessage->getTo()) {
+			ret["to"] = serializeOnlineUser(aMessage->getTo());
+		}
+
+		if (aMessage->getReplyTo()) {
+			ret["reply_to"] = serializeOnlineUser(aMessage->getReplyTo());
+		}
+
+		return ret;
 	}
 
 	json Serializer::serializeLogMessage(const LogMessagePtr& aMessageData) noexcept {

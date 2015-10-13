@@ -33,7 +33,7 @@
 namespace webserver {
 	class HubInfo;
 
-	class HubInfo : public SubApiModule<ClientToken, HubInfo>, private ClientListener {
+	class HubInfo : public SubApiModule<ClientToken, HubInfo, ClientToken>, private ClientListener {
 	public:
 		static StringList subscriptionList;
 
@@ -47,36 +47,46 @@ namespace webserver {
 		ClientPtr getClient() const noexcept { return client; }
 
 		static json serializeConnectState(const ClientPtr& aClient) noexcept;
+		static json serializeIdentity(const ClientPtr& aClient) noexcept;
 	private:
 		api_return handleGetMessages(ApiRequest& aRequest) throw(exception);
 		api_return handlePostMessage(ApiRequest& aRequest) throw(exception);
 		api_return handleSetRead(ApiRequest& aRequest) throw(exception);
 
-		/*void on(Connecting, const Client*) noexcept;
-		void on(Connected, const Client*) noexcept;
-		void on(UserConnected, const Client*, const OnlineUserPtr&) noexcept;
+		api_return handleReconnect(ApiRequest& aRequest) throw(exception);
+		api_return handleFavorite(ApiRequest& aRequest) throw(exception);
+		api_return handlePassword(ApiRequest& aRequest) throw(exception);
+		api_return handleRedirect(ApiRequest& aRequest) throw(exception);
+
+		/*void on(UserConnected, const Client*, const OnlineUserPtr&) noexcept;
 		void on(UserUpdated, const Client*, const OnlineUserPtr&) noexcept;
 		void on(UsersUpdated, const Client*, const OnlineUserList&) noexcept;
 		void on(ClientListener::UserRemoved, const Client*, const OnlineUserPtr&) noexcept;
-		void on(Redirect, const Client*, const string&) noexcept;
-		void on(Failed, const string&, const string&) noexcept;
-		void on(GetPassword, const Client*) noexcept;
-		void on(HubUpdated, const Client*) noexcept;
 		void on(NickTaken, const Client*) noexcept;
 		void on(SearchFlood, const Client*, const string&) noexcept;
 		void on(HubTopic, const Client*, const string&) noexcept;
 		void on(AddLine, const Client*, const string&) noexcept;
 		void on(SetActive, const Client*) noexcept;*/
 
+		//void on(Connecting, const Client*) noexcept;
+		//void on(Connected, const Client*) noexcept;
+		void on(Redirect, const Client*, const string&) noexcept;
+		void on(Failed, const string&, const string&) noexcept;
+		void on(GetPassword, const Client*) noexcept;
+		void on(HubUpdated, const Client*) noexcept;
+		void on(HubTopic, const Client*, const string&) noexcept;
+		void on(ConnectStateChanged, const Client*, uint8_t) noexcept;
+
 		void on(Disconnecting, const Client*) noexcept;
 		void on(Redirected, const string&, const ClientPtr& aNewClient) noexcept;
 
 		void on(ChatMessage, const Client*, const ChatMessagePtr&) noexcept;
 		void on(StatusMessage, const Client*, const LogMessagePtr&, int = ClientListener::FLAG_NORMAL) noexcept;
-		void on(MessagesRead) noexcept;
+		void on(MessagesRead, const Client*) noexcept;
 
 		void onHubUpdated(const json& aData) noexcept;
 		void sendUnread() noexcept;
+		void sendConnectState() noexcept;
 
 		ClientPtr client;
 	};
