@@ -29,7 +29,11 @@ namespace webserver {
 		LogManager::getInstance()->addListener(this);
 
 		createSubscription("log_message");
+		createSubscription("log_cleared");
+		createSubscription("log_read");
 
+		METHOD_HANDLER("clear", ApiRequest::METHOD_POST, (), false, LogApi::handleClear);
+		METHOD_HANDLER("read", ApiRequest::METHOD_POST, (), false, LogApi::handleRead);
 		METHOD_HANDLER("messages", ApiRequest::METHOD_GET, (NUM_PARAM), false, LogApi::handleGetLog);
 	}
 
@@ -37,10 +41,20 @@ namespace webserver {
 		LogManager::getInstance()->removeListener(this);
 	}
 
-	api_return LogApi::handleGetLog(ApiRequest& aRequest)  throw(exception) {
+	api_return LogApi::handleRead(ApiRequest& aRequest) throw(exception) {
+		LogManager::getInstance()->setRead();
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return LogApi::handleClear(ApiRequest& aRequest) throw(exception) {
+		LogManager::getInstance()->clearCache();
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return LogApi::handleGetLog(ApiRequest& aRequest) throw(exception) {
 		auto j = Serializer::serializeFromEnd(
 			aRequest.getRangeParam(0),
-			LogManager::getInstance()->getLastLogs(),
+			LogManager::getInstance()->getCache().getLogMessages(),
 			Serializer::serializeLogMessage);
 
 		aRequest.setResponseBody(j);
@@ -53,5 +67,21 @@ namespace webserver {
 		}
 
 		send("log_message", Serializer::serializeLogMessage(aMessageData));
+	}
+
+	void LogApi::on(LogManagerListener::Cleared) noexcept {
+		if (!subscriptionActive("log_cleared")) {
+			return;
+		}
+
+		send("log_cleared", nullptr);
+	}
+
+	void LogApi::on(LogManagerListener::MessagesRead) noexcept {
+		if (!subscriptionActive("log_read")) {
+			return;
+		}
+
+		send("log_read", nullptr);
 	}
 }

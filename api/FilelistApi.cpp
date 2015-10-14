@@ -22,7 +22,12 @@
 #include <api/common/Deserializer.h>
 
 namespace webserver {
-	FilelistApi::FilelistApi(Session* aSession) : ApiModule(aSession) {
+	StringList FilelistApi::subscriptionList = {
+		"list_created",
+		"list_removed"
+	};
+
+	FilelistApi::FilelistApi(Session* aSession) : ParentApiModule("session", CID_PARAM, aSession, subscriptionList, FilelistApi::subscriptionList, [](const string& aId) { return Deserializer::deserializeCID(aId); }) {
 
 		DirectoryListingManager::getInstance()->addListener(this);
 

@@ -133,7 +133,8 @@ namespace webserver {
 			{ "id", aMessageData->getId() },
 			{ "text", aMessageData->getText() },
 			{ "time", aMessageData->getTime() },
-			{ "severity", static_cast<int>(aMessageData->getTime()) }
+			{ "severity", static_cast<int>(aMessageData->getSeverity()) },
+			{ "is_read", aMessageData->getRead() }
 		};
 	}
 
@@ -189,12 +190,6 @@ namespace webserver {
 		}
 
 		return retJson;
-		/*return{
-			{ "id", "directory" },
-			{ "str", Format::formatFolderContent(aFiles, aDirectories) },
-			{ "files", aFiles },
-			{ "directories", aDirectories },
-		};*/
 	}
 
 	json Serializer::serializeIp(const string& aIP) noexcept {

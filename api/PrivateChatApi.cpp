@@ -129,7 +129,7 @@ namespace webserver {
 			{ "id", aChat->getUser()->getCID().toBase32() },
 			{ "user", Serializer::serializeHintedUser(aChat->getHintedUser()) },
 			{ "ccpm_state", PrivateChatInfo::serializeCCPMState(aChat->getCCPMState()) },
-			{ "unread_count", aChat->getCache().countUnread(Message::TYPE_CHAT) }
+			{ "unread_count", aChat->getCache().countUnreadChatMessages() }
 		};
 	}
 }

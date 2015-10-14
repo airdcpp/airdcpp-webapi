@@ -220,7 +220,7 @@ namespace webserver {
 
 	void HubInfo::sendUnread() noexcept {
 		onHubUpdated({
-			{ "unread_count", client->getCache().countUnread(Message::TYPE_CHAT) }
+			{ "unread_count", client->getCache().countUnreadChatMessages() }
 		});
 	}
 

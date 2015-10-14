@@ -20,10 +20,17 @@
 #include <api/FilelistUtils.h>
 
 namespace webserver {
-	FilelistInfo::FilelistInfo(Session* aSession, const DirectoryListingPtr& aFilelist) : ApiModule(aSession), dl(aFilelist), itemHandler(properties, std::bind(&FilelistInfo::getCurrentViewItems, this),
-		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
-		directoryView("filelist_view", this, itemHandler) {
+	StringList FilelistInfo::subscriptionList = {
+		"list_updated"
+	};
 
+	FilelistInfo::FilelistInfo(ParentType* aParentModule, const DirectoryListingPtr& aFilelist) : 
+		SubApiModule(aParentModule, aFilelist->getUser()->getCID().toBase32(), subscriptionList), 
+		dl(aFilelist), 
+		itemHandler(properties, std::bind(&FilelistInfo::getCurrentViewItems, this),
+		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
+		directoryView("filelist_view", this, itemHandler) 
+	{
 
 	}
 

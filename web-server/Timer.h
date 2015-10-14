@@ -35,9 +35,9 @@ namespace webserver {
 			stop(true);
 		}
 
-		void start() {
+		void start(bool aInstantStart = true) {
 			running = true;
-			timer.expires_from_now(interval);
+			timer.expires_from_now(aInstantStart ? boost::posix_time::milliseconds(0) : interval);
 			timer.async_wait(bind(&Timer::tick, this, std::placeholders::_1));
 		}
 
@@ -62,7 +62,7 @@ namespace webserver {
 			}
 
 			cb();
-			start();
+			start(false);
 		}
 
 		CallBack cb;

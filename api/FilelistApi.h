@@ -21,15 +21,17 @@
 
 #include <web-server/stdinc.h>
 
-#include <api/ApiModule.h>
+#include <api/HierarchicalApiModule.h>
 #include <api/FilelistInfo.h>
 
 #include <airdcpp/typedefs.h>
 #include <airdcpp/DirectoryListingManager.h>
 
 namespace webserver {
-	class FilelistApi : public ApiModule, private DirectoryListingManagerListener {
+	class FilelistApi : public ParentApiModule<CID, FilelistInfo>, private DirectoryListingManagerListener {
 	public:
+		static StringList subscriptionList;
+
 		FilelistApi(Session* aSession);
 		~FilelistApi();
 

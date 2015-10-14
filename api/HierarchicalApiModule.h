@@ -79,10 +79,6 @@ namespace webserver {
 			return chat->handleRequest(aRequest);
 		}
 
-		//bool subscriptionActive(const string& aSubscription) {
-		//	return childSubscriptions.(aSubscription.c_str());
-		//}
-
 		bool subscriptionExists(const string& aSubscription) const noexcept {
 			if (childSubscriptions.find(aSubscription) != childSubscriptions.end()) {
 				return true;
@@ -162,10 +158,6 @@ namespace webserver {
 			ApiModule::createSubscription(aSubscription);
 			parentModule->createChildSubscription(aSubscription);
 		}
-
-		//bool setSubscriptionState(const string& aSubscription, bool aActive) noexcept {
-		//	parentModule->setChildSubscriptionState(aSubscription, aActive);
-		//}
 	protected:
 		ParentType* parentModule;
 

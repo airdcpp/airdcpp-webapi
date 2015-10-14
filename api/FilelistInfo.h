@@ -28,7 +28,7 @@
 #include <airdcpp/QueueItemBase.h>
 #include <airdcpp/TargetUtil.h>
 
-#include <api/ApiModule.h>
+#include <api/HierarchicalApiModule.h>
 #include <api/common/ListViewController.h>
 
 namespace webserver {
@@ -70,9 +70,13 @@ namespace webserver {
 	typedef FilelistItemInfo::Ptr FilelistItemInfoPtr;
 
 
-	class FilelistInfo : public ApiModule {
+	class FilelistInfo : public SubApiModule<CID, FilelistInfo, std::string> {
 	public:
+		typedef ParentApiModule<CID, FilelistInfo> ParentType;
 		typedef shared_ptr<FilelistInfo> Ptr;
+
+		static StringList subscriptionList;
+
 		//typedef vector<Ptr> List;
 		//typedef unordered_map<TTHValue, Ptr> Map;
 
@@ -98,7 +102,7 @@ namespace webserver {
 			PROP_LAST
 		};
 
-		FilelistInfo(Session* aSession, const DirectoryListingPtr& aFilelist);
+		FilelistInfo(ParentType* aParentModule, const DirectoryListingPtr& aFilelist);
 		~FilelistInfo() {	}
 
 		//const UserPtr& getUser() const { return sr->getUser().user; }
