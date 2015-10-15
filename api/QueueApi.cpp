@@ -45,7 +45,7 @@ namespace webserver {
 		createSubscription("bundle_status");
 		createSubscription("bundle_tick");
 
-		createSubscription("file_updated");
+		createSubscription("file_added");
 		createSubscription("file_removed");
 		createSubscription("file_updated");
 

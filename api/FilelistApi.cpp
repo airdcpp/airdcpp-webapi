@@ -20,6 +20,9 @@
 //#include <api/SearchUtils.h>
 
 #include <api/common/Deserializer.h>
+#include <web-server/JsonUtil.h>
+
+#include <airdcpp/QueueManager.h>
 
 namespace webserver {
 	StringList FilelistApi::subscriptionList = {
@@ -34,10 +37,133 @@ namespace webserver {
 		createSubscription("list_created");
 		createSubscription("list_removed");
 
-		//MODULE_HANDLER("filelist", TOKEN_PARAM, FilelistApi::handleFilelist);
+		METHOD_HANDLER("sessions", ApiRequest::METHOD_GET, (), false, FilelistApi::handleGetLists);
+
+		METHOD_HANDLER("session", ApiRequest::METHOD_DELETE, (CID_PARAM), false, FilelistApi::handleDeleteList);
+		METHOD_HANDLER("session", ApiRequest::METHOD_POST, (), true, FilelistApi::handlePostList);
+
+		auto rawLists = DirectoryListingManager::getInstance()->getLists();
+		for (const auto& list : rawLists | map_values) {
+			addList(list);
+		}
 	}
 
 	FilelistApi::~FilelistApi() {
 		DirectoryListingManager::getInstance()->removeListener(this);
 	}
+
+	void FilelistApi::addList(const DirectoryListingPtr& aList) noexcept {
+		auto chatInfo = unique_ptr<FilelistInfo>(new FilelistInfo(this, aList));
+
+		{
+			WLock l(cs);
+			subModules.emplace(aList->getUser()->getCID(), move(chatInfo));
+		}
+	}
+
+	api_return FilelistApi::handlePostList(ApiRequest& aRequest) throw(exception) {
+		auto user = Deserializer::deserializeHintedUser(aRequest.getRequestBody());
+		auto flags = QueueItem::FLAG_PARTIAL_LIST;
+		auto optionalDirectory = JsonUtil::getOptionalField<string>("directory", aRequest.getRequestBody(), false);
+
+		auto directory = optionalDirectory ? Util::toNmdcFile(*optionalDirectory) : Util::emptyString;
+
+		QueueItemPtr q = nullptr;
+		try {
+			q = QueueManager::getInstance()->addList(user, flags, directory);
+		} catch (const Exception& e) {
+			aRequest.setResponseErrorStr(e.getError());
+			return websocketpp::http::status_code::bad_request;
+		}
+
+		/*auto c = MessageManager::getInstance()->addChat(Deserializer::deserializeHintedUser(aRequest.getRequestBody()), false);
+		if (!c) {
+			aRequest.setResponseErrorStr("Chat session exists");
+			return websocketpp::http::status_code::bad_request;
+		}*/
+
+		aRequest.setResponseBody({
+			{ "id", user.user->getCID().toBase32() }
+		});
+
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return FilelistApi::handleDeleteList(ApiRequest& aRequest) throw(exception) {
+		auto list = getSubModule(aRequest.getStringParam(0));
+		if (!list) {
+			aRequest.setResponseErrorStr("List not found");
+			return websocketpp::http::status_code::not_found;
+		}
+
+		list->getList()->close();
+		//DirectoryListingManager::getInstance()->removeList(list->getList()->getUser());
+		return websocketpp::http::status_code::ok;
+	}
+
+	api_return FilelistApi::handleGetLists(ApiRequest& aRequest) throw(exception) {
+		json retJson;
+
+		{
+			RLock l(cs);
+			if (!subModules.empty()) {
+				for (const auto& list : subModules | map_values) {
+					retJson.push_back(serializeList(list->getList()));
+				}
+			} else {
+				retJson = json::array();
+			}
+		}
+
+		aRequest.setResponseBody(retJson);
+		return websocketpp::http::status_code::ok;
+	}
+
+	void FilelistApi::on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept {
+		addList(aList);
+		if (!subscriptionActive("list_created")) {
+			return;
+		}
+
+		send("list_created", serializeList(aList));
+	}
+
+	void FilelistApi::on(DirectoryListingManagerListener::ListingClosed, const DirectoryListingPtr& aList) noexcept {
+		{
+			WLock l(cs);
+			subModules.erase(aList->getUser()->getCID());
+		}
+
+		if (!subscriptionActive("list_removed")) {
+			return;
+		}
+
+		send("list_removed", {
+			{ "id", aList->getUser()->getCID().toBase32() }
+		});
+	}
+
+	json FilelistApi::serializeList(const DirectoryListingPtr& aList) noexcept {
+		return{
+			{ "id", aList->getUser()->getCID().toBase32() },
+			{ "user", Serializer::serializeHintedUser(aList->getHintedUser()) },
+			//{ "ccpm_state", PrivateChatInfo::serializeCCPMState(aChat->getCCPMState()) },
+			//{ "unread_count", aChat->getCache().countUnreadChatMessages() }
+		};
+	}
+
+	/*void PrivateChatApi::on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept {
+		{
+			WLock l(cs);
+			subModules.erase(aChat->getUser()->getCID());
+		}
+
+		if (!subscriptionActive("chat_session_removed")) {
+			return;
+		}
+
+		send("chat_session_removed", {
+			{ "id", aChat->getUser()->getCID().toBase32() }
+		});
+	}*/
 }

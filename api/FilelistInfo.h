@@ -25,6 +25,7 @@
 #include <airdcpp/GetSet.h>
 
 #include <airdcpp/DirectoryListing.h>
+#include <airdcpp/DownloadManagerListener.h>
 #include <airdcpp/QueueItemBase.h>
 #include <airdcpp/TargetUtil.h>
 
@@ -70,7 +71,7 @@ namespace webserver {
 	typedef FilelistItemInfo::Ptr FilelistItemInfoPtr;
 
 
-	class FilelistInfo : public SubApiModule<CID, FilelistInfo, std::string> {
+	class FilelistInfo : public SubApiModule<CID, FilelistInfo, std::string>, private DirectoryListingListener, private DownloadManagerListener {
 	public:
 		typedef ParentApiModule<CID, FilelistInfo> ParentType;
 		typedef shared_ptr<FilelistInfo> Ptr;
@@ -103,7 +104,7 @@ namespace webserver {
 		};
 
 		FilelistInfo(ParentType* aParentModule, const DirectoryListingPtr& aFilelist);
-		~FilelistInfo() {	}
+		~FilelistInfo();
 
 		//const UserPtr& getUser() const { return sr->getUser().user; }
 		//const string& getHubUrl() const { return sr->getUser().hint; }
@@ -113,7 +114,38 @@ namespace webserver {
 		/*uint32_t getToken() const noexcept {
 			return token;
 		}*/
+
+		enum State: uint8_t {
+			STATE_DOWNLOAD_PENDING,
+			STATE_DOWNLOADING,
+			STATE_LOADING,
+			STATE_LOADED
+		};
+
+		DirectoryListingPtr getList() const noexcept { return dl; }
+
+		json serializeState() noexcept;
 	private:
+		State state = STATE_DOWNLOAD_PENDING;
+
+		void on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) noexcept;
+		void on(DownloadManagerListener::Starting, const Download* aDownload) noexcept;
+
+		void on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aDir, bool reloadList, bool changeDir, bool loadInGUIThread) noexcept;
+		void on(DirectoryListingListener::LoadingFailed, const string& aReason) noexcept;
+		void on(DirectoryListingListener::LoadingStarted, bool changeDir) noexcept;
+		void on(DirectoryListingListener::ChangeDirectory, const string& aDir, bool isSearchChange) noexcept;
+		void on(DirectoryListingListener::UpdateStatusMessage, const string& aMessage) noexcept;
+		void on(DirectoryListingListener::UserUpdated) noexcept;
+
+		/*void on(DirectoryListingListener::QueueMatched, const string& aMessage) noexcept;
+		void on(DirectoryListingListener::Close) noexcept;
+		void on(DirectoryListingListener::SearchStarted) noexcept;
+		void on(DirectoryListingListener::SearchFailed, bool timedOut) noexcept;
+		void on(DirectoryListingListener::RemovedQueue, const string& aDir) noexcept;
+		void on(DirectoryListingListener::SetActive) noexcept;
+		void on(DirectoryListingListener::HubChanged) noexcept;*/
+
 		FilelistItemInfo::List getCurrentViewItems();
 		PropertyItemHandler<FilelistItemInfoPtr> itemHandler;
 
@@ -121,6 +153,8 @@ namespace webserver {
 		DirectoryView directoryView;
 
 		DirectoryListingPtr dl;
+
+		void onSessionUpdated(const json& aData) noexcept;
 	};
 
 	typedef FilelistInfo::Ptr FilelistInfoPtr;

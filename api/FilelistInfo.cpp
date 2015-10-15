@@ -19,9 +19,12 @@
 #include <api/FilelistInfo.h>
 #include <api/FilelistUtils.h>
 
+#include <airdcpp/Download.h>
+#include <airdcpp/DownloadManager.h>
+
 namespace webserver {
 	StringList FilelistInfo::subscriptionList = {
-		"list_updated"
+		"filelist_updated"
 	};
 
 	FilelistInfo::FilelistInfo(ParentType* aParentModule, const DirectoryListingPtr& aFilelist) : 
@@ -31,12 +34,85 @@ namespace webserver {
 		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
 		directoryView("filelist_view", this, itemHandler) 
 	{
+		dl->addListener(this);
+		DownloadManager::getInstance()->addListener(this);
+	}
 
+	FilelistInfo::~FilelistInfo() {
+		DownloadManager::getInstance()->removeListener(this);
+		dl->removeListener(this);
 	}
 
 	FilelistItemInfo::List FilelistInfo::getCurrentViewItems() {
-		FilelistItemInfo::List ret;
+		//dl->addAsyncTask([&] {
+		//	dl->get
+		//});
 		//boost::range::copy(directoryI | map_values, back_inserter(ret));
-		return ret;
+		//return ret;
+	}
+
+	json FilelistInfo::serializeState() noexcept {
+		/*if (!aClient->getRedirectUrl().empty()) {
+			return{
+				{ "id", "redirect" },
+				{ "hub_url", aClient->getRedirectUrl() }
+			};
+		}*/
+
+		string id;
+		switch (state) {
+			case STATE_DOWNLOAD_PENDING: id = "download_pending"; break;
+			case STATE_DOWNLOADING: id = "downloading"; break;
+			case STATE_LOADING: id = "loading"; break;
+			case STATE_LOADED: id = "loaded"; break;
+		}
+
+		return{
+			{ "id", id }
+		};
+	}
+
+	void FilelistInfo::on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aDir, bool reloadList, bool changeDir, bool loadInGUIThread) noexcept {
+
+	}
+
+	void FilelistInfo::on(DirectoryListingListener::LoadingFailed, const string& aReason) noexcept {
+
+	}
+
+	void FilelistInfo::on(DirectoryListingListener::LoadingStarted, bool changeDir) noexcept {
+
+	}
+
+	void FilelistInfo::on(DirectoryListingListener::ChangeDirectory, const string& aDir, bool isSearchChange) noexcept {
+
+	}
+
+	void FilelistInfo::on(DirectoryListingListener::UpdateStatusMessage, const string& aMessage) noexcept {
+
+	}
+
+	void FilelistInfo::on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) noexcept {
+		if (aDownload->isFileList() && aDownload->getUser() == dl->getUser()) {
+			state = STATE_DOWNLOAD_PENDING;
+		}
+	}
+
+	void FilelistInfo::on(DownloadManagerListener::Starting, const Download* aDownload) noexcept {
+
+	}
+
+	void FilelistInfo::on(DirectoryListingListener::UserUpdated) noexcept {
+		onSessionUpdated({
+			{ "user", Serializer::serializeHintedUser(dl->getHintedUser()) }
+		});
+	}
+
+	void FilelistInfo::onSessionUpdated(const json& aData) noexcept {
+		if (!subscriptionActive("filelist_updated")) {
+			return;
+		}
+
+		send("filelist_updated", aData);
 	}
 }
