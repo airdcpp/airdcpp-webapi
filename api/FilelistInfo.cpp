@@ -27,16 +27,26 @@
 #include <airdcpp/DownloadManager.h>
 
 namespace webserver {
-	StringList FilelistInfo::subscriptionList = {
+	const PropertyList FilelistInfo::properties = {
+		{ PROP_NAME, "name", TYPE_TEXT, SERIALIZE_TEXT, SORT_CUSTOM },
+		{ PROP_TYPE, "type", TYPE_TEXT, SERIALIZE_CUSTOM, SORT_CUSTOM },
+		{ PROP_SIZE, "size", TYPE_SIZE, SERIALIZE_NUMERIC, SORT_NUMERIC },
+		{ PROP_DATE, "time", TYPE_TIME, SERIALIZE_NUMERIC, SORT_NUMERIC },
+		{ PROP_PATH, "path", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+		{ PROP_TTH, "tth", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+		{ PROP_DUPE, "dupe", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_NUMERIC },
+	};
+
+	const StringList FilelistInfo::subscriptionList = {
 		"filelist_updated"
 	};
 
 	FilelistInfo::FilelistInfo(ParentType* aParentModule, const DirectoryListingPtr& aFilelist) : 
 		SubApiModule(aParentModule, aFilelist->getUser()->getCID().toBase32(), subscriptionList), 
 		dl(aFilelist), 
-		itemHandler(properties, std::bind(&FilelistInfo::getCurrentViewItems, this),
+		itemHandler(properties,
 		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
-		directoryView("filelist_view", this, itemHandler) 
+		directoryView("filelist_view", this, itemHandler, std::bind(&FilelistInfo::getCurrentViewItems, this))
 	{
 		METHOD_HANDLER("download", ApiRequest::METHOD_POST, (), true, FilelistInfo::handleDownload);
 		METHOD_HANDLER("directory", ApiRequest::METHOD_POST, (), true, FilelistInfo::handleChangeDirectory);

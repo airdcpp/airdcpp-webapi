@@ -21,7 +21,8 @@
 #include <api/common/Serializer.h>
 #include <api/common/Format.h>
 
-//#include <airdcpp/AdcHub.h>
+#include <api/HubInfo.h>
+
 #include <airdcpp/AirUtil.h>
 #include <airdcpp/Bundle.h>
 #include <airdcpp/Client.h>
@@ -64,6 +65,22 @@ namespace webserver {
 		return ret;
 	}
 
+	StringSet Serializer::getOnlineUserFlags(const OnlineUserPtr& aUser) noexcept {
+		auto flags = getUserFlags(aUser->getUser());
+		appendOnlineUserFlags(aUser, flags);
+		return flags;
+	}
+
+	void Serializer::appendOnlineUserFlags(const OnlineUserPtr& aUser, StringSet& flags_) noexcept {
+		if (aUser->getIdentity().isAway()) {
+			flags_.insert("away");
+		}
+
+		if (aUser->getIdentity().isOp()) {
+			flags_.insert("op");
+		}
+	}
+
 	json Serializer::serializeUser(const UserPtr& aUser) noexcept {
 		return{
 			{ "cid", aUser->getCID().toBase32() },
@@ -73,17 +90,13 @@ namespace webserver {
 	}
 
 	json Serializer::serializeHintedUser(const HintedUser& aUser) noexcept {
+		//StringSet flags;
+		//if (aUser.user->isOnline()) {
 		auto flags = getUserFlags(aUser);
 		if (aUser.user->isOnline()) {
 			auto user = ClientManager::getInstance()->findOnlineUser(aUser);
 			if (user) {
-				if (user->getIdentity().isAway()) {
-					flags.insert("away");
-				}
-
-				if (user->getIdentity().isOp()) {
-					flags.insert("op");
-				}
+				appendOnlineUserFlags(user, flags);
 			}
 		}
 
@@ -155,12 +168,9 @@ namespace webserver {
 	}
 
 	json Serializer::serializeOnlineUser(const OnlineUserPtr& aUser) noexcept {
-		return {
-			{ "cid", aUser->getUser()->getCID().toBase32() },
-			{ "nick", aUser->getIdentity().getNick() },
-			{ "hub_url", aUser->getHubUrl() },
-			{ "hub_name", aUser->getClient().getHubName() }
-		};
+		auto j = serializeItemProperties(aUser, toPropertyIdSet(HubInfo::onlineUserPropertyHandler.properties), HubInfo::onlineUserPropertyHandler);
+		j["cid"] = aUser->getUser()->getCID().toBase32();
+		return j;
 	}
 
 	json Serializer::serializeClient(const Client* aClient) noexcept {

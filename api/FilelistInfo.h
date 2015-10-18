@@ -75,20 +75,12 @@ namespace webserver {
 		typedef ParentApiModule<CID, FilelistInfo> ParentType;
 		typedef shared_ptr<FilelistInfo> Ptr;
 
-		static StringList subscriptionList;
+		static const StringList subscriptionList;
 
 		//typedef vector<Ptr> List;
 		//typedef unordered_map<TTHValue, Ptr> Map;
 
-		const PropertyList properties = {
-			{ PROP_NAME, "name", TYPE_TEXT, SERIALIZE_TEXT, SORT_CUSTOM },
-			{ PROP_TYPE, "type", TYPE_TEXT, SERIALIZE_CUSTOM, SORT_CUSTOM },
-			{ PROP_SIZE, "size", TYPE_SIZE, SERIALIZE_NUMERIC, SORT_NUMERIC },
-			{ PROP_DATE, "time", TYPE_TIME, SERIALIZE_NUMERIC, SORT_NUMERIC },
-			{ PROP_PATH, "path", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
-			{ PROP_TTH, "tth", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
-			{ PROP_DUPE, "dupe", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_NUMERIC },
-		};
+		static const PropertyList properties;
 
 		enum Properties {
 			PROP_TOKEN = -1,

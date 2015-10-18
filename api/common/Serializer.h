@@ -31,6 +31,7 @@ namespace webserver {
 	class Serializer {
 	public:
 		static StringSet getUserFlags(const UserPtr& aUser) noexcept;
+		static StringSet getOnlineUserFlags(const OnlineUserPtr& aUser) noexcept;
 
 		static json serializeMessage(const Message& aMessage) noexcept;
 		static json serializeChatMessage(const ChatMessagePtr& aMessage) noexcept;
@@ -96,13 +97,12 @@ namespace webserver {
 		// Serialize a list of items provider by the handler
 		// Throws for invalid range parameters
 		template <class T>
-		static json serializeItemList(int aStart, int aCount, const PropertyItemHandler<T>& aHandler) throw(std::exception) {
-			auto list = aHandler.itemListF();
-			if (list.empty()) {
+		static json serializeItemList(int aStart, int aCount, const PropertyItemHandler<T>& aHandler, const vector<T> aItems) throw(std::exception) {
+			if (aItems.empty()) {
 				return json::array();
 			}
 
-			return Serializer::serializeFromPosition(aStart, aCount, list, [&aHandler](const T& aItem) {
+			return Serializer::serializeFromPosition(aStart, aCount, aItems, [&aHandler](const T& aItem) {
 				return Serializer::serializeItem(aItem, aHandler);
 			});
 		}
@@ -147,6 +147,8 @@ namespace webserver {
 			return j;
 		}
 	private:
+		static void appendOnlineUserFlags(const OnlineUserPtr& aUser, StringSet& flags_) noexcept;
+
 		template <class IterT, class FuncT>
 		static json serializeRange(IterT aBegin, IterT aEnd, FuncT aF) noexcept {
 			return std::accumulate(aBegin, aEnd, json(), [&](json& list, const iterator_traits<IterT>::value_type& elem) {

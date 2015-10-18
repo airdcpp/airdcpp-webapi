@@ -29,13 +29,14 @@
 //#include <airdcpp/User.h>
 
 #include <api/HierarchicalApiModule.h>
+#include <api/common/Property.h>
 
 namespace webserver {
 	class HubInfo;
 
 	class HubInfo : public SubApiModule<ClientToken, HubInfo, ClientToken>, private ClientListener {
 	public:
-		static StringList subscriptionList;
+		static const StringList subscriptionList;
 
 		typedef ParentApiModule<ClientToken, HubInfo> ParentType;
 		typedef HubInfo* Ptr;
@@ -48,6 +49,29 @@ namespace webserver {
 
 		static json serializeConnectState(const ClientPtr& aClient) noexcept;
 		static json serializeIdentity(const ClientPtr& aClient) noexcept;
+
+		enum {
+			PROP_TOKEN = -1,
+			PROP_NICK,
+			PROP_SHARED,
+			PROP_DESCRIPTION,
+			PROP_TAG,
+			PROP_UPLOAD_SPEED,
+			PROP_DOWNLOAD_SPEED,
+			PROP_IP4,
+			PROP_IP6,
+			PROP_EMAIL,
+			//PROP_ACTIVE4,
+			//PROP_ACTIVE6,
+			PROP_FILES,
+			PROP_HUB_URL,
+			PROP_FLAGS,
+			PROP_LAST
+		};
+
+		static const PropertyList properties;
+
+		static PropertyItemHandler<OnlineUserPtr> onlineUserPropertyHandler;
 	private:
 		api_return handleGetMessages(ApiRequest& aRequest) throw(exception);
 		api_return handlePostMessage(ApiRequest& aRequest) throw(exception);

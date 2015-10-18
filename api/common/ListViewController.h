@@ -36,9 +36,10 @@ namespace webserver {
 	class ListViewController : private SessionListener {
 	public:
 		typedef typename PropertyItemHandler<T>::ItemList ItemList;
+		typedef typename PropertyItemHandler<T>::ItemListFunction ItemListF;
 
-		ListViewController(const string& aViewName, ApiModule* aModule, const PropertyItemHandler<T>& aItemHandler) :
-			module(aModule), viewName(aViewName), itemHandler(aItemHandler), filter(aItemHandler.properties),
+		ListViewController(const string& aViewName, ApiModule* aModule, const PropertyItemHandler<T>& aItemHandler, ItemListF aItemListF) :
+			module(aModule), viewName(aViewName), itemHandler(aItemHandler), filter(aItemHandler.properties), itemListF(aItemListF),
 			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 200))
 		{
 			aModule->getSession()->addListener(this);
@@ -89,7 +90,7 @@ namespace webserver {
 
 				{
 					WLock l(cs);
-					allItems = itemHandler.itemListF();
+					allItems = itemListF();
 				}
 
 				timer->start();
@@ -259,7 +260,7 @@ namespace webserver {
 			ItemList itemsNew;
 			auto prep = filter.prepare();
 			{
-				for (const auto& i : itemHandler.itemListF()) {
+				for (const auto& i : itemListF()) {
 					if (matchesFilter(i, prep)) {
 						itemsNew.push_back(i);
 					}
@@ -580,6 +581,8 @@ namespace webserver {
 		enum Tasks {
 			ADD_ITEM, UPDATE_ITEM, REMOVE_ITEM
 		};
+
+		ItemListF itemListF;
 
 		// TODO: replace something better that would allow merging items
 		// Also allow determining if the sort property has been updated for any item to avoid unnecessary sorts

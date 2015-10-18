@@ -19,14 +19,37 @@
 #include <api/HubInfo.h>
 #include <api/ApiModule.h>
 #include <api/common/Serializer.h>
+#include <api/OnlineUserUtils.h>
 
 #include <web-server/JsonUtil.h>
 
 namespace webserver {
-	StringList HubInfo::subscriptionList = {
+	const StringList HubInfo::subscriptionList = {
 		"hub_updated",
 		"hub_chat_message",
 		"hub_status_message"
+	};
+
+	const PropertyList HubInfo::properties = {
+		{ PROP_NICK, "nick", TYPE_TEXT, SERIALIZE_TEXT, SORT_CUSTOM },
+		{ PROP_SHARED, "share_size", TYPE_SIZE, SERIALIZE_NUMERIC, SORT_NUMERIC },
+		{ PROP_DESCRIPTION, "description", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+		{ PROP_TAG, "tag", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+		{ PROP_UPLOAD_SPEED, "upload_speed", TYPE_SPEED, SERIALIZE_NUMERIC, SORT_NUMERIC },
+		{ PROP_DOWNLOAD_SPEED, "download_speed", TYPE_SPEED, SERIALIZE_NUMERIC, SORT_NUMERIC },
+		{ PROP_IP4, "ip4", TYPE_TEXT, SERIALIZE_CUSTOM, SORT_TEXT },
+		{ PROP_IP6, "ip6", TYPE_TEXT, SERIALIZE_CUSTOM, SORT_TEXT },
+		{ PROP_EMAIL, "email", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+		//{ PROP_ACTIVE4, "active4", TYPE_NUMERIC_OTHER , SERIALIZE_BOOL, SORT_NUMERIC },
+		//{ PROP_ACTIVE6, "active6", TYPE_NUMERIC_OTHER, SERIALIZE_BOOL, SORT_NUMERIC },
+		{ PROP_FILES, "file_count", TYPE_NUMERIC_OTHER, SERIALIZE_NUMERIC, SORT_NUMERIC },
+		{ PROP_HUB_URL, "hub_url", TYPE_TEXT, SERIALIZE_TEXT, SORT_TEXT },
+		{ PROP_FLAGS, "flags", TYPE_LIST, SERIALIZE_CUSTOM, SORT_NONE },
+	};
+
+	PropertyItemHandler<OnlineUserPtr> HubInfo::onlineUserPropertyHandler = {
+		HubInfo::properties,
+		OnlineUserUtils::getStringInfo, OnlineUserUtils::getNumericInfo, OnlineUserUtils::compareUsers, OnlineUserUtils::serializeUser
 	};
 
 	HubInfo::HubInfo(ParentType* aParentModule, const ClientPtr& aClient) :

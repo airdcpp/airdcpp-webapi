@@ -37,13 +37,15 @@ namespace webserver {
 		TYPE_TIME,
 		TYPE_SPEED,
 		TYPE_NUMERIC_OTHER,
-		TYPE_IMAGE
+		TYPE_IMAGE,
+		TYPE_LIST
 	};
 
 	enum SortMethod {
 		SORT_TEXT,
 		SORT_NUMERIC,
-		SORT_CUSTOM
+		SORT_CUSTOM,
+		SORT_NONE
 	};
 
 	//bool isNumericType(FilterPropertyType aType) {
@@ -90,19 +92,16 @@ namespace webserver {
 		typedef std::function<double(const T& aItem, int aPropertyName)> NumberFunction;
 		typedef std::function<ItemList()> ItemListFunction;
 
-		PropertyItemHandler(const PropertyList& aProperties, ItemListFunction aItemListF,
+		PropertyItemHandler(const PropertyList& aProperties,
 			StringFunction aStringF, NumberFunction aNumberF, 
 			SorterFunction aSorterF, CustomPropertySerializer aJsonF) :
 
-			properties(aProperties), itemListF(aItemListF),
+			properties(aProperties),
 			stringF(aStringF), numberF(aNumberF), 
 			customSorterF(aSorterF), jsonF(aJsonF) { }
 
 		// Information about each property
 		const PropertyList& properties;
-
-		// Returns a vector of all items
-		const ItemListFunction itemListF;
 
 		// Return std::string value of the property
 		const StringFunction stringF;

@@ -32,9 +32,9 @@
 
 namespace webserver {
 	QueueApi::QueueApi(Session* aSession) : ApiModule(aSession),
-			bundlePropertyHandler(bundleProperties, QueueUtils::getBundleList, 
+			bundlePropertyHandler(bundleProperties, 
 				QueueUtils::getStringInfo, QueueUtils::getNumericInfo, QueueUtils::compareBundles, QueueUtils::serializeBundleProperty),
-			bundleView("bundle_view", this, bundlePropertyHandler) {
+			bundleView("bundle_view", this, bundlePropertyHandler, QueueUtils::getBundleList) {
 
 		QueueManager::getInstance()->addListener(this);
 		DownloadManager::getInstance()->addListener(this);
@@ -106,7 +106,7 @@ namespace webserver {
 		int start = aRequest.getRangeParam(0);
 		int count = aRequest.getRangeParam(1);
 
-		auto j = Serializer::serializeItemList(start, count, bundlePropertyHandler);
+		auto j = Serializer::serializeItemList(start, count, bundlePropertyHandler, QueueUtils::getBundleList());
 
 		aRequest.setResponseBody(j);
 		return websocketpp::http::status_code::ok;
