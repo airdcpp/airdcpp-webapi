@@ -25,7 +25,6 @@
 #include <airdcpp/GetSet.h>
 
 #include <airdcpp/DirectoryListing.h>
-#include <airdcpp/DownloadManagerListener.h>
 #include <airdcpp/QueueItemBase.h>
 #include <airdcpp/TargetUtil.h>
 
@@ -71,7 +70,7 @@ namespace webserver {
 	typedef FilelistItemInfo::Ptr FilelistItemInfoPtr;
 
 
-	class FilelistInfo : public SubApiModule<CID, FilelistInfo, std::string>, private DirectoryListingListener, private DownloadManagerListener {
+	class FilelistInfo : public SubApiModule<CID, FilelistInfo, std::string>, private DirectoryListingListener {
 	public:
 		typedef ParentApiModule<CID, FilelistInfo> ParentType;
 		typedef shared_ptr<FilelistInfo> Ptr;
@@ -106,37 +105,20 @@ namespace webserver {
 		FilelistInfo(ParentType* aParentModule, const DirectoryListingPtr& aFilelist);
 		~FilelistInfo();
 
-		//const UserPtr& getUser() const { return sr->getUser().user; }
-		//const string& getHubUrl() const { return sr->getUser().hint; }
-
-		//api_return download(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority p);
-
-		/*uint32_t getToken() const noexcept {
-			return token;
-		}*/
-
-		enum State: uint8_t {
-			STATE_DOWNLOAD_PENDING,
-			STATE_DOWNLOADING,
-			STATE_LOADING,
-			STATE_LOADED
-		};
-
 		DirectoryListingPtr getList() const noexcept { return dl; }
 
-		json serializeState() noexcept;
+		static json serializeState(const DirectoryListingPtr& aList) noexcept;
 	private:
-		State state = STATE_DOWNLOAD_PENDING;
+		api_return handleDownload(ApiRequest& aRequest);
+		api_return handleChangeDirectory(ApiRequest& aRequest);
 
-		void on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) noexcept;
-		void on(DownloadManagerListener::Starting, const Download* aDownload) noexcept;
-
-		void on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aDir, bool reloadList, bool changeDir, bool loadInGUIThread) noexcept;
+		void on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aDir, bool reloadList, bool changeDir) noexcept;
 		void on(DirectoryListingListener::LoadingFailed, const string& aReason) noexcept;
 		void on(DirectoryListingListener::LoadingStarted, bool changeDir) noexcept;
 		void on(DirectoryListingListener::ChangeDirectory, const string& aDir, bool isSearchChange) noexcept;
 		void on(DirectoryListingListener::UpdateStatusMessage, const string& aMessage) noexcept;
 		void on(DirectoryListingListener::UserUpdated) noexcept;
+		void on(DirectoryListingListener::StateChanged, uint8_t aState) noexcept;
 
 		/*void on(DirectoryListingListener::QueueMatched, const string& aMessage) noexcept;
 		void on(DirectoryListingListener::Close) noexcept;
@@ -155,6 +137,13 @@ namespace webserver {
 		DirectoryListingPtr dl;
 
 		void onSessionUpdated(const json& aData) noexcept;
+
+		FilelistItemInfo::List currentViewItems;
+
+		void updateItems(const string& aPath) noexcept;
+		DirectoryListing::Directory::Ptr currentDirectory = nullptr;
+
+		SharedMutex cs;
 	};
 
 	typedef FilelistInfo::Ptr FilelistInfoPtr;

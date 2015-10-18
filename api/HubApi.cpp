@@ -55,7 +55,7 @@ namespace webserver {
 		return{
 			{ "identity", HubInfo::serializeIdentity(aClient) },
 			{ "connect_state", HubInfo::serializeConnectState(aClient) },
-			{ "unread_count", aClient->getCache().countUnreadChatMessages() },
+			{ "unread_messages", Serializer::serializeUnread(aClient->getCache()) },
 			{ "hub_url", aClient->getHubUrl() },
 			{ "id", aClient->getClientId() },
 			{ "favorite_hub", aClient->getFavToken() },

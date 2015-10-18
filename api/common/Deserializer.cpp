@@ -61,7 +61,7 @@ namespace webserver {
 		return static_cast<QueueItemBase::Priority>(*priority);
 	}
 
-	api_return Deserializer::deserializeDownloadParams(const json& aJson, DownloadHandler aHandler) {
+	void Deserializer::deserializeDownloadParams(const json& aJson, string& target_, TargetUtil::TargetType& targetType_, QueueItemBase::Priority& priority_) {
 		auto target = JsonUtil::getOptionalField<string>("target", aJson);
 		if (!target) {
 			target = SETTING(DOWNLOAD_DIRECTORY);
@@ -72,8 +72,8 @@ namespace webserver {
 			targetType = TargetUtil::TARGET_PATH;
 		}
 
-		auto priority = deserializePriority(aJson, true);
-
-		return aHandler(*target, static_cast<TargetUtil::TargetType>(*targetType), priority);
+		priority_ = deserializePriority(aJson, true);
+		target_ = *target;
+		targetType_ = static_cast<TargetUtil::TargetType>(*targetType);;
 	}
 }

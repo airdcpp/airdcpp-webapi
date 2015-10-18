@@ -87,6 +87,7 @@ namespace webserver {
 				return Format::formatFileType(aItem->getPath());
 			}
 		}
+		case FilelistInfo::PROP_TTH: return aItem->getType() == FilelistItemInfo::FILE ? aItem->file->getTTH().toBase32() : Util::emptyString;
 		default: dcassert(0); return 0;
 		}
 	}

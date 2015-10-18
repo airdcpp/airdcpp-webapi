@@ -63,10 +63,12 @@ namespace webserver {
 			result = *i;
 		}
 
-		return Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), [&](const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPrio) {
-			return result->download(aTarget, aTargetType, aPrio);
-		});
-		//return Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), std::bind(&SearchResultInfo::download, result, _1, _2, _3));
+		string target;
+		TargetUtil::TargetType targetType;
+		QueueItemBase::Priority prio;
+		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
+
+		return result->download(target, targetType, prio);
 	}
 
 	api_return SearchApi::handleGetTypes(ApiRequest& aRequest) {

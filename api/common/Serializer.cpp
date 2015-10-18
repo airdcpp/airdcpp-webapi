@@ -138,6 +138,22 @@ namespace webserver {
 		};
 	}
 
+	json Serializer::serializeUnread(const MessageCache& aCache) noexcept {
+		MessageCache::ChatMessageFilterF isBot = [](const ChatMessagePtr& aMessage) {
+			if (aMessage->getFrom()->getIdentity().isBot() || aMessage->getFrom()->getIdentity().isHub()) {
+				return true;
+			}
+
+			return aMessage->getReplyTo() && aMessage->getReplyTo()->getIdentity().isBot(); 
+		};
+
+		return {
+			{ "user", aCache.countUnreadChatMessages(std::not1(isBot)) },
+			{ "bot", aCache.countUnreadChatMessages(isBot) },
+			{ "status", aCache.countUnreadLogMessages(LogMessage::SEV_LAST) },
+		};
+	}
+
 	json Serializer::serializeOnlineUser(const OnlineUserPtr& aUser) noexcept {
 		return {
 			{ "cid", aUser->getUser()->getCID().toBase32() },

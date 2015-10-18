@@ -19,6 +19,10 @@
 #include <api/FilelistInfo.h>
 #include <api/FilelistUtils.h>
 
+#include <api/common/Deserializer.h>
+#include <web-server/JsonUtil.h>
+
+#include <airdcpp/DirectoryListingManager.h>
 #include <airdcpp/Download.h>
 #include <airdcpp/DownloadManager.h>
 
@@ -34,37 +38,50 @@ namespace webserver {
 		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
 		directoryView("filelist_view", this, itemHandler) 
 	{
+		METHOD_HANDLER("download", ApiRequest::METHOD_POST, (), true, FilelistInfo::handleDownload);
+		METHOD_HANDLER("directory", ApiRequest::METHOD_POST, (), true, FilelistInfo::handleChangeDirectory);
+
 		dl->addListener(this);
-		DownloadManager::getInstance()->addListener(this);
 	}
 
 	FilelistInfo::~FilelistInfo() {
-		DownloadManager::getInstance()->removeListener(this);
 		dl->removeListener(this);
 	}
 
-	FilelistItemInfo::List FilelistInfo::getCurrentViewItems() {
-		//dl->addAsyncTask([&] {
-		//	dl->get
-		//});
-		//boost::range::copy(directoryI | map_values, back_inserter(ret));
-		//return ret;
+	api_return FilelistInfo::handleChangeDirectory(ApiRequest& aRequest) {
+		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
+		dl->addAsyncTask([=] {
+			dl->changeDirectory(Util::toNmdcFile(listPath), DirectoryListing::RELOAD_NONE);
+		});
+		return websocketpp::http::status_code::ok;
 	}
 
-	json FilelistInfo::serializeState() noexcept {
-		/*if (!aClient->getRedirectUrl().empty()) {
-			return{
-				{ "id", "redirect" },
-				{ "hub_url", aClient->getRedirectUrl() }
-			};
-		}*/
+	api_return FilelistInfo::handleDownload(ApiRequest& aRequest) {
+		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
 
+		string target;
+		TargetUtil::TargetType targetType;
+		QueueItemBase::Priority prio;
+		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
+
+		DirectoryListingManager::getInstance()->addDirectoryDownload(Util::toNmdcFile(listPath), Util::getAdcLastDir(listPath), dl->getHintedUser(),
+			target, targetType, true, prio);
+
+		return websocketpp::http::status_code::ok;
+	}
+
+	FilelistItemInfo::List FilelistInfo::getCurrentViewItems() {
+		RLock l(cs);
+		return currentViewItems;
+	}
+
+	json FilelistInfo::serializeState(const DirectoryListingPtr& aList) noexcept {
 		string id;
-		switch (state) {
-			case STATE_DOWNLOAD_PENDING: id = "download_pending"; break;
-			case STATE_DOWNLOADING: id = "downloading"; break;
-			case STATE_LOADING: id = "loading"; break;
-			case STATE_LOADED: id = "loaded"; break;
+			switch (aList->getState()) {
+			case DirectoryListing::STATE_DOWNLOAD_PENDING: id = "download_pending"; break;
+			case DirectoryListing::STATE_DOWNLOADING: id = "downloading"; break;
+			case DirectoryListing::STATE_LOADING: id = "loading"; break;
+			case DirectoryListing::STATE_LOADED: id = "loaded"; break;
 		}
 
 		return{
@@ -72,8 +89,31 @@ namespace webserver {
 		};
 	}
 
-	void FilelistInfo::on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aDir, bool reloadList, bool changeDir, bool loadInGUIThread) noexcept {
+	void FilelistInfo::updateItems(const string& aPath) noexcept {
+		dl->addAsyncTask([=] {
+			auto curDir = dl->findDirectory(aPath);
+			if (!curDir) {
+				return;
+			}
 
+			{
+				WLock l(cs);
+				currentViewItems.clear();
+
+				for (auto& d : curDir->directories) {
+					currentViewItems.emplace_back(new FilelistItemInfo(d));
+				}
+
+				for (auto& f : curDir->files) {
+					currentViewItems.emplace_back(new FilelistItemInfo(f));
+				}
+			}
+
+			currentDirectory = curDir;
+			onSessionUpdated({
+				{ "directory", Util::toAdcFile(aPath) }
+			});
+		});
 	}
 
 	void FilelistInfo::on(DirectoryListingListener::LoadingFailed, const string& aReason) noexcept {
@@ -84,22 +124,22 @@ namespace webserver {
 
 	}
 
-	void FilelistInfo::on(DirectoryListingListener::ChangeDirectory, const string& aDir, bool isSearchChange) noexcept {
+	void FilelistInfo::on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aPath, bool reloadList, bool changeDir) noexcept {
+		updateItems(aPath);
+	}
 
+	void FilelistInfo::on(DirectoryListingListener::ChangeDirectory, const string& aPath, bool isSearchChange) noexcept {
+		updateItems(aPath);
 	}
 
 	void FilelistInfo::on(DirectoryListingListener::UpdateStatusMessage, const string& aMessage) noexcept {
 
 	}
 
-	void FilelistInfo::on(DownloadManagerListener::Failed, const Download* aDownload, const string& aReason) noexcept {
-		if (aDownload->isFileList() && aDownload->getUser() == dl->getUser()) {
-			state = STATE_DOWNLOAD_PENDING;
-		}
-	}
-
-	void FilelistInfo::on(DownloadManagerListener::Starting, const Download* aDownload) noexcept {
-
+	void FilelistInfo::on(DirectoryListingListener::StateChanged, uint8_t aState) noexcept {
+		onSessionUpdated({
+			{ "state", serializeState(dl) }
+		});
 	}
 
 	void FilelistInfo::on(DirectoryListingListener::UserUpdated) noexcept {

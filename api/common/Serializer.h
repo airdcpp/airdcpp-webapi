@@ -24,6 +24,7 @@
 #include <api/common/Property.h>
 
 #include <airdcpp/typedefs.h>
+#include <airdcpp/MessageCache.h>
 #include <airdcpp/QueueItemBase.h>
 
 namespace webserver {
@@ -34,6 +35,7 @@ namespace webserver {
 		static json serializeMessage(const Message& aMessage) noexcept;
 		static json serializeChatMessage(const ChatMessagePtr& aMessage) noexcept;
 		static json serializeLogMessage(const LogMessagePtr& aMessageData) noexcept;
+		static json serializeUnread(const MessageCache& aCache) noexcept;
 
 		static json serializeClient(const Client* aClient) noexcept;
 

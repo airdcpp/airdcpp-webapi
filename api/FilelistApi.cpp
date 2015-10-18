@@ -26,16 +26,13 @@
 
 namespace webserver {
 	StringList FilelistApi::subscriptionList = {
-		"list_created",
-		"list_removed"
+		"filelist_created",
+		"filelist_removed"
 	};
 
-	FilelistApi::FilelistApi(Session* aSession) : ParentApiModule("session", CID_PARAM, aSession, subscriptionList, FilelistApi::subscriptionList, [](const string& aId) { return Deserializer::deserializeCID(aId); }) {
+	FilelistApi::FilelistApi(Session* aSession) : ParentApiModule("session", CID_PARAM, aSession, FilelistApi::subscriptionList, FilelistInfo::subscriptionList, [](const string& aId) { return Deserializer::deserializeCID(aId); }) {
 
 		DirectoryListingManager::getInstance()->addListener(this);
-
-		createSubscription("list_created");
-		createSubscription("list_removed");
 
 		METHOD_HANDLER("sessions", ApiRequest::METHOD_GET, (), false, FilelistApi::handleGetLists);
 
@@ -62,15 +59,22 @@ namespace webserver {
 	}
 
 	api_return FilelistApi::handlePostList(ApiRequest& aRequest) throw(exception) {
-		auto user = Deserializer::deserializeHintedUser(aRequest.getRequestBody());
-		auto flags = QueueItem::FLAG_PARTIAL_LIST;
-		auto optionalDirectory = JsonUtil::getOptionalField<string>("directory", aRequest.getRequestBody(), false);
+		decltype(auto) requestJson = aRequest.getRequestBody();
+
+		auto user = Deserializer::deserializeHintedUser(requestJson["user"]);
+		auto optionalDirectory = JsonUtil::getOptionalField<string>("directory", requestJson, false);
 
 		auto directory = optionalDirectory ? Util::toNmdcFile(*optionalDirectory) : Util::emptyString;
 
+		QueueItem::Flags flags;
+		flags.setFlag(QueueItem::FLAG_PARTIAL_LIST);
+		if (JsonUtil::getField<bool>("client_view", requestJson)) {
+			flags.setFlag(QueueItem::FLAG_CLIENT_VIEW);
+		}
+
 		QueueItemPtr q = nullptr;
 		try {
-			q = QueueManager::getInstance()->addList(user, flags, directory);
+			q = QueueManager::getInstance()->addList(user, flags.getFlags(), directory);
 		} catch (const Exception& e) {
 			aRequest.setResponseErrorStr(e.getError());
 			return websocketpp::http::status_code::bad_request;
@@ -96,8 +100,7 @@ namespace webserver {
 			return websocketpp::http::status_code::not_found;
 		}
 
-		list->getList()->close();
-		//DirectoryListingManager::getInstance()->removeList(list->getList()->getUser());
+		DirectoryListingManager::getInstance()->removeList(list->getList()->getUser());
 		return websocketpp::http::status_code::ok;
 	}
 
@@ -119,13 +122,22 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	void FilelistApi::on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept {
+	/*void FilelistApi::on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept {
 		addList(aList);
 		if (!subscriptionActive("list_created")) {
 			return;
 		}
 
 		send("list_created", serializeList(aList));
+	}*/
+
+	void FilelistApi::on(DirectoryListingManagerListener::ListingCreated, const DirectoryListingPtr& aList) noexcept {
+		addList(aList);
+		if (!subscriptionActive("filelist_created")) {
+			return;
+		}
+
+		send("filelist_created", serializeList(aList));
 	}
 
 	void FilelistApi::on(DirectoryListingManagerListener::ListingClosed, const DirectoryListingPtr& aList) noexcept {
@@ -134,11 +146,11 @@ namespace webserver {
 			subModules.erase(aList->getUser()->getCID());
 		}
 
-		if (!subscriptionActive("list_removed")) {
+		if (!subscriptionActive("filelist_removed")) {
 			return;
 		}
 
-		send("list_removed", {
+		send("filelist_removed", {
 			{ "id", aList->getUser()->getCID().toBase32() }
 		});
 	}
@@ -147,7 +159,8 @@ namespace webserver {
 		return{
 			{ "id", aList->getUser()->getCID().toBase32() },
 			{ "user", Serializer::serializeHintedUser(aList->getHintedUser()) },
-			//{ "ccpm_state", PrivateChatInfo::serializeCCPMState(aChat->getCCPMState()) },
+			{ "state", FilelistInfo::serializeState(aList) },
+			{ "directory", "/" }
 			//{ "unread_count", aChat->getCache().countUnreadChatMessages() }
 		};
 	}

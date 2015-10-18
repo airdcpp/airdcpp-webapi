@@ -47,8 +47,9 @@ namespace webserver {
 
 		api_return handleGetLists(ApiRequest& aRequest) throw(exception);
 
-		void on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept;
-		void on(ListingClosed, const DirectoryListingPtr&) noexcept;
+		void on(DirectoryListingManagerListener::ListingCreated, const DirectoryListingPtr& aList) noexcept;
+		//void on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept;
+		void on(DirectoryListingManagerListener::ListingClosed, const DirectoryListingPtr&) noexcept;
 		//void on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept;
 
 		static json serializeList(const DirectoryListingPtr& aList) noexcept;

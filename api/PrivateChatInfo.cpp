@@ -155,7 +155,7 @@ namespace webserver {
 
 	void PrivateChatInfo::sendUnread() noexcept {
 		onSessionUpdated({
-			{ "unread_count", chat->getCache().countUnreadChatMessages() }
+			{ "unread_messages", Serializer::serializeUnread(chat->getCache()) }
 		});
 	}
 
