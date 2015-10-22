@@ -107,7 +107,7 @@ namespace webserver {
 	}
 
 	void PrivateChatApi::addChat(const PrivateChatPtr& aChat) noexcept {
-		auto chatInfo = unique_ptr<PrivateChatInfo>(new PrivateChatInfo(this, aChat));
+		auto chatInfo = make_shared<PrivateChatInfo>(this, aChat);
 
 		{
 			WLock l(cs);

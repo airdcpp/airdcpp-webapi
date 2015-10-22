@@ -38,7 +38,7 @@ namespace webserver {
 		static StringList subscriptionList;
 
 		typedef ParentApiModule<CID, PrivateChatInfo> ParentType;
-		typedef PrivateChatInfo* Ptr;
+		typedef shared_ptr<PrivateChatInfo> Ptr;
 		typedef vector<Ptr> List;
 
 		PrivateChatInfo(ParentType* aParentModule, const PrivateChatPtr& aChat);

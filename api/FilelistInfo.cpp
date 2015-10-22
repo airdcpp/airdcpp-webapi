@@ -48,10 +48,11 @@ namespace webserver {
 		FilelistUtils::getStringInfo, FilelistUtils::getNumericInfo, FilelistUtils::compareItems, FilelistUtils::serializeItem),
 		directoryView("filelist_view", this, itemHandler, std::bind(&FilelistInfo::getCurrentViewItems, this))
 	{
-		METHOD_HANDLER("download", ApiRequest::METHOD_POST, (), true, FilelistInfo::handleDownload);
 		METHOD_HANDLER("directory", ApiRequest::METHOD_POST, (), true, FilelistInfo::handleChangeDirectory);
 
 		dl->addListener(this);
+
+		updateItems(dl->getCurrentPath());
 	}
 
 	FilelistInfo::~FilelistInfo() {
@@ -63,20 +64,6 @@ namespace webserver {
 		dl->addAsyncTask([=] {
 			dl->changeDirectory(Util::toNmdcFile(listPath), DirectoryListing::RELOAD_NONE);
 		});
-		return websocketpp::http::status_code::ok;
-	}
-
-	api_return FilelistInfo::handleDownload(ApiRequest& aRequest) {
-		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
-
-		string target;
-		TargetUtil::TargetType targetType;
-		QueueItemBase::Priority prio;
-		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
-
-		DirectoryListingManager::getInstance()->addDirectoryDownload(Util::toNmdcFile(listPath), Util::getAdcLastDir(listPath), dl->getHintedUser(),
-			target, targetType, true, prio);
-
 		return websocketpp::http::status_code::ok;
 	}
 
@@ -119,7 +106,7 @@ namespace webserver {
 				}
 			}
 
-			currentDirectory = curDir;
+			directoryView.setResetItems();
 			onSessionUpdated({
 				{ "directory", Util::toAdcFile(aPath) }
 			});

@@ -39,7 +39,7 @@ namespace webserver {
 		static const StringList subscriptionList;
 
 		typedef ParentApiModule<ClientToken, HubInfo> ParentType;
-		typedef HubInfo* Ptr;
+		typedef shared_ptr<HubInfo> Ptr;
 		typedef vector<Ptr> List;
 
 		HubInfo(ParentType* aParentModule, const ClientPtr& aClient);
@@ -65,6 +65,7 @@ namespace webserver {
 			//PROP_ACTIVE6,
 			PROP_FILES,
 			PROP_HUB_URL,
+			PROP_HUB_NAME,
 			PROP_FLAGS,
 			PROP_LAST
 		};

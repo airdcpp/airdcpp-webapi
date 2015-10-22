@@ -39,6 +39,8 @@ namespace webserver {
 		METHOD_HANDLER("session", ApiRequest::METHOD_DELETE, (CID_PARAM), false, FilelistApi::handleDeleteList);
 		METHOD_HANDLER("session", ApiRequest::METHOD_POST, (), true, FilelistApi::handlePostList);
 
+		METHOD_HANDLER("download_directory", ApiRequest::METHOD_POST, (), true, FilelistApi::handleDownload);
+
 		auto rawLists = DirectoryListingManager::getInstance()->getLists();
 		for (const auto& list : rawLists | map_values) {
 			addList(list);
@@ -50,7 +52,7 @@ namespace webserver {
 	}
 
 	void FilelistApi::addList(const DirectoryListingPtr& aList) noexcept {
-		auto chatInfo = unique_ptr<FilelistInfo>(new FilelistInfo(this, aList));
+		auto chatInfo = make_shared<FilelistInfo>(this, aList);
 
 		{
 			WLock l(cs);
@@ -160,9 +162,26 @@ namespace webserver {
 			{ "id", aList->getUser()->getCID().toBase32() },
 			{ "user", Serializer::serializeHintedUser(aList->getHintedUser()) },
 			{ "state", FilelistInfo::serializeState(aList) },
-			{ "directory", "/" }
+			{ "directory", Util::toAdcFile(aList->getCurrentPath()) }
 			//{ "unread_count", aChat->getCache().countUnreadChatMessages() }
 		};
+	}
+
+	api_return FilelistApi::handleDownload(ApiRequest& aRequest) {
+		decltype(auto) requestJson = aRequest.getRequestBody();
+		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
+
+		string target;
+		TargetUtil::TargetType targetType;
+		QueueItemBase::Priority prio;
+		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
+
+		auto user = Deserializer::deserializeHintedUser(requestJson["user"]);
+
+		DirectoryListingManager::getInstance()->addDirectoryDownload(Util::toNmdcFile(listPath), Util::getAdcLastDir(listPath), user,
+			target, targetType, true, prio);
+
+		return websocketpp::http::status_code::ok;
 	}
 
 	/*void PrivateChatApi::on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept {

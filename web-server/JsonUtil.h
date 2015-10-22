@@ -84,13 +84,18 @@ namespace webserver {
 					throwError(aFieldName, ERROR_INVALID, e.what());
 				}
 
+				if (!aAllowEmpty && isEmpty<T>(ret)) {
+					throwError(aFieldName, ERROR_INVALID, "Field can't be empty");
+				}
+
 				return ret;
 			}
 
 			if (!aAllowEmpty) {
-				throwError(aFieldName, ERROR_INVALID, "Field can't be empty");
+				throwError(aFieldName, ERROR_INVALID, "Field can't be null");
 			}
 
+			// Strings get converted to "", throws otherwise
 			return convertNullValue<T>(aFieldName);
 		}
 
@@ -100,6 +105,16 @@ namespace webserver {
 
 		static json getError(const string& aFieldName, ErrorType aType, const string& aMessage) noexcept;
 	private:
+		template <class T>
+		static bool isEmpty(const typename std::enable_if<std::is_same<std::string, T>::value, T>::type& aStr) {
+			return aStr.empty();
+		}
+
+		template <class T>
+		static bool isEmpty(const typename std::enable_if<!std::is_same<std::string, T>::value, T>::type& aValue) {
+			return false;
+		}
+
 		// Convert null strings, add more conversions if needed
 		template <class T>
 		static typename std::enable_if<std::is_same<std::string, T>::value, T>::type convertNullValue(const string&) {
@@ -107,12 +122,7 @@ namespace webserver {
 		}
 
 		template <class T>
-		static typename std::enable_if<std::is_pointer<T>::value, T>::type convertNullValue(const string&) {
-			return nullptr;
-		}
-
-		template <class T>
-		static typename std::enable_if<!std::is_same<std::string, T>::value && !std::is_pointer<T>::value, T>::type convertNullValue(const string& aFieldName) {
+		static typename std::enable_if<!std::is_same<std::string, T>::value, T>::type convertNullValue(const string& aFieldName) {
 			throw ArgumentException(getError(aFieldName, ERROR_INVALID, "Field can't be empty"));
 		}
 	};

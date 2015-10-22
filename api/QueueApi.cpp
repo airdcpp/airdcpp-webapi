@@ -136,16 +136,21 @@ namespace webserver {
 	api_return QueueApi::handleAddFileBundle(ApiRequest& aRequest) throw(exception) {
 		decltype(auto) j = aRequest.getRequestBody();
 
+		string target;
+		TargetUtil::TargetType targetType;
+		QueueItemBase::Priority prio;
+		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
+
 		BundlePtr b = nullptr;
 		try {
 			b = QueueManager::getInstance()->createFileBundle(
-				j["target"],
+				target,
 				JsonUtil::getField<int64_t>("size", j),
 				Deserializer::deserializeTTH(j),
 				Deserializer::deserializeHintedUser(j["user"]),
-				JsonUtil::getField<time_t>("date", j),
+				JsonUtil::getField<time_t>("time", j),
 				0,
-				Deserializer::deserializePriority(j, true)
+				prio
 				);
 		}
 		catch (const Exception& e) {
@@ -173,7 +178,7 @@ namespace webserver {
 				fileJson["name"],
 				Deserializer::deserializeTTH(fileJson),
 				fileJson["size"],
-				fileJson["date"],
+				fileJson["time"],
 				Deserializer::deserializePriority(fileJson, true))
 			);
 		}
@@ -186,7 +191,7 @@ namespace webserver {
 				Deserializer::deserializeHintedUser(j["user"]),
 				files,
 				Deserializer::deserializePriority(j, true),
-				j["date"],
+				j["time"],
 				errors
 			);
 		}

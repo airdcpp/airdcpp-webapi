@@ -20,10 +20,9 @@
 #define DCPLUSPLUS_DCPP_LISTVIEW_H
 
 #include <web-server/stdinc.h>
-#include <web-server/WebServerManager.h>
 #include <web-server/SessionListener.h>
+#include <web-server/WebServerManager.h>
 
-#include <airdcpp/typedefs.h>
 #include <airdcpp/TaskQueue.h>
 
 #include <api/ApiModule.h>
@@ -40,7 +39,7 @@ namespace webserver {
 
 		ListViewController(const string& aViewName, ApiModule* aModule, const PropertyItemHandler<T>& aItemHandler, ItemListF aItemListF) :
 			module(aModule), viewName(aViewName), itemHandler(aItemHandler), filter(aItemHandler.properties), itemListF(aItemListF),
-			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 200))
+			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 50))
 		{
 			aModule->getSession()->addListener(this);
 
@@ -66,110 +65,23 @@ namespace webserver {
 			return sortPropery;
 		}
 
-		void on(SessionListener::SocketDisconnected) noexcept {
-			reset();
-		}
-
-		api_return handlePostFilter(ApiRequest& aRequest) throw(exception) {
-			decltype(auto) j = aRequest.getRequestBody();
-
-			std::string pattern = j["pattern"];
-			if (pattern.empty()) {
-				resetFilter();
-			} else {
-				setFilter(pattern, j["method"], findPropertyByName(j["property"], itemHandler.properties));
-			}
-			return websocketpp::http::status_code::ok;
-		}
-
-		api_return handlePostSettings(ApiRequest& aRequest) throw(exception) {
-			parseProperties(aRequest.getRequestBody());
-
-			if (!active) {
-				active = true;
-
-				{
-					WLock l(cs);
-					allItems = itemListF();
-				}
-
-				timer->start();
-			}
-			return websocketpp::http::status_code::ok;
-		}
-
-		api_return handleReset(ApiRequest& aRequest) throw(exception) {
-			reset();
-			return websocketpp::http::status_code::ok;
-		}
-
-		void parseProperties(const json& j) {
-			if (j.find("range_start") != j.end() && j.find("range_end") != j.end()) {
-				int start = j["range_start"];
-				int end = j["range_end"];
-
-				if (start > end) {
-					throw std::exception("Range start is after range end");
-				}
-
-				if (start < 0) {
-					throw std::exception("Negative range start not allowed");
-				}
-
-				// End position will be validated when sending items (it's allowed to exceed the item count)
-
-				setRange(start, end);
-			}
-
-			if (j.find("sort_property") != j.end()) {
-				auto prop = findPropertyByName(j["sort_property"], itemHandler.properties);
-				if (prop == -1) {
-					throw std::exception("Invalid sort property");
-				}
-
-				sortProperty = prop;
-				sortFilterChanged = true;
-			}
-
-			if (j.find("sort_ascending") != j.end()) {
-				sortAscending = j["sort_ascending"];
-				sortFilterChanged = true;
-			}
-
-			if (j.find("paused") != j.end()) {
-				bool paused = j["paused"];
-				if (paused && timer->isRunning()) {
-					timer->stop(false);
-				} else if (!paused && !timer->isRunning()) {
-					timer->start();
-				}
-			}
-		}
-
-		api_return handleDeleteFilter(ApiRequest& aRequest) throw(exception) {
-			resetFilter();
-			return websocketpp::http::status_code::ok;
-		}
-
-		void reset() noexcept {
+		void stop() noexcept {
 			active = false;
 			timer->stop(true);
 
 			clearItems();
+			currentValues.reset();
 
 			WLock l(cs);
 			filter.clear();
 		}
 
-		void clearItems() {
-			WLock l(cs);
-			tasks.clear();
-			currentViewItems.clear();
-			allItems.clear();
+		void setResetItems() {
+			clearItems();
 
-			prevRangeEnd = -1;
-			prevRangeStart = -1;
-			prevTotalListItemCount = -1;
+			currentValues.set(IntCollector::TYPE_RANGE_START, 0);
+
+			updateList();
 		}
 
 		void onItemAdded(const T& aItem) {
@@ -181,15 +93,7 @@ namespace webserver {
 				return;
 			}
 
-			addListItem(aItem);
-		}
-
-		void sendJson(const json& j) {
-			if (j.is_null()) {
-				return;
-			}
-
-			module->send(viewName + "_updated", j);
+			tasks.addItem(aItem);
 		}
 
 		void onItemRemoved(const T& aItem) {
@@ -198,7 +102,7 @@ namespace webserver {
 			WLock l(cs);
 			auto pos = findItem(aItem, allItems);
 			if (pos != allItems.end()) {
-				removeListItem(*pos);
+				tasks.removeItem(*pos);
 			}
 		}
 
@@ -214,16 +118,16 @@ namespace webserver {
 			auto prep = filter.prepare();
 			if (!matchesFilter(aItem, prep)) {
 				if (inList) {
-					removeListItem(aItem);
+					tasks.removeItem(aItem);
 				}
 
 				return;
 			} else if (!inList) {
-				addListItem(aItem);
+				tasks.addItem(aItem);
 				return;
 			}
 
-			updateListItem(aItem, aUpdatedProperties);
+			tasks.updateItem(aItem, aUpdatedProperties);
 		}
 
 		void onItemsUpdated(const ItemList& aItems, const PropertyIdSet& aUpdatedProperties) {
@@ -253,10 +157,102 @@ namespace webserver {
 
 			onFilterUpdated();
 		}
+	private:
+		api_return handlePostFilter(ApiRequest& aRequest) throw(exception) {
+			decltype(auto) j = aRequest.getRequestBody();
+
+			std::string pattern = j["pattern"];
+			if (pattern.empty()) {
+				resetFilter();
+			}
+			else {
+				setFilter(pattern, j["method"], findPropertyByName(j["property"], itemHandler.properties));
+			}
+
+			// TODO: support for multiple filters
+			return websocketpp::http::status_code::no_content;
+		}
+
+		api_return handlePostSettings(ApiRequest& aRequest) throw(exception) {
+			parseProperties(aRequest.getRequestBody());
+
+			if (!active) {
+				active = true;
+				updateList();
+				timer->start();
+			}
+			return websocketpp::http::status_code::no_content;
+		}
+
+		api_return handleReset(ApiRequest& aRequest) throw(exception) {
+			stop();
+			return websocketpp::http::status_code::no_content;
+		}
+
+		void parseProperties(const json& j) {
+			IntCollector::ValueMap updatedValues;
+			if (j.find("range_start") != j.end()) {
+				int start = j["range_start"];
+				if (start < 0) {
+					throw std::exception("Negative range start not allowed");
+				}
+
+				updatedValues[IntCollector::TYPE_RANGE_START] = start;
+			}
+
+			if (j.find("max_count") != j.end()) {
+				int end = j["max_count"];
+				updatedValues[IntCollector::TYPE_MAX_COUNT] = end;
+			}
+
+			if (j.find("sort_property") != j.end()) {
+				auto prop = findPropertyByName(j["sort_property"], itemHandler.properties);
+				if (prop == -1) {
+					throw std::exception("Invalid sort property");
+				}
+
+				updatedValues[IntCollector::TYPE_SORT_PROPERTY] = prop;
+			}
+
+			if (j.find("sort_ascending") != j.end()) {
+				bool sortAscending = j["sort_ascending"];
+				updatedValues[IntCollector::TYPE_SORT_ASCENDING] = sortAscending;
+			}
+
+			if (j.find("paused") != j.end()) {
+				bool paused = j["paused"];
+				if (paused && timer->isRunning()) {
+					timer->stop(false);
+				}
+				else if (!paused && !timer->isRunning()) {
+					timer->start();
+				}
+			}
+
+			if (!updatedValues.empty()) {
+				WLock l(cs);
+				currentValues.set(updatedValues);
+			}
+		}
+
+		api_return handleDeleteFilter(ApiRequest& aRequest) throw(exception) {
+			resetFilter();
+			return websocketpp::http::status_code::ok;
+		}
+
+		void on(SessionListener::SocketDisconnected) noexcept {
+			stop();
+		}
+
+		void sendJson(const json& j) {
+			if (j.is_null()) {
+				return;
+			}
+
+			module->send(viewName + "_updated", j);
+		}
 
 		void onFilterUpdated() {
-			sortFilterChanged = true;
-
 			ItemList itemsNew;
 			auto prep = filter.prepare();
 			{
@@ -270,49 +266,45 @@ namespace webserver {
 			{
 				WLock l(cs);
 				allItems.swap(itemsNew);
+				itemListChanged = true;
 			}
 
-			resetRange();
+			//resetRange();
 		}
 
-		bool itemSort(const T& t1, const T& t2) {
+		void updateList() {
+			WLock l(cs);
+			allItems = itemListF();
+			itemListChanged = true;
+		}
+
+		void clearItems() {
+			WLock l(cs);
+			tasks.clear();
+			currentViewItems.clear();
+			allItems.clear();
+			prevTotalCount = -1;
+		}
+
+		static bool itemSort(const T& t1, const T& t2, const PropertyItemHandler<T>& aItemHandler, int aSortProperty, int aSortAscending) {
 			int res = 0;
-			switch (itemHandler.properties[sortProperty].sortMethod) {
-				case SORT_NUMERIC: {
-					res = compare(itemHandler.numberF(t1, sortProperty), itemHandler.numberF(t2, sortProperty));
-					break;
-				}
-				case SORT_TEXT: {
-					res = Util::stricmp(itemHandler.stringF(t1, sortProperty).c_str(), itemHandler.stringF(t2, sortProperty).c_str());
-					break;
-				}
-				case SORT_CUSTOM: {
-					res = itemHandler.customSorterF(t1, t2, sortProperty);
-					break;
-				}
+			switch (aItemHandler.properties[aSortProperty].sortMethod) {
+			case SORT_NUMERIC: {
+				res = compare(aItemHandler.numberF(t1, aSortProperty), aItemHandler.numberF(t2, aSortProperty));
+				break;
+			}
+			case SORT_TEXT: {
+				res = Util::stricmp(aItemHandler.stringF(t1, aSortProperty).c_str(), aItemHandler.stringF(t2, aSortProperty).c_str());
+				break;
+			}
+			case SORT_CUSTOM: {
+				res = aItemHandler.customSorterF(t1, t2, aSortProperty);
+				break;
+			}
 			}
 
-			return sortAscending ? res < 0 : res > 0;
+			return aSortAscending == 1 ? res < 0 : res > 0;
 		}
-	private:
-		// RANGE START
-		bool inRange(int pos) const noexcept {
-			return pos >= rangeStart && pos <= rangeEnd;
-		}
-
-		void resetRange() {
-			setRange(0, rangeEnd-rangeStart);
-		}
-
-		void setRange(int aStart, int aEnd) {
-			rangeStart = aStart;
-			rangeEnd = aEnd;
-		}
-
-		int getVisibleCount() {
-			return min(static_cast<int>(allItems.size()), rangeEnd - rangeStart);
-		}
-		// RANGE END
 
 		api_return handleGetItems(ApiRequest& aRequest) {
 			auto start = aRequest.getRangeParam(1);
@@ -353,85 +345,93 @@ namespace webserver {
 			return distance(aItems.begin(), i);
 		}
 
-		struct ItemTask : public Task {
-			ItemTask(const T& aItem) : item(aItem) { }
-			~ItemTask() { }
-
-			const T item;
-		};
-
-		struct ItemUpdateTask : public ItemTask {
-			ItemUpdateTask(const T& aItem, const PropertyIdSet& aUpdatedProperties) : ItemTask(aItem), updatedProperties(aUpdatedProperties) { }
-
-			const PropertyIdSet updatedProperties;
-		};
-
-		void addListItem(const T& aItem) {
-			tasks.add(ADD_ITEM, unique_ptr<Task>(new ItemTask(aItem)));
-		}
-
-		void updateListItem(const T& aItem, const PropertyIdSet& aUpdatedProperties) {
-			tasks.add(UPDATE_ITEM, unique_ptr<Task>(new ItemUpdateTask(aItem, aUpdatedProperties)));
-		}
-
-		void removeListItem(const T& aItem) {
-			tasks.add(REMOVE_ITEM, unique_ptr<Task>(new ItemTask(aItem)));
-		}
-
 		void runTasks() {
-			TaskQueue::List tl;
-			tasks.get(tl);
+			ViewTasks::TaskMap tl;
+			PropertyIdSet updatedProperties;
+			tasks.get(tl, updatedProperties);
 
-			int totalItemCount = 0;
-			{
-				WLock l(cs);
-				totalItemCount = allItems.size();
-				if (tl.empty() &&
-					prevRangeEnd == rangeEnd &&
-					prevRangeStart == rangeStart &&
-					prevTotalListItemCount == totalItemCount &&
-					!sortFilterChanged
-					) {
-						// Nothing to update
-						return;
-				}
-
-				std::sort(allItems.begin(), allItems.end(), std::bind(&ListViewController::itemSort, this, std::placeholders::_1, std::placeholders::_2));
+			if (tl.empty() && !currentValues.hasChanged() && !itemListChanged) {
+				return;
 			}
 
-			sortFilterChanged = false;
+			IntCollector::ValueMap updateValues;
+			int sortAscending = false;
+			int sortProperty = -1;
+
+			{
+				WLock l(cs);
+				updateValues = currentValues.getAll();
+				sortAscending = updateValues[IntCollector::TYPE_SORT_ASCENDING];
+				sortProperty = updateValues[IntCollector::TYPE_SORT_PROPERTY];
+				if (sortProperty < 0) {
+					return;
+				}
+
+				bool needSort = updatedProperties.find(sortProperty) != updatedProperties.end() ||
+					prevValues[IntCollector::TYPE_SORT_ASCENDING] != sortAscending ||
+					prevValues[IntCollector::TYPE_SORT_PROPERTY] != sortProperty ||
+					itemListChanged;
+
+				if (needSort) {
+					std::sort(allItems.begin(), allItems.end(), 
+						std::bind(&ListViewController::itemSort, 
+							std::placeholders::_1, 
+							std::placeholders::_2, 
+							itemHandler, 
+							sortProperty,
+							sortAscending
+							));
+				}
+			}
+
+			auto newStart = updateValues[IntCollector::TYPE_RANGE_START];
+			if (newStart < 0) {
+				return;
+			}
+
+			itemListChanged = false;
 
 			// Go through the tasks
 			std::map<T, const PropertyIdSet&> updatedItems;
 			for (auto& t : tl) {
-				switch (t.first) {
+				switch (t.second.type) {
 					case ADD_ITEM: {
-						decltype(auto) task = static_cast<ItemTask&>(*t.second);
-						handleAddItem(task.item);
+						handleAddItem(t.first, sortProperty, sortAscending, newStart);
 						break;
 					}
 					case REMOVE_ITEM: {
-						decltype(auto) task = static_cast<ItemTask&>(*t.second);
-						handleRemoveItem(task.item);
+						handleRemoveItem(t.first, newStart);
 						break;
 					}
 					case UPDATE_ITEM: {
-						decltype(auto) task = static_cast<ItemUpdateTask&>(*t.second);
-						updatedItems.emplace(task.item, task.updatedProperties);
+						updatedItems.emplace(t.first, t.second.updatedProperties);
 						break;
 					}
 				}
 			}
+
+			int totalItemCount = 0;
 
 			// Get the new visible items
 			decltype(currentViewItems) viewItemsNew, oldViewItems;
 			{
 				RLock l(cs);
+				totalItemCount = allItems.size();
+				if (newStart >= totalItemCount) {
+					newStart = 0;
+				}
+
+				auto count = min(totalItemCount - newStart, updateValues[IntCollector::TYPE_MAX_COUNT]);
+				if (count < 0) {
+					return;
+				}
+
+
 				auto startIter = allItems.begin();
-				advance(startIter, rangeStart);
+				advance(startIter, newStart);
 
 				auto endIter = startIter;
-				advance(endIter, min(static_cast<int>(allItems.size()), rangeEnd) - rangeStart);
+				advance(endIter, count);
 
 				std::copy(startIter, endIter, back_inserter(viewItemsNew));
 				oldViewItems = currentViewItems;
@@ -449,12 +449,6 @@ namespace webserver {
 					auto props = updatedItems.find(item);
 					if (props != updatedItems.end()) {
 						appendItem(item, j, pos, props->second);
-						/*} else if (pos != getPosition(item, oldViewItems)) {
-							appendItemPosition(item, j, pos);
-						} else if (!j.is_null()) {
-							// Mark that we have items after the appended one...
-							j[pos] = nullptr;
-						}*/
 					} else {
 						appendItemPosition(item, j, pos);
 					}
@@ -465,61 +459,53 @@ namespace webserver {
 
 			{
 				WLock l(cs);
+				//IntCollector::appendChanges(updateValues, prevValues, j)
+
 				currentViewItems.swap(viewItemsNew);
+				prevValues.swap(updateValues);
 			}
 
-			// Update total items
-			if (prevTotalListItemCount != totalItemCount) {
-				appendRowCount(j, totalItemCount);
-				prevTotalListItemCount = totalItemCount;
+			if (totalItemCount != prevTotalCount) {
+				prevTotalCount = totalItemCount;
+				j["total_items"] = totalItemCount;
 			}
 
-			// Update row range
-			if (prevRangeStart != rangeStart || prevRangeEnd != rangeEnd) {
-				appendRange(j);
-				prevRangeStart = rangeStart;
-				prevRangeEnd = rangeEnd;
+			auto startOffset = newStart - updateValues[IntCollector::TYPE_RANGE_START];
+			if (startOffset != 0) {
+				j["range_offset"] = startOffset;
 			}
+
+			j["range_start"] = newStart;
 
 			sendJson(j);
 		}
 
-		void handleAddItem(const T& aItem) {
+		void handleAddItem(const T& aItem, int aSortProperty, int aSortAscending, int& rangeStart_) {
 			WLock l(cs);
-			//auto iter = std::lower_bound(allItems.begin(), allItems.end(), aItem, sortF);
-			auto iter = findItem(aItem, allItems);
-			if (iter != allItems.end() && *iter == aItem) {
-				// Items that are updated right after adding may come here
-				return;
-			}
+			auto iter = allItems.insert(std::lower_bound(
+				allItems.begin(), 
+				allItems.end(), 
+				aItem, 
+				std::bind(&ListViewController::itemSort, std::placeholders::_1, std::placeholders::_2, itemHandler, aSortProperty, aSortAscending)
+			), aItem);
 
 			auto pos = static_cast<int>(std::distance(allItems.begin(), iter));
-
-			allItems.insert(iter, aItem);
-
-			if (pos < rangeStart) {
+			if (pos < rangeStart_) {
 				// Update the range range positions
-				rangeStart++;
-				rangeEnd++;
+				rangeStart_++;
 			}
 		}
 
-		void handleRemoveItem(const T& aItem) {
+		void handleRemoveItem(const T& aItem, int& rangeStart_) {
 			WLock l(cs);
 			auto iter = findItem(aItem, allItems);
 			auto pos = static_cast<int>(std::distance(allItems.begin(), iter));
 
 			allItems.erase(iter);
 
-			if (pos < rangeStart) {
-				if (getVisibleCount() <= (rangeEnd - rangeStart)) {
-					// All items can fit the view
-					resetRange();
-				}
-
+			if (pos < rangeStart_) {
 				// Update the range range positions
-				rangeStart--;
-				rangeEnd--;
+				rangeStart_--;
 			}
 		}
 
@@ -544,32 +530,11 @@ namespace webserver {
 			json_["items"][pos]["id"] = aItem->getToken();
 		}
 
-		void appendRowCount(json& json_, int aCount) {
-			json_["row_count"] = aCount;
-		}
-
-		void appendRange(json& json_) {
-			json_["range_start"] = rangeStart;
-			json_["range_end"] = rangeEnd;
-		}
-
 		PropertyFilter filter;
 		const PropertyItemHandler<T>& itemHandler;
 
 		ItemList currentViewItems;
 		ItemList allItems;
-		
-		int sortProperty = 0;
-		bool sortAscending = true;
-
-		int rangeStart = 0;
-		int rangeEnd = 0;
-
-		int prevRangeStart = -1;
-		int prevRangeEnd = -1;
-		int prevTotalListItemCount = -1;
-
-		bool sortFilterChanged = false;
 
 		bool active = false;
 
@@ -578,17 +543,191 @@ namespace webserver {
 		ApiModule* module = nullptr;
 		std::string viewName;
 
+		// Must be in merging order (lower ones replace other)
 		enum Tasks {
-			ADD_ITEM, UPDATE_ITEM, REMOVE_ITEM
+			UPDATE_ITEM = 0,
+			ADD_ITEM,
+			REMOVE_ITEM
 		};
 
-		ItemListF itemListF;
-
-		// TODO: replace something better that would allow merging items
-		// Also allow determining if the sort property has been updated for any item to avoid unnecessary sorts
-		TaskQueue tasks;
-
 		TimerPtr timer;
+
+		class ItemTasks {
+		public:
+			struct MergeTask {
+				int8_t type;
+				PropertyIdSet updatedProperties;
+
+				MergeTask(int8_t aType, const PropertyIdSet& aUpdatedProperties = PropertyIdSet()) : type(aType), updatedProperties(aUpdatedProperties) {
+
+				}
+
+				void merge(const MergeTask& aTask) {
+					// Ignore
+					if (type < aTask.type) {
+						return;
+					}
+
+					// Merge
+					if (type == aTask.type) {
+						updatedProperties.insert(aTask.updatedProperties.begin(), aTask.updatedProperties.end());
+						return;
+					}
+
+					// Replace the task
+					type = aTask.type;
+					updatedProperties = aTask.updatedProperties;
+				}
+			};
+
+			typedef map<T, MergeTask> TaskMap;
+
+			void add(const T& aItem, MergeTask&& aData) {
+				WLock l(cs);
+				auto j = tasks.find(aItem);
+				if (j != tasks.end()) {
+					(*j).second.merge(aData);
+					return;
+				}
+
+				tasks.emplace(aItem, move(aData));
+			}
+
+			void clear() {
+				WLock l(cs);
+				tasks.clear();
+			}
+
+			bool remove(const T& aItem) {
+				WLock l(cs);
+				return tasks.erase(aItem) > 0;
+			}
+
+			void get(TaskMap& map) {
+				WLock l(cs);
+				swap(tasks, map);
+			}
+		private:
+			TaskMap tasks;
+
+			SharedMutex cs;
+		};
+
+		class ViewTasks : public ItemTasks {
+		public:
+			void addItem(const T& aItem) {
+				tasks.add(aItem, ViewTasks::MergeTask(ADD_ITEM));
+			}
+
+			void removeItem(const T& aItem) {
+				tasks.add(aItem, ViewTasks::MergeTask(REMOVE_ITEM));
+			}
+
+			void updateItem(const T& aItem, const PropertyIdSet& aUpdatedProperties) {
+				updatedProperties.insert(aUpdatedProperties.begin(), aUpdatedProperties.end());
+				tasks.add(aItem, ViewTasks::MergeTask(UPDATE_ITEM, aUpdatedProperties));
+			}
+
+			void get(TaskMap& map, PropertyIdSet& updatedProperties_) {
+				tasks.get(map);
+				updatedProperties_.swap(updatedProperties);
+			}
+
+			void clear() {
+				updatedProperties.clear();
+				tasks.clear();
+			}
+		private:
+			PropertyIdSet updatedProperties;
+			ItemTasks tasks;
+		};
+
+		ViewTasks tasks;
+
+		class IntCollector {
+		public:
+			enum ValueType {
+				TYPE_SORT_PROPERTY,
+				TYPE_SORT_ASCENDING,
+				TYPE_RANGE_START,
+				TYPE_MAX_COUNT,
+				TYPE_LAST
+			};
+
+			typedef std::map<ValueType, int> ValueMap;
+
+			IntCollector() {
+				reset();
+			}
+
+			void reset() noexcept {
+				for (int i = 0; i < TYPE_LAST; i++) {
+					values[static_cast<ValueType>(i)] = -1;
+				}
+			}
+
+			void increase(ValueType aType, int offset = 1) noexcept {
+				values[aType] += offset;
+			}
+
+			void decrease(ValueType aType, int offset = 1) noexcept {
+				values[aType] -= offset;
+			}
+
+			void set(ValueType aType, int aValue) noexcept {
+				changed = true;
+				values[aType] = aValue;
+			}
+
+			/*void get(ValueType aType) noexcept {
+				auto v = values.find(aType);
+				if (v != values.end()) {
+					return (*v).second;
+				}
+
+				return -1;
+			}*/
+
+			void set(const ValueMap& aMap) noexcept {
+				changed = true;
+				for (const auto& i : aMap) {
+					values[i.first] = i.second;
+				}
+			}
+
+			ValueMap getAll() noexcept {
+				changed = false;
+				return values;
+			}
+
+			static void appendChanges(const ValueMap& aValues, const ValueMap& compareTo, json& json_) {
+				/*for (const auto& v : aValues) {
+					auto compareValue = compareTo.find(v.first);
+					if (v.second == (*compareValue).second) {
+						continue;
+					}
+
+					auto name = getValueName(v.first);
+					if (!name.empty()) {
+						json_[name] = v.second;
+					}
+				}*/
+			}
+
+			bool hasChanged() const noexcept {
+				return changed;
+			}
+		private:
+			bool changed = true;
+			ValueMap values;
+		};
+
+		bool itemListChanged = false;
+		IntCollector currentValues;
+
+		int prevTotalCount = -1;
+		ItemListF itemListF;
+		typename IntCollector::ValueMap prevValues;
 	};
 }
 

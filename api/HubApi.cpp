@@ -65,7 +65,7 @@ namespace webserver {
 	}
 
 	void HubApi::addHub(const ClientPtr& aClient) noexcept {
-		auto hubInfo = unique_ptr<HubInfo>(new HubInfo(this, aClient));
+		auto hubInfo = make_shared<HubInfo>(this, aClient);
 
 		{
 			WLock l(cs);

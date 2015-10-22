@@ -79,6 +79,10 @@ namespace webserver {
 		if (aUser->getIdentity().isOp()) {
 			flags_.insert("op");
 		}
+
+		if (aUser->getIdentity().isBot() || aUser->getIdentity().isHub()) {
+			flags_.insert("bot");
+		}
 	}
 
 	json Serializer::serializeUser(const UserPtr& aUser) noexcept {

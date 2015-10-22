@@ -46,7 +46,7 @@ namespace webserver {
 		j["callback_id"] = aCallbackId;
 		j["code"] = aCode;
 
-		if (aCode != websocketpp::http::status_code::ok) {
+		if (aCode < 200 || aCode > 299) {
 			dcdebug("Socket request %d failed: %s\n", aCallbackId, aErrorJson.dump().c_str());
 			j["error"] = aErrorJson;
 		} else if (!aResponseJson.is_null()) {

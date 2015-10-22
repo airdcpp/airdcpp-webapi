@@ -113,13 +113,13 @@ namespace webserver {
 	protected:
 		mutable SharedMutex cs;
 
-		map<IdType, unique_ptr<ItemType>> subModules;
+		map<IdType, typename ItemType::Ptr> subModules;
 
-		ItemType* getSubModule(const string& aId) {
+		typename ItemType::Ptr getSubModule(const string& aId) {
 			RLock l(cs);
 			auto m = subModules.find(convertF(aId));
 			if (m != subModules.end()) {
-				return m->second.get();
+				return m->second;
 			}
 
 			return nullptr;

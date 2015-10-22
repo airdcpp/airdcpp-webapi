@@ -101,7 +101,6 @@ namespace webserver {
 
 		static json serializeState(const DirectoryListingPtr& aList) noexcept;
 	private:
-		api_return handleDownload(ApiRequest& aRequest);
 		api_return handleChangeDirectory(ApiRequest& aRequest);
 
 		void on(DirectoryListingListener::LoadingFinished, int64_t aStart, const string& aDir, bool reloadList, bool changeDir) noexcept;

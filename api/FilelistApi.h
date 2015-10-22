@@ -46,6 +46,7 @@ namespace webserver {
 		api_return handleDeleteList(ApiRequest& aRequest) throw(exception);
 
 		api_return handleGetLists(ApiRequest& aRequest) throw(exception);
+		api_return handleDownload(ApiRequest& aRequest) throw(exception);
 
 		void on(DirectoryListingManagerListener::ListingCreated, const DirectoryListingPtr& aList) noexcept;
 		//void on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept;

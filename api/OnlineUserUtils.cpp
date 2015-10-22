@@ -67,6 +67,7 @@ namespace webserver {
 		case HubInfo::PROP_EMAIL: return aUser->getIdentity().getEmail();
 		case HubInfo::PROP_TAG: return aUser->getIdentity().getTag();
 		case HubInfo::PROP_HUB_URL: return aUser->getHubUrl();
+		case HubInfo::PROP_HUB_NAME: return aUser->getClient().getHubName();
 		default: dcassert(0); return 0;
 		}
 	}

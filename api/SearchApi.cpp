@@ -103,8 +103,6 @@ namespace webserver {
 			return websocketpp::http::status_code::bad_request;
 		}
 
-		searchView.clearItems();
-
 		auto type = str.size() == 39 && Encoder::isBase32(str.c_str()) ? SearchManager::TYPE_TTH : SearchManager::TYPE_ANY;
 
 		// new search
@@ -114,6 +112,8 @@ namespace webserver {
 			WLock l(cs);
 			results.clear();
 		}
+
+		searchView.setResetItems();
 
 		curSearch = shared_ptr<SearchQuery>(newSearch);
 
