@@ -45,8 +45,10 @@ namespace webserver {
 			auto cancelled = timer.cancel();
 
 			if (cancelled > 0 && aWaitShutdown) {
-				while (running && !timer.get_io_service().stopped()) {
-					std::this_thread::sleep_for(30ms);
+				std::this_thread::sleep_for(30ms);
+				if (running && !timer.get_io_service().stopped()) {
+					// cancel again in case someone starts the timer meanwhile.....
+					stop(true);
 				}
 			}
 		}

@@ -38,8 +38,6 @@ namespace webserver {
 		static json serializeLogMessage(const LogMessagePtr& aMessageData) noexcept;
 		static json serializeUnread(const MessageCache& aCache) noexcept;
 
-		static json serializeClient(const Client* aClient) noexcept;
-
 		static json serializeUser(const UserPtr& aUser) noexcept;
 		static json serializeHintedUser(const HintedUser& aUser) noexcept;
 		static json serializeOnlineUser(const OnlineUserPtr& aUser) noexcept;

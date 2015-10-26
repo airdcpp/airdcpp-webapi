@@ -39,7 +39,7 @@ namespace webserver {
 
 		ListViewController(const string& aViewName, ApiModule* aModule, const PropertyItemHandler<T>& aItemHandler, ItemListF aItemListF) :
 			module(aModule), viewName(aViewName), itemHandler(aItemHandler), filter(aItemHandler.properties), itemListF(aItemListF),
-			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 50))
+			timer(WebServerManager::getInstance()->addTimer([this] { runTasks(); }, 200))
 		{
 			aModule->getSession()->addListener(this);
 
@@ -457,14 +457,6 @@ namespace webserver {
 				pos++;
 			}
 
-			{
-				WLock l(cs);
-				//IntCollector::appendChanges(updateValues, prevValues, j)
-
-				currentViewItems.swap(viewItemsNew);
-				prevValues.swap(updateValues);
-			}
-
 			if (totalItemCount != prevTotalCount) {
 				prevTotalCount = totalItemCount;
 				j["total_items"] = totalItemCount;
@@ -476,6 +468,15 @@ namespace webserver {
 			}
 
 			j["range_start"] = newStart;
+
+
+			{
+				WLock l(cs);
+				//IntCollector::appendChanges(updateValues, prevValues, j)
+
+				currentViewItems.swap(viewItemsNew);
+				prevValues.swap(updateValues);
+			}
 
 			sendJson(j);
 		}
@@ -666,14 +667,6 @@ namespace webserver {
 				}
 			}
 
-			void increase(ValueType aType, int offset = 1) noexcept {
-				values[aType] += offset;
-			}
-
-			void decrease(ValueType aType, int offset = 1) noexcept {
-				values[aType] -= offset;
-			}
-
 			void set(ValueType aType, int aValue) noexcept {
 				changed = true;
 				values[aType] = aValue;
@@ -698,20 +691,6 @@ namespace webserver {
 			ValueMap getAll() noexcept {
 				changed = false;
 				return values;
-			}
-
-			static void appendChanges(const ValueMap& aValues, const ValueMap& compareTo, json& json_) {
-				/*for (const auto& v : aValues) {
-					auto compareValue = compareTo.find(v.first);
-					if (v.second == (*compareValue).second) {
-						continue;
-					}
-
-					auto name = getValueName(v.first);
-					if (!name.empty()) {
-						json_[name] = v.second;
-					}
-				}*/
 			}
 
 			bool hasChanged() const noexcept {

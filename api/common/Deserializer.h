@@ -36,7 +36,7 @@ namespace webserver {
 		static TTHValue deserializeTTH(const json& aJson) throw(exception);
 		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault) throw(exception);
 
-		static void deserializeDownloadParams(const json& aJson, string& target_, TargetUtil::TargetType& targetType_, QueueItemBase::Priority& priority_);
+		static void deserializeDownloadParams(const json& aJson, string& targetDirectory_, string& targetName_, TargetUtil::TargetType& targetType_, QueueItemBase::Priority& priority_);
 	};
 }
 

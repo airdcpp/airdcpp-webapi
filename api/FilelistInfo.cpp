@@ -52,7 +52,9 @@ namespace webserver {
 
 		dl->addListener(this);
 
-		updateItems(dl->getCurrentPath());
+		if (dl->isOpen()) {
+			updateItems(dl->getCurrentPath());
+		}
 	}
 
 	FilelistInfo::~FilelistInfo() {

@@ -17,7 +17,6 @@
 */
 
 #include <api/FilelistApi.h>
-//#include <api/SearchUtils.h>
 
 #include <api/common/Deserializer.h>
 #include <web-server/JsonUtil.h>
@@ -82,12 +81,6 @@ namespace webserver {
 			return websocketpp::http::status_code::bad_request;
 		}
 
-		/*auto c = MessageManager::getInstance()->addChat(Deserializer::deserializeHintedUser(aRequest.getRequestBody()), false);
-		if (!c) {
-			aRequest.setResponseErrorStr("Chat session exists");
-			return websocketpp::http::status_code::bad_request;
-		}*/
-
 		aRequest.setResponseBody({
 			{ "id", user.user->getCID().toBase32() }
 		});
@@ -123,15 +116,6 @@ namespace webserver {
 		aRequest.setResponseBody(retJson);
 		return websocketpp::http::status_code::ok;
 	}
-
-	/*void FilelistApi::on(DirectoryListingManagerListener::OpenListing, const DirectoryListingPtr& aList, const string& aDir, const string& aXML) noexcept {
-		addList(aList);
-		if (!subscriptionActive("list_created")) {
-			return;
-		}
-
-		send("list_created", serializeList(aList));
-	}*/
 
 	void FilelistApi::on(DirectoryListingManagerListener::ListingCreated, const DirectoryListingPtr& aList) noexcept {
 		addList(aList);
@@ -171,31 +155,16 @@ namespace webserver {
 		decltype(auto) requestJson = aRequest.getRequestBody();
 		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
 
-		string target;
+		string targetDirectory, targetBundleName;
 		TargetUtil::TargetType targetType;
 		QueueItemBase::Priority prio;
-		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
+		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), targetDirectory, targetBundleName, targetType, prio);
 
 		auto user = Deserializer::deserializeHintedUser(requestJson["user"]);
 
-		DirectoryListingManager::getInstance()->addDirectoryDownload(Util::toNmdcFile(listPath), Util::getAdcLastDir(listPath), user,
-			target, targetType, true, prio);
+		DirectoryListingManager::getInstance()->addDirectoryDownload(Util::toNmdcFile(listPath), targetBundleName, user,
+			targetDirectory, targetType, true, prio);
 
 		return websocketpp::http::status_code::ok;
 	}
-
-	/*void PrivateChatApi::on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept {
-		{
-			WLock l(cs);
-			subModules.erase(aChat->getUser()->getCID());
-		}
-
-		if (!subscriptionActive("chat_session_removed")) {
-			return;
-		}
-
-		send("chat_session_removed", {
-			{ "id", aChat->getUser()->getCID().toBase32() }
-		});
-	}*/
 }

@@ -83,6 +83,10 @@ namespace webserver {
 		if (aUser->getIdentity().isBot() || aUser->getIdentity().isHub()) {
 			flags_.insert("bot");
 		}
+
+		if (aUser->isHidden()) {
+			flags_.insert("hidden");
+		}
 	}
 
 	json Serializer::serializeUser(const UserPtr& aUser) noexcept {
@@ -94,8 +98,6 @@ namespace webserver {
 	}
 
 	json Serializer::serializeHintedUser(const HintedUser& aUser) noexcept {
-		//StringSet flags;
-		//if (aUser.user->isOnline()) {
 		auto flags = getUserFlags(aUser);
 		if (aUser.user->isOnline()) {
 			auto user = ClientManager::getInstance()->findOnlineUser(aUser);
@@ -175,14 +177,6 @@ namespace webserver {
 		auto j = serializeItemProperties(aUser, toPropertyIdSet(HubInfo::onlineUserPropertyHandler.properties), HubInfo::onlineUserPropertyHandler);
 		j["cid"] = aUser->getUser()->getCID().toBase32();
 		return j;
-	}
-
-	json Serializer::serializeClient(const Client* aClient) noexcept {
-		return {
-			{ "name", aClient->getHubName() },
-			{ "hub_url", aClient->getHubUrl() },
-			{ "description", aClient->getHubDescription() }
-		};
 	}
 
 	std::string typeNameToString(const string& aName) {

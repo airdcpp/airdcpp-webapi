@@ -48,7 +48,7 @@ namespace webserver {
 		size_t hits = 0;
 
 		void addItem(const SearchResultInfo::Ptr& aResult) noexcept;
-		api_return download(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority p);
+		api_return download(const string& aTargetDirectory, const string& aTargetName, TargetUtil::TargetType aTargetType, QueueItemBase::Priority p);
 
 		SearchResultInfo* parent = nullptr;
 		SearchResultInfo::List children;

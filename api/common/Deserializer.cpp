@@ -61,11 +61,15 @@ namespace webserver {
 		return static_cast<QueueItemBase::Priority>(*priority);
 	}
 
-	void Deserializer::deserializeDownloadParams(const json& aJson, string& target_, TargetUtil::TargetType& targetType_, QueueItemBase::Priority& priority_) {
-		auto target = JsonUtil::getOptionalField<string>("target", aJson);
-		if (!target) {
-			target = SETTING(DOWNLOAD_DIRECTORY);
+	void Deserializer::deserializeDownloadParams(const json& aJson, string& targetDirectory_, string& targetName_, TargetUtil::TargetType& targetType_, QueueItemBase::Priority& priority_) {
+		auto targetPath = JsonUtil::getOptionalField<string>("target_directory", aJson);
+		if (!targetPath) {
+			targetDirectory_ = SETTING(DOWNLOAD_DIRECTORY);
+		} else {
+			targetDirectory_ = *targetPath;
 		}
+
+		targetName_ = JsonUtil::getField<string>("target_name", aJson, false);
 
 		auto targetType = JsonUtil::getEnumField<int>("target_type", aJson, false, 0, TargetUtil::TARGET_LAST-1);
 		if (!targetType) {
@@ -73,7 +77,6 @@ namespace webserver {
 		}
 
 		priority_ = deserializePriority(aJson, true);
-		target_ = *target;
 		targetType_ = static_cast<TargetUtil::TargetType>(*targetType);;
 	}
 }

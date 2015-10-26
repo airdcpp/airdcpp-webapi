@@ -136,15 +136,15 @@ namespace webserver {
 	api_return QueueApi::handleAddFileBundle(ApiRequest& aRequest) throw(exception) {
 		decltype(auto) j = aRequest.getRequestBody();
 
-		string target;
+		string targetDirectory, targetFileName;
 		TargetUtil::TargetType targetType;
 		QueueItemBase::Priority prio;
-		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), target, targetType, prio);
+		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), targetDirectory, targetFileName, targetType, prio);
 
 		BundlePtr b = nullptr;
 		try {
 			b = QueueManager::getInstance()->createFileBundle(
-				target,
+				targetDirectory + targetFileName,
 				JsonUtil::getField<int64_t>("size", j),
 				Deserializer::deserializeTTH(j),
 				Deserializer::deserializeHintedUser(j["user"]),

@@ -86,26 +86,14 @@ namespace webserver {
 		return (hits * sourceScoreFactor) + matchRelevancy;
 	}
 
-	api_return SearchResultInfo::download(const string& aTarget, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPrio) {
+	api_return SearchResultInfo::download(const string& aTargetDirectory, const string& aTargetName, TargetUtil::TargetType aTargetType, QueueItemBase::Priority aPrio) {
 		bool fileDownload = sr->getType() == SearchResult::TYPE_FILE;
 
-		// names/case sizes may differ for grouped results
-		optional<string> path;
 		auto download = [&](const SearchResultPtr& aSR) {
 			if (fileDownload) {
-				if (!path) {
-					path = aTarget.back() == PATH_SEPARATOR ? aTarget + sr->getFileName() : aTarget;
-				}
-
-				QueueManager::getInstance()->createFileBundle(*path, sr->getSize(), sr->getTTH(), sr->getUser(), sr->getDate(), 0, aPrio);
-			}
-			else {
-				if (!path) {
-					//only pick the last dir, different paths are always needed
-					path = aSR->getType() == SearchResult::TYPE_DIRECTORY ? aSR->getFileName() : Util::getLastDir(aSR->getFilePath());
-				}
-
-				DirectoryListingManager::getInstance()->addDirectoryDownload(aSR->getFilePath(), *path, aSR->getUser(), aTarget, aTargetType,
+				QueueManager::getInstance()->createFileBundle(aTargetDirectory + aTargetName, sr->getSize(), sr->getTTH(), sr->getUser(), sr->getDate(), 0, aPrio);
+			} else {
+				DirectoryListingManager::getInstance()->addDirectoryDownload(aSR->getFilePath(), aTargetName, aSR->getUser(), aTargetDirectory, aTargetType,
 					false, aPrio, false, 0, false, false);
 			}
 		};
