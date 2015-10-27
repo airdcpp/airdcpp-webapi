@@ -21,6 +21,7 @@
 
 #include <airdcpp/typedefs.h>
 
+#include <airdcpp/format.h>
 #include <airdcpp/LogManager.h>
 #include <airdcpp/SettingsManager.h>
 
@@ -30,28 +31,16 @@
 #define HANDSHAKE_TIMEOUT 0 // disabled, affects HTTP downloads
 
 namespace webserver {
-	void WebServerManager::startup() {
-		WebUserManager::newInstance();
-
-		WebServerManager::getInstance()->start();
-	}
-
-	void WebServerManager::shutdown() {
-		WebServerManager::getInstance()->stop();
-
-		WebUserManager::deleteInstance();
-	}
-
 	using namespace dcpp;
 	WebServerManager::WebServerManager() : ios(2) {
 
 	}
 
-	void WebServerManager::start() {
+	bool WebServerManager::start(const string& aWebResourcePath, ErrorF&& errorF) {
 		SettingsManager::getInstance()->setDefault(SettingsManager::PM_MESSAGE_CACHE, 200);
 		SettingsManager::getInstance()->setDefault(SettingsManager::HUB_MESSAGE_CACHE, 200);
 
-		load();
+		fileServer.setResourcePath(aWebResourcePath);
 
 		// initialize asio with our external io_service rather than an internal one
 		endpoint_plain.init_asio(&ios);
@@ -85,26 +74,37 @@ namespace webserver {
 		// TLS endpoint has an extra handler for the tls init
 		endpoint_tls.set_tls_init_handler(std::bind(&WebServerManager::on_tls_init, this, _1));
 
-		try {
-			endpoint_plain.listen(80);
-			endpoint_plain.start_accept();
-		}
-		catch (const websocketpp::exception& e) {
-			LogManager::getInstance()->message("Failed to set up plain server: " + string(e.what()), LogMessage::SEV_ERROR);
-		}
-
-		try {
-			endpoint_tls.listen(443);
-			endpoint_tls.start_accept();
-		} catch (const websocketpp::exception& e) {
-			LogManager::getInstance()->message("Failed to set up secure server: " + string(e.what()), LogMessage::SEV_ERROR);
+		bool hasServer = false;
+		if (plainServerConfig.hasValidConfig()) {
+			try {
+				endpoint_plain.listen(plainServerConfig.getPort());
+				endpoint_plain.start_accept();
+				hasServer = true;
+			} catch (const websocketpp::exception& e) {
+				auto message = boost::format("Failed to set up plain server on port %1: %2 (is the port in use by another application?)") % plainServerConfig.getPort() % string(e.what());
+				errorF(message.str());
+			}
 		}
 
-		// Start the ASIO io_service run loop running both endpoints
-		for (int x = 0; x < 2; ++x) {
-			worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &ios));
+		if (tlsServerConfig.hasValidConfig()) {
+			try {
+				endpoint_tls.listen(tlsServerConfig.getPort());
+				endpoint_tls.start_accept();
+				hasServer = true;
+			} catch (const websocketpp::exception& e) {
+				auto message = boost::format("Failed to set up secure server on port %1: %2 (is the port in use by another application?)") % tlsServerConfig.getPort() % string(e.what());
+				errorF(message.str());
+			}
 		}
 
+		if (hasServer) {
+			// Start the ASIO io_service run loop running both endpoints
+			for (int x = 0; x < 2; ++x) {
+				worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &ios));
+			}
+		}
+
+		return hasServer;
 	}
 
 	context_ptr WebServerManager::on_tls_init(websocketpp::connection_hdl hdl) {
@@ -135,7 +135,7 @@ namespace webserver {
 	}
 
 	void WebServerManager::stop() {
-		// we have an issue if a socket connects instantly after getting disconnected otherwise
+		// we have an issue otherwise if a socket connects instantly after getting disconnected
 		shuttingDown = true;
 
 		disconnectSockets("Shutting down");
@@ -218,13 +218,28 @@ namespace webserver {
 		}
 	}
 
-	void WebServerManager::load() noexcept {
+	bool WebServerManager::hasValidConfig() const noexcept {
+		return (plainServerConfig.hasValidConfig() || tlsServerConfig.hasValidConfig()) && userManager.hasUsers();
+	}
+
+	bool WebServerManager::load() noexcept {
 		SimpleXML xml;
 		SettingsManager::loadSettingFile(xml, CONFIG_DIR, CONFIG_NAME, true);
 		if (xml.findChild("WebServer")) {
 			xml.stepIn();
-			WebUserManager::getInstance()->load(xml);
+			loadServer(xml, "Server", plainServerConfig);
+			loadServer(xml, "TLSServer", tlsServerConfig);
+			userManager.load(xml);
 			xml.stepOut();
+		}
+
+		return hasValidConfig();
+	}
+
+	void WebServerManager::loadServer(SimpleXML& aXml, const string& aTagName, ServerConfig& config_) noexcept {
+		if (aXml.findChild(aTagName)) {
+			config_.setPort(aXml.getIntChildAttrib("Port"));
+			aXml.resetCurrentChild();
 		}
 	}
 
@@ -234,7 +249,7 @@ namespace webserver {
 		xml.addTag("WebServer");
 		xml.stepIn();
 
-		WebUserManager::getInstance()->save(xml);
+		userManager.save(xml);
 
 		xml.stepOut();
 

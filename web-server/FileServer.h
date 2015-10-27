@@ -29,10 +29,11 @@ namespace webserver {
 		FileServer();
 		~FileServer();
 
+		void setResourcePath(const string& aPath) noexcept;
 		websocketpp::http::status_code::value handleRequest(const std::string& aRequestPath, const SessionPtr& aSession, 
 			const std::string& aRequestBody, std::string& output_, std::string& contentType) noexcept;
 	private:
-
+		string resourcePath;
 	};
 }
 

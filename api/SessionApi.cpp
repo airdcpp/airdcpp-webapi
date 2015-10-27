@@ -59,7 +59,7 @@ namespace webserver {
 
 	websocketpp::http::status_code::value SessionApi::handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception) {
 		decltype(auto) requestJson = aRequest.getRequestBody();
-		auto session = WebUserManager::getInstance()->authenticate(requestJson["username"], requestJson["password"], aIsSecure);
+		auto session = WebServerManager::getInstance()->getUserManager().authenticate(requestJson["username"], requestJson["password"], aIsSecure);
 
 		if (!session) {
 			aRequest.setResponseErrorStr("Invalid username or password");
@@ -87,7 +87,6 @@ namespace webserver {
 			return websocketpp::http::status_code::unauthorized;
 		}
 
-		WebUserManager::getInstance()->logout(aRequest.getSession());
 		WebServerManager::getInstance()->logout(aRequest.getSession()->getToken());
 
 		return websocketpp::http::status_code::ok;
@@ -96,7 +95,7 @@ namespace webserver {
 	api_return SessionApi::handleSocketConnect(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception) {
 		std::string sessionToken = aRequest.getRequestBody()["authorization"];
 
-		SessionPtr session = WebUserManager::getInstance()->getSession(sessionToken);
+		SessionPtr session = WebServerManager::getInstance()->getUserManager().getSession(sessionToken);
 		if (!session) {
 			aRequest.setResponseErrorStr("Invalid session token");
 			return websocketpp::http::status_code::bad_request;

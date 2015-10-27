@@ -25,9 +25,6 @@
 
 #include <sstream>
 
-// For development only...
-#define BASEPATH "C:\\Projects\\airdcpp-webui\\"
-
 namespace webserver {
 	using namespace dcpp;
 
@@ -36,6 +33,10 @@ namespace webserver {
 
 	FileServer::~FileServer() {
 
+	}
+
+	void FileServer::setResourcePath(const string& aPath) noexcept {
+		resourcePath = aPath;
 	}
 
 	struct mime { const char* ext; const char* type; };
@@ -88,6 +89,11 @@ namespace webserver {
 	websocketpp::http::status_code::value FileServer::handleRequest(const string& aRequestPath, const SessionPtr& aSession, 
 		const string& aRequestBody, string& output_, string& contentType) noexcept {
 
+		if (resourcePath.empty()) {
+			output_ = "No resource path set";
+			return websocketpp::http::status_code::not_found;
+		}
+
 		dcdebug("Requesting file %s\n", aRequestPath.c_str());
 
 		// Forward all requests for non-static files to index
@@ -106,7 +112,7 @@ namespace webserver {
 		Util::replace(request, "/", PATH_SEPARATOR_STR);
 
 		try {
-			File f(BASEPATH + request, File::READ, File::OPEN);
+			File f(resourcePath + request, File::READ, File::OPEN);
 			output_ = f.read();
 		} catch (const FileException& e) {
 			output_ = e.getError();

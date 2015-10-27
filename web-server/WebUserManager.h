@@ -23,7 +23,6 @@
 
 #include <airdcpp/CriticalSection.h>
 #include <airdcpp/SimpleXML.h>
-#include <airdcpp/Singleton.h>
 #include <airdcpp/TimerManager.h>
 
 #include <web-server/WebUser.h>
@@ -31,17 +30,19 @@
 
 namespace webserver {
 
-	class WebUserManager : public dcpp::Singleton<WebUserManager>, private TimerManagerListener {
+	class WebUserManager : private TimerManagerListener {
 	public:
 		WebUserManager();
 
 		SessionPtr authenticate(const string& aUserName, const string& aPassword, bool aIsSecure) noexcept;
 
-		SessionPtr getSession(const string& aSession) noexcept;
+		SessionPtr getSession(const string& aSession) const noexcept;
 		void logout(const SessionPtr& aSession);
 
 		void load(SimpleXML& xml_) noexcept;
 		void save(SimpleXML& xml_) const noexcept;
+
+		bool hasUsers() const noexcept;
 	private:
 		mutable SharedMutex cs;
 

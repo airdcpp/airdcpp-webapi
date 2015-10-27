@@ -44,9 +44,6 @@ namespace webserver {
 
 	class WebServerManager : public dcpp::Singleton<WebServerManager> {
 	public:
-		void startup();
-		void shutdown();
-
 		// The shared on_message handler takes a template parameter so the function can
 		// resolve any endpoint dependent types like message_ptr or connection_ptr
 		template <typename EndpointType>
@@ -108,7 +105,7 @@ namespace webserver {
 			SessionPtr session = nullptr;
 			auto token = con->get_request_header("Authorization");
 			if (token != websocketpp::http::empty_header) {
-				session = WebUserManager::getInstance()->getSession(token);
+				session = userManager.getSession(token);
 			}
 
 			websocketpp::http::status_code::value status;
@@ -150,7 +147,8 @@ namespace webserver {
 		WebServerManager();
 		~WebServerManager();
 
-		void start();
+		typedef std::function<void(const string&)> ErrorF;
+		bool start(const string& aWebResourcePath, ErrorF&& errorF);
 		void stop();
 
 		void disconnectSockets(const std::string& aMessage) noexcept;
@@ -159,9 +157,29 @@ namespace webserver {
 		void logout(const std::string& aSessionToken) noexcept;
 		WebSocketPtr getSocket(const std::string& aSessionToken) noexcept;
 
-		void load() noexcept;
+		bool load() noexcept;
 		void save() const noexcept;
+
+		WebUserManager& getUserManager() noexcept {
+			return userManager;
+		}
+
+		bool hasValidConfig() const noexcept;
 	private:
+		struct ServerConfig {
+			IGETSET(int, port, Port, -1);
+
+			bool hasValidConfig() const noexcept {
+				return port > 0;
+			}
+		};
+
+		ServerConfig plainServerConfig;
+		ServerConfig tlsServerConfig;
+
+		void loadServer(SimpleXML& xml_, const string& aTagName, ServerConfig& config_) noexcept;
+		WebUserManager userManager;
+
 		mutable SharedMutex cs;
 
 		// set up an external io_service to run both endpoints on. This is not

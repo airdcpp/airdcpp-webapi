@@ -29,11 +29,8 @@ namespace webserver {
 	class JsonException : private std::exception
 	{
 	public:
-		//JsonException() { dcdrun(if (error.size()>0)) dcdebug("Thrown: %s\n", error["message"].c_str()); }
 		JsonException(const json& aError) : error(aError) { }
 		JsonException(json&& aError) : error(move(aError)) { }
-
-		//virtual const char* what() const throw() { return getError().c_str(); }
 
 		virtual ~JsonException() throw() { }
 		virtual const json& getErrorJson() const { return error; }

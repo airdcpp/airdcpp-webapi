@@ -50,7 +50,7 @@ namespace webserver {
 		return session;
 	}
 
-	SessionPtr WebUserManager::getSession(const string& aSession) noexcept {
+	SessionPtr WebUserManager::getSession(const string& aSession) const noexcept {
 		RLock l(cs);
 		auto s = sessions.find(aSession);
 
@@ -122,5 +122,10 @@ namespace webserver {
 		}
 
 		xml_.resetCurrentChild();
+	}
+
+	bool WebUserManager::hasUsers() const noexcept {
+		RLock l(cs);
+		return !users.empty();
 	}
 }

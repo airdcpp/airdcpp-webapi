@@ -31,6 +31,12 @@
     <Filter Include="Source Files\api\common">
       <UniqueIdentifier>{e3ab0a7b-cccf-4671-b2ee-93bc8be4c6b6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\api\platform">
+      <UniqueIdentifier>{3c300df7-df49-452f-9e77-2a7f01f17850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\api\platform\windows">
+      <UniqueIdentifier>{ca48c5dc-6195-48d7-a46a-baac00dedad5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="api\QueueApi.h">
@@ -159,9 +165,6 @@
     <ClInclude Include="api\FilesystemApi.h">
       <Filter>Header Files\api</Filter>
     </ClInclude>
-    <ClInclude Include="api\platform\windows\Filesystem.h">
-      <Filter>Header Files\api</Filter>
-    </ClInclude>
     <ClInclude Include="api\HubInfo.h">
       <Filter>Header Files\api</Filter>
     </ClInclude>
@@ -170,6 +173,9 @@
     </ClInclude>
     <ClInclude Include="api\OnlineUserUtils.h">
       <Filter>Header Files\api</Filter>
+    </ClInclude>
+    <ClInclude Include="api\platform\windows\Filesystem.h">
+      <Filter>Header Files\api\platform\windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
