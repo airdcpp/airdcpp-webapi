@@ -24,6 +24,7 @@
 #include <airdcpp/format.h>
 #include <airdcpp/LogManager.h>
 #include <airdcpp/SettingsManager.h>
+#include <airdcpp/SimpleXML.h>
 
 #define CONFIG_NAME "WebServer.xml"
 #define CONFIG_DIR Util::PATH_USER_CONFIG
@@ -33,7 +34,7 @@
 namespace webserver {
 	using namespace dcpp;
 	WebServerManager::WebServerManager() : ios(2) {
-
+		userManager = unique_ptr<WebUserManager>(new WebUserManager(this));
 	}
 
 	bool WebServerManager::start(const string& aWebResourcePath, ErrorF&& errorF) {
@@ -104,6 +105,7 @@ namespace webserver {
 			}
 		}
 
+		fire(WebServerManagerListener::Started());
 		return hasServer;
 	}
 
@@ -135,6 +137,8 @@ namespace webserver {
 	}
 
 	void WebServerManager::stop() {
+		fire(WebServerManagerListener::Stopping());
+
 		// we have an issue otherwise if a socket connects instantly after getting disconnected
 		shuttingDown = true;
 
@@ -159,8 +163,6 @@ namespace webserver {
 
 		while (!ios.stopped())
 			Thread::sleep(50);
-
-		save();
 	}
 
 	WebServerManager::~WebServerManager() {
@@ -219,18 +221,29 @@ namespace webserver {
 	}
 
 	bool WebServerManager::hasValidConfig() const noexcept {
-		return (plainServerConfig.hasValidConfig() || tlsServerConfig.hasValidConfig()) && userManager.hasUsers();
+		return (plainServerConfig.hasValidConfig() || tlsServerConfig.hasValidConfig()) && userManager->hasUsers();
 	}
 
 	bool WebServerManager::load() noexcept {
-		SimpleXML xml;
-		SettingsManager::loadSettingFile(xml, CONFIG_DIR, CONFIG_NAME, true);
-		if (xml.findChild("WebServer")) {
-			xml.stepIn();
-			loadServer(xml, "Server", plainServerConfig);
-			loadServer(xml, "TLSServer", tlsServerConfig);
-			userManager.load(xml);
-			xml.stepOut();
+		try {
+			SimpleXML xml;
+			SettingsManager::loadSettingFile(xml, CONFIG_DIR, CONFIG_NAME, true);
+			if (xml.findChild("WebServer")) {
+				xml.stepIn();
+
+				if (xml.findChild("Config")) {
+					xml.stepIn();
+					loadServer(xml, "Server", plainServerConfig);
+					loadServer(xml, "TLSServer", tlsServerConfig);
+					xml.stepOut();
+				}
+
+				fire(WebServerManagerListener::LoadSettings(), xml);
+
+				xml.stepOut();
+			}
+		} catch (const Exception& e) {
+			LogManager::getInstance()->message(STRING_F(LOAD_FAILED_X, CONFIG_NAME % e.getError()), LogMessage::SEV_ERROR);
 		}
 
 		return hasValidConfig();
@@ -243,16 +256,37 @@ namespace webserver {
 		}
 	}
 
-	void WebServerManager::save() const noexcept {
+	void WebServerManager::save() noexcept {
 		SimpleXML xml;
 
 		xml.addTag("WebServer");
 		xml.stepIn();
 
-		userManager.save(xml);
+		{
+			xml.addTag("Config");
+			xml.stepIn();
+			plainServerConfig.save(xml, "Server");
+			tlsServerConfig.save(xml, "TLSServer");
+			xml.stepOut();
+		}
+
+		fire(WebServerManagerListener::SaveSettings(), xml);
 
 		xml.stepOut();
 
 		SettingsManager::saveSettingFile(xml, CONFIG_DIR, CONFIG_NAME);
+	}
+
+	bool WebServerManager::ServerConfig::hasValidConfig() const noexcept {
+		return port > 0;
+	}
+
+	void WebServerManager::ServerConfig::save(SimpleXML& xml_, const string& aTagName) noexcept {
+		if (!hasValidConfig()) {
+			return;
+		}
+
+		xml_.addTag(aTagName);
+		xml_.addChildAttrib("Port", port);
 	}
 }

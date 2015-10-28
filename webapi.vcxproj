@@ -207,6 +207,7 @@
     <ClInclude Include="web-server\SessionListener.h" />
     <ClInclude Include="web-server\stdinc.h" />
     <ClInclude Include="web-server\Timer.h" />
+    <ClInclude Include="web-server\WebServerManagerListener.h" />
     <ClInclude Include="web-server\WebServerManager.h" />
     <ClInclude Include="web-server\WebSocket.h" />
     <ClInclude Include="web-server\WebUser.h" />

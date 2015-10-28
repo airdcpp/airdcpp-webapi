@@ -22,17 +22,18 @@
 #include <web-server/stdinc.h>
 
 #include <airdcpp/CriticalSection.h>
-#include <airdcpp/SimpleXML.h>
-#include <airdcpp/TimerManager.h>
 
-#include <web-server/WebUser.h>
 #include <web-server/Session.h>
+#include <web-server/Timer.h>
+#include <web-server/WebServerManagerListener.h>
+#include <web-server/WebUser.h>
 
 namespace webserver {
-
-	class WebUserManager : private TimerManagerListener {
+	class WebServerManager;
+	class WebUserManager : private WebServerManagerListener {
 	public:
-		WebUserManager();
+		WebUserManager(WebServerManager* aServer);
+		~WebUserManager();
 
 		SessionPtr authenticate(const string& aUserName, const string& aPassword, bool aIsSecure) noexcept;
 
@@ -43,13 +44,19 @@ namespace webserver {
 		void save(SimpleXML& xml_) const noexcept;
 
 		bool hasUsers() const noexcept;
+		void addTimer() noexcept;
 	private:
 		mutable SharedMutex cs;
 
 		std::map<std::string, WebUserPtr> users;
 		std::map<std::string, SessionPtr> sessions;
 
-		void on(TimerManagerListener::Minute, uint64_t aTick) noexcept;
+		void checkExpiredSessions() noexcept;
+		TimerPtr expirationTimer;
+
+		void on(WebServerManagerListener::Started) noexcept;
+		void on(WebServerManagerListener::LoadSettings, SimpleXML& aXml) noexcept;
+		void on(WebServerManagerListener::SaveSettings, SimpleXML& aXml) noexcept;
 	};
 }
 

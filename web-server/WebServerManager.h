@@ -26,10 +26,12 @@
 #include "ApiRequest.h"
 
 #include "Timer.h"
+#include "WebServerManagerListener.h"
 #include "WebSocket.h"
 #include "WebUserManager.h"
 
 #include <airdcpp/Singleton.h>
+#include <airdcpp/Speaker.h>
 
 #include <iostream>
 
@@ -42,7 +44,7 @@ namespace webserver {
 	// type of the ssl context pointer is long so alias it
 	typedef std::shared_ptr<boost::asio::ssl::context> context_ptr;
 
-	class WebServerManager : public dcpp::Singleton<WebServerManager> {
+	class WebServerManager : public dcpp::Singleton<WebServerManager>, public Speaker<WebServerManagerListener> {
 	public:
 		// The shared on_message handler takes a template parameter so the function can
 		// resolve any endpoint dependent types like message_ptr or connection_ptr
@@ -105,7 +107,7 @@ namespace webserver {
 			SessionPtr session = nullptr;
 			auto token = con->get_request_header("Authorization");
 			if (token != websocketpp::http::empty_header) {
-				session = userManager.getSession(token);
+				session = userManager->getSession(token);
 			}
 
 			websocketpp::http::status_code::value status;
@@ -158,10 +160,10 @@ namespace webserver {
 		WebSocketPtr getSocket(const std::string& aSessionToken) noexcept;
 
 		bool load() noexcept;
-		void save() const noexcept;
+		void save() noexcept;
 
 		WebUserManager& getUserManager() noexcept {
-			return userManager;
+			return *userManager.get();
 		}
 
 		bool hasValidConfig() const noexcept;
@@ -169,16 +171,14 @@ namespace webserver {
 		struct ServerConfig {
 			IGETSET(int, port, Port, -1);
 
-			bool hasValidConfig() const noexcept {
-				return port > 0;
-			}
+			bool hasValidConfig() const noexcept;
+			void save(SimpleXML& aXml, const string& aTagName) noexcept;
 		};
 
 		ServerConfig plainServerConfig;
 		ServerConfig tlsServerConfig;
 
 		void loadServer(SimpleXML& xml_, const string& aTagName, ServerConfig& config_) noexcept;
-		WebUserManager userManager;
 
 		mutable SharedMutex cs;
 
@@ -188,11 +188,12 @@ namespace webserver {
 
 		context_ptr on_tls_init(websocketpp::connection_hdl hdl);
 
-		FileServer fileServer;
-
 		std::map<websocketpp::connection_hdl, WebSocketPtr, std::owner_less<websocketpp::connection_hdl>> sockets;
 
 		ApiRouter api;
+		FileServer fileServer;
+
+		unique_ptr<WebUserManager> userManager;
 
 		server_plain endpoint_plain;
 		server_tls endpoint_tls;

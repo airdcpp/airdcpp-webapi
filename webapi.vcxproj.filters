@@ -177,6 +177,9 @@
     <ClInclude Include="api\platform\windows\Filesystem.h">
       <Filter>Header Files\api\platform\windows</Filter>
     </ClInclude>
+    <ClInclude Include="web-server\WebServerManagerListener.h">
+      <Filter>Header Files\web-server</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="api\QueueApi.cpp">

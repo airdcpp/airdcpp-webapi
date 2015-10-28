@@ -22,15 +22,17 @@
 #include <web-server/WebServerManager.h>
 
 #include <airdcpp/typedefs.h>
+#include <airdcpp/SimpleXML.h>
+#include <airdcpp/TimerManager.h>
 #include <airdcpp/Util.h>
 
 namespace webserver {
-	WebUserManager::WebUserManager() {
-		//auto user = make_shared<WebUser>("test", "test");
-		//users.emplace("test", make_shared<WebUser>("test", "test"));
+	WebUserManager::WebUserManager(WebServerManager* aServer) {
+		aServer->addListener(this);
+	}
 
-		//auto session = make_shared<Session>(user, /*Util::toString(Util::rand())*/ "581774371", false);
-		//sessions.emplace(session->getToken(), session);
+	WebUserManager::~WebUserManager() {
+		WebServerManager::getInstance()->removeListener(this);
 	}
 
 	SessionPtr WebUserManager::authenticate(const string& aUserName, const string& aPassword, bool aIsSecure) noexcept {
@@ -66,13 +68,14 @@ namespace webserver {
 		sessions.erase(aSession->getToken());
 	}
 
-	void WebUserManager::on(TimerManagerListener::Minute, uint64_t aTick) noexcept{
+	void WebUserManager::checkExpiredSessions() noexcept {
 		StringList removedTokens;
+		auto tick = GET_TICK();
 
 		{
 			RLock l(cs);
 			for (const auto& s: sessions | map_values) {
-				if (s->getLastActivity() + 1000 * 60 * 120 < aTick) {
+				if (s->getLastActivity() + 1000 * 60 * 120 < tick) {
 					removedTokens.push_back(s->getToken());
 				}
 			}
@@ -90,21 +93,12 @@ namespace webserver {
 		}
 	}
 
-	void WebUserManager::save(SimpleXML& xml_) const noexcept {
-		xml_.addTag("WebUsers");
-		xml_.stepIn();
-		{
-			RLock l(cs);
-			for (auto& u : users | map_values) {
-				xml_.addTag("WebUser");
-				xml_.addChildAttrib("Username", u->getUserName());
-				xml_.addChildAttrib("Password", u->getPassword());
-			}
-		}
-		xml_.stepOut();
+	void WebUserManager::on(WebServerManagerListener::Started) noexcept {
+		expirationTimer = WebServerManager::getInstance()->addTimer([this] { checkExpiredSessions(); }, 30*1000);
+		expirationTimer->start(false);
 	}
 
-	void WebUserManager::load(SimpleXML& xml_) noexcept {
+	void WebUserManager::on(WebServerManagerListener::LoadSettings, SimpleXML& xml_) noexcept {
 		if (xml_.findChild("WebUsers")) {
 			xml_.stepIn();
 			while (xml_.findChild("WebUser")) {
@@ -122,6 +116,20 @@ namespace webserver {
 		}
 
 		xml_.resetCurrentChild();
+	}
+
+	void WebUserManager::on(WebServerManagerListener::SaveSettings, SimpleXML& xml_) noexcept {
+		xml_.addTag("WebUsers");
+		xml_.stepIn();
+		{
+			RLock l(cs);
+			for (auto& u : users | map_values) {
+				xml_.addTag("WebUser");
+				xml_.addChildAttrib("Username", u->getUserName());
+				xml_.addChildAttrib("Password", u->getPassword());
+			}
+		}
+		xml_.stepOut();
 	}
 
 	bool WebUserManager::hasUsers() const noexcept {
