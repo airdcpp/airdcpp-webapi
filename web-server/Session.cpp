@@ -37,7 +37,7 @@
 #include <airdcpp/TimerManager.h>
 
 namespace webserver {
-#define ADD_MODULE(name, type) (apiHandlers.emplace(name, LazyModuleWrapper([this] { return make_unique<type>(this); })))
+#define ADD_MODULE(name, type) (apiHandlers.emplace(name, LazyModuleWrapper([this] { return unique_ptr<type>(new type(this)); })))
 
 	Session::Session(WebUserPtr& aUser, const string& aToken, bool aIsSecure) : 
 		user(aUser), token(aToken), started(GET_TICK()), lastActivity(lastActivity), secure(aIsSecure) {

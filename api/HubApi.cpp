@@ -116,7 +116,7 @@ namespace webserver {
 	}
 
 	api_return HubApi::handleConnect(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) reqJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		auto address = JsonUtil::getField<string>("hub_url", reqJson, false);
 
@@ -143,7 +143,7 @@ namespace webserver {
 	}
 
 	api_return HubApi::handleSearchNicks(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) reqJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		auto pattern = JsonUtil::getField<string>("pattern", reqJson);
 		auto maxResults = JsonUtil::getField<size_t>("max_results", reqJson);

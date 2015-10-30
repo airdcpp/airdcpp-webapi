@@ -131,7 +131,7 @@ namespace webserver {
 			return websocketpp::http::status_code::precondition_required;
 		}
 
-		decltype(auto) subscription = aRequest.getStringParam(0);
+		const auto& subscription = aRequest.getStringParam(0);
 		if (!subscriptionExists(subscription)) {
 			aRequest.setResponseErrorStr("No such subscription: " + subscription);
 			return websocketpp::http::status_code::not_found;

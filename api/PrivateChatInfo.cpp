@@ -88,10 +88,10 @@ namespace webserver {
 	}
 
 	api_return PrivateChatInfo::handlePostMessage(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) requestJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
-		auto message = JsonUtil::getField<string>("message", requestJson, false);
-		auto thirdPerson = JsonUtil::getOptionalField<bool>("third_person", requestJson);
+		auto message = JsonUtil::getField<string>("message", reqJson, false);
+		auto thirdPerson = JsonUtil::getOptionalField<bool>("third_person", reqJson);
 
 		string error;
 		if (!chat->sendPrivateMessage(message, error, thirdPerson ? *thirdPerson : false)) {

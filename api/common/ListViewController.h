@@ -44,7 +44,7 @@ namespace webserver {
 			aModule->getSession()->addListener(this);
 
 			// Magic for the following defines
-			decltype(auto) requestHandlers = aModule->getRequestHandlers();
+			auto& requestHandlers = aModule->getRequestHandlers();
 
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_POST, (EXACT_PARAM("filter")), true, ListViewController::handlePostFilter);
 			METHOD_HANDLER(viewName, ApiRequest::METHOD_DELETE, (EXACT_PARAM("filter")), false, ListViewController::handleDeleteFilter);
@@ -159,14 +159,13 @@ namespace webserver {
 		}
 	private:
 		api_return handlePostFilter(ApiRequest& aRequest) throw(exception) {
-			decltype(auto) j = aRequest.getRequestBody();
+			const auto& reqJson = aRequest.getRequestBody();
 
-			std::string pattern = j["pattern"];
+			std::string pattern = reqJson["pattern"];
 			if (pattern.empty()) {
 				resetFilter();
-			}
-			else {
-				setFilter(pattern, j["method"], findPropertyByName(j["property"], itemHandler.properties));
+			} else {
+				setFilter(pattern, reqJson["method"], findPropertyByName(reqJson["property"], itemHandler.properties));
 			}
 
 			// TODO: support for multiple filters

@@ -41,7 +41,7 @@ namespace webserver {
 	}
 
 	api_return RecentHubApi::handleSearchHubs(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) reqJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		auto pattern = JsonUtil::getField<string>("pattern", reqJson);
 		auto maxResults = JsonUtil::getField<size_t>("max_results", reqJson);

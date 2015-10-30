@@ -58,8 +58,8 @@ namespace webserver {
 	}
 
 	websocketpp::http::status_code::value SessionApi::handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception) {
-		decltype(auto) requestJson = aRequest.getRequestBody();
-		auto session = WebServerManager::getInstance()->getUserManager().authenticate(requestJson["username"], requestJson["password"], aIsSecure);
+		const auto& reqJson = aRequest.getRequestBody();
+		auto session = WebServerManager::getInstance()->getUserManager().authenticate(reqJson["username"], reqJson["password"], aIsSecure);
 
 		if (!session) {
 			aRequest.setResponseErrorStr("Invalid username or password");

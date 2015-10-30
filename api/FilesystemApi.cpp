@@ -37,7 +37,7 @@ namespace webserver {
 	}
 
 	api_return FilesystemApi::handleListItems(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) reqJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 		auto path = JsonUtil::getField<string>("path", reqJson, WIN32 ? true : false);
 
 		auto dirsOnly = JsonUtil::getOptionalField<bool>("directories_only", reqJson);
@@ -94,7 +94,7 @@ namespace webserver {
 	}
 
 	api_return FilesystemApi::handlePostDirectory(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) reqJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		auto path = JsonUtil::getField<string>("path", reqJson, false);
 		try {

@@ -51,7 +51,7 @@ namespace webserver {
 				return websocketpp::http::status_code::precondition_required;
 			}
 
-			decltype(auto) subscription = aRequest.getStringParam(0);
+			const auto& subscription = aRequest.getStringParam(0);
 			if (setChildSubscriptionState(subscription, true)) {
 				return websocketpp::http::status_code::ok;
 			}
@@ -60,7 +60,7 @@ namespace webserver {
 		}
 
 		api_return handleUnsubscribe(ApiRequest& aRequest) throw(exception) {
-			decltype(auto) subscription = aRequest.getStringParam(0);
+			const auto& subscription = aRequest.getStringParam(0);
 			if (setChildSubscriptionState(subscription, false)) {
 				return websocketpp::http::status_code::ok;
 			}

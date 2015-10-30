@@ -60,16 +60,16 @@ namespace webserver {
 	}
 
 	api_return FilelistApi::handlePostList(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) requestJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
-		auto user = Deserializer::deserializeHintedUser(requestJson["user"]);
-		auto optionalDirectory = JsonUtil::getOptionalField<string>("directory", requestJson, false);
+		auto user = Deserializer::deserializeHintedUser(reqJson["user"]);
+		auto optionalDirectory = JsonUtil::getOptionalField<string>("directory", reqJson, false);
 
 		auto directory = optionalDirectory ? Util::toNmdcFile(*optionalDirectory) : Util::emptyString;
 
 		QueueItem::Flags flags;
 		flags.setFlag(QueueItem::FLAG_PARTIAL_LIST);
-		if (JsonUtil::getField<bool>("client_view", requestJson)) {
+		if (JsonUtil::getField<bool>("client_view", reqJson)) {
 			flags.setFlag(QueueItem::FLAG_CLIENT_VIEW);
 		}
 
@@ -152,7 +152,7 @@ namespace webserver {
 	}
 
 	api_return FilelistApi::handleDownload(ApiRequest& aRequest) {
-		decltype(auto) requestJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
 
 		string targetDirectory, targetBundleName;
@@ -160,7 +160,7 @@ namespace webserver {
 		QueueItemBase::Priority prio;
 		Deserializer::deserializeDownloadParams(aRequest.getRequestBody(), targetDirectory, targetBundleName, targetType, prio);
 
-		auto user = Deserializer::deserializeHintedUser(requestJson["user"]);
+		auto user = Deserializer::deserializeHintedUser(reqJson["user"]);
 
 		DirectoryListingManager::getInstance()->addDirectoryDownload(Util::toNmdcFile(listPath), targetBundleName, user,
 			targetDirectory, targetType, true, prio);

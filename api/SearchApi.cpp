@@ -95,8 +95,8 @@ namespace webserver {
 	}
 
 	api_return SearchApi::handlePostSearch(ApiRequest& aRequest) {
-		decltype(auto) j = aRequest.getRequestBody();
-		std::string str = j["pattern"];
+		const auto& reqJson = aRequest.getRequestBody();
+		std::string str = reqJson["pattern"];
 
 		if (str.length() < MIN_SEARCH) {
 			aRequest.setResponseErrorStr("Search string too short");

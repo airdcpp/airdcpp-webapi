@@ -79,16 +79,16 @@ namespace webserver {
 	}
 
 	api_return ShareApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) requestJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		json ret;
 
 		StringList paths;
-		auto path = JsonUtil::getOptionalField<string>("path", requestJson, false, false);
+		auto path = JsonUtil::getOptionalField<string>("path", reqJson, false, false);
 		if (path) {
 			paths = ShareManager::getInstance()->getDirPaths(Util::toNmdcFile(*path));
 		} else {
-			auto tth = Deserializer::deserializeTTH(requestJson);
+			auto tth = Deserializer::deserializeTTH(reqJson);
 			paths = ShareManager::getInstance()->getRealPaths(tth);
 		}
 

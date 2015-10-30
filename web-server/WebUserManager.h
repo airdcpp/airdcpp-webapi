@@ -40,11 +40,7 @@ namespace webserver {
 		SessionPtr getSession(const string& aSession) const noexcept;
 		void logout(const SessionPtr& aSession);
 
-		void load(SimpleXML& xml_) noexcept;
-		void save(SimpleXML& xml_) const noexcept;
-
 		bool hasUsers() const noexcept;
-		void addTimer() noexcept;
 	private:
 		mutable SharedMutex cs;
 

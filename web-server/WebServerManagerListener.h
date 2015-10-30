@@ -22,10 +22,6 @@
 
 #include <web-server/stdinc.h>
 
-namespace dcpp {
-	class SimpleXML;
-}
-
 namespace webserver {
 	class WebServerManagerListener {
 	public:

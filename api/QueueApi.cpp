@@ -76,16 +76,16 @@ namespace webserver {
 	}
 
 	api_return QueueApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) requestJson = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		json ret;
 
 		StringList paths;
-		auto path = JsonUtil::getOptionalField<string>("path", requestJson, false, false);
+		auto path = JsonUtil::getOptionalField<string>("path", reqJson, false, false);
 		if (path) {
 			paths = QueueManager::getInstance()->getDirPaths(Util::toNmdcFile(*path));
 		} else {
-			auto tth = Deserializer::deserializeTTH(requestJson);
+			auto tth = Deserializer::deserializeTTH(reqJson);
 			paths = QueueManager::getInstance()->getTargets(tth);
 		}
 
@@ -134,7 +134,7 @@ namespace webserver {
 	}
 
 	api_return QueueApi::handleAddFileBundle(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) j = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		string targetDirectory, targetFileName;
 		TargetUtil::TargetType targetType;
@@ -145,10 +145,10 @@ namespace webserver {
 		try {
 			b = QueueManager::getInstance()->createFileBundle(
 				targetDirectory + targetFileName,
-				JsonUtil::getField<int64_t>("size", j),
-				Deserializer::deserializeTTH(j),
-				Deserializer::deserializeHintedUser(j["user"]),
-				JsonUtil::getField<time_t>("time", j),
+				JsonUtil::getField<int64_t>("size", reqJson),
+				Deserializer::deserializeTTH(reqJson),
+				Deserializer::deserializeHintedUser(reqJson["user"]),
+				JsonUtil::getField<time_t>("time", reqJson),
 				0,
 				prio
 				);
@@ -170,10 +170,10 @@ namespace webserver {
 	}
 
 	api_return QueueApi::handleAddDirectoryBundle(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) j = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		BundleFileInfo::List files;
-		for (const auto& fileJson : j["files"]) {
+		for (const auto& fileJson : reqJson["files"]) {
 			files.push_back(BundleFileInfo(
 				fileJson["name"],
 				Deserializer::deserializeTTH(fileJson),
@@ -187,11 +187,11 @@ namespace webserver {
 		std::string errors;
 		try {
 			b = QueueManager::getInstance()->createDirectoryBundle(
-				j["target"],
-				Deserializer::deserializeHintedUser(j["user"]),
+				reqJson["target"],
+				Deserializer::deserializeHintedUser(reqJson["user"]),
 				files,
-				Deserializer::deserializePriority(j, true),
-				j["time"],
+				Deserializer::deserializePriority(reqJson, true),
+				reqJson["time"],
 				errors
 			);
 		}
@@ -223,16 +223,16 @@ namespace webserver {
 			return websocketpp::http::status_code::not_found;
 		}
 
-		decltype(auto) j = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		// Priority
-		if (j.find("priority") != j.end()) {
-			QueueManager::getInstance()->setBundlePriority(b, Deserializer::deserializePriority(j, false));
+		if (reqJson.find("priority") != reqJson.end()) {
+			QueueManager::getInstance()->setBundlePriority(b, Deserializer::deserializePriority(reqJson, false));
 		}
 
 		// Target
-		auto target = j.find("target");
-		if (target != j.end()) {
+		auto target = reqJson.find("target");
+		if (target != reqJson.end()) {
 			QueueManager::getInstance()->moveBundle(b, *target, true);
 		}
 
@@ -243,13 +243,13 @@ namespace webserver {
 
 	// TEMP ITEMS
 	api_return QueueApi::handleAddTempItem(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) j = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
 		try {
-			QueueManager::getInstance()->addOpenedItem(j["filename"],
-				j["size"],
-				Deserializer::deserializeTTH(j),
-				Deserializer::deserializeHintedUser(j["user"]),
+			QueueManager::getInstance()->addOpenedItem(reqJson["filename"],
+				reqJson["size"],
+				Deserializer::deserializeTTH(reqJson),
+				Deserializer::deserializeHintedUser(reqJson["user"]),
 				false
 				);
 		}
@@ -265,17 +265,17 @@ namespace webserver {
 
 	// FILELISTS
 	api_return QueueApi::handleAddFilelist(ApiRequest& aRequest) throw(exception) {
-		decltype(auto) j = aRequest.getRequestBody();
+		const auto& reqJson = aRequest.getRequestBody();
 
-		auto i = j.find("directory");
-		auto directory = i != j.end() ? Util::toNmdcFile(*i) : Util::emptyString;
+		auto i = reqJson.find("directory");
+		auto directory = i != reqJson.end() ? Util::toNmdcFile(*i) : Util::emptyString;
 
 		auto flags = QueueItem::FLAG_PARTIAL_LIST;
 		//if (j["match"])
 		//	flags = QueueItem::FLAG_MATCH_QUEUE | QueueItem::FLAG_RECURSIVE_LIST;
 
 		try {
-			QueueManager::getInstance()->addList(Deserializer::deserializeHintedUser(j["user"]), flags, directory);
+			QueueManager::getInstance()->addList(Deserializer::deserializeHintedUser(reqJson["user"]), flags, directory);
 		} catch (const Exception& e) {
 			aRequest.setResponseErrorStr(e.getError());
 			return websocketpp::http::status_code::internal_server_error;
