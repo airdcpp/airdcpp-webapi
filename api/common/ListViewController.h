@@ -61,10 +61,6 @@ namespace webserver {
 			timer->stop(true);
 		}
 
-		int getSortProperty() const noexcept {
-			return sortPropery;
-		}
-
 		void stop() noexcept {
 			active = false;
 			timer->stop(true);
@@ -189,11 +185,11 @@ namespace webserver {
 		}
 
 		void parseProperties(const json& j) {
-			IntCollector::ValueMap updatedValues;
+			typename IntCollector::ValueMap updatedValues;
 			if (j.find("range_start") != j.end()) {
 				int start = j["range_start"];
 				if (start < 0) {
-					throw std::exception("Negative range start not allowed");
+					throw std::invalid_argument("Negative range start not allowed");
 				}
 
 				updatedValues[IntCollector::TYPE_RANGE_START] = start;
@@ -207,7 +203,7 @@ namespace webserver {
 			if (j.find("sort_property") != j.end()) {
 				auto prop = findPropertyByName(j["sort_property"], itemHandler.properties);
 				if (prop == -1) {
-					throw std::exception("Invalid sort property");
+					throw std::invalid_argument("Invalid sort property");
 				}
 
 				updatedValues[IntCollector::TYPE_SORT_PROPERTY] = prop;
@@ -331,11 +327,11 @@ namespace webserver {
 			return find_if(aItems.begin(), aItems.end(), [&](const T& i) { return aItem->getToken() == i->getToken(); });
 		}
 
-		typename bool isInList(const T& aItem, const ItemList& aItems) const noexcept {
+		bool isInList(const T& aItem, const ItemList& aItems) const noexcept {
 			return findItem(aItem, aItems) != aItems.end();
 		}
 
-		typename int64_t getPosition(const T& aItem, const ItemList& aItems) const noexcept {
+		int64_t getPosition(const T& aItem, const ItemList& aItems) const noexcept {
 			auto i = findItem(aItem, aItems);
 			if (i == aItems.end()) {
 				return -1;
@@ -345,7 +341,7 @@ namespace webserver {
 		}
 
 		void runTasks() {
-			ViewTasks::TaskMap tl;
+			typename ViewTasks::TaskMap tl;
 			PropertyIdSet updatedProperties;
 			tasks.get(tl, updatedProperties);
 
@@ -353,7 +349,7 @@ namespace webserver {
 				return;
 			}
 
-			IntCollector::ValueMap updateValues;
+			typename IntCollector::ValueMap updateValues;
 			int sortAscending = false;
 			int sortProperty = -1;
 
@@ -616,19 +612,19 @@ namespace webserver {
 		class ViewTasks : public ItemTasks {
 		public:
 			void addItem(const T& aItem) {
-				tasks.add(aItem, ViewTasks::MergeTask(ADD_ITEM));
+				tasks.add(aItem, typename ViewTasks::MergeTask(ADD_ITEM));
 			}
 
 			void removeItem(const T& aItem) {
-				tasks.add(aItem, ViewTasks::MergeTask(REMOVE_ITEM));
+				tasks.add(aItem, typename ViewTasks::MergeTask(REMOVE_ITEM));
 			}
 
 			void updateItem(const T& aItem, const PropertyIdSet& aUpdatedProperties) {
 				updatedProperties.insert(aUpdatedProperties.begin(), aUpdatedProperties.end());
-				tasks.add(aItem, ViewTasks::MergeTask(UPDATE_ITEM, aUpdatedProperties));
+				tasks.add(aItem, typename ViewTasks::MergeTask(UPDATE_ITEM, aUpdatedProperties));
 			}
 
-			void get(TaskMap& map, PropertyIdSet& updatedProperties_) {
+			void get(typename ItemTasks::TaskMap& map, PropertyIdSet& updatedProperties_) {
 				tasks.get(map);
 				updatedProperties_.swap(updatedProperties);
 			}

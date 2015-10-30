@@ -58,7 +58,7 @@ namespace webserver {
 			}
 
 			if (aCount <= 0) {
-				throw std::exception("Invalid range");
+				throw std::domain_error("Invalid range");
 			}
 
 			auto listSize = static_cast<int>(std::distance(aList.begin(), aList.end()));
@@ -76,7 +76,7 @@ namespace webserver {
 		static json serializeFromPosition(int aBeginPos, int aCount, const ContainerT& aList, FuncT aF) throw(std::exception) {
 			auto listSize = static_cast<int>(std::distance(aList.begin(), aList.end()));
 			if (aBeginPos >= listSize || aCount <= 0) {
-				throw std::exception("Invalid range");
+				throw std::domain_error("Invalid range");
 			}
 
 			if (listSize == 0) {
@@ -149,7 +149,7 @@ namespace webserver {
 
 		template <class IterT, class FuncT>
 		static json serializeRange(IterT aBegin, IterT aEnd, FuncT aF) noexcept {
-			return std::accumulate(aBegin, aEnd, json(), [&](json& list, const iterator_traits<IterT>::value_type& elem) {
+			return std::accumulate(aBegin, aEnd, json(), [&](json& list, const typename iterator_traits<IterT>::value_type& elem) {
 				list.push_back(aF(elem));
 				return list;
 			});

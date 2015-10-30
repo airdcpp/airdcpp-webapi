@@ -58,12 +58,12 @@ namespace webserver {
 	void ApiRequest::validate() {
 		// Method
 		if (method == METHOD_LAST) {
-			throw exception("Unsupported method");
+			throw std::invalid_argument("Unsupported method");
 		}
 
 		// Module, version and command are always mandatory
 		if (static_cast<int>(parameters.size()) < 3) {
-			throw exception("Not enough parameters");
+			throw std::invalid_argument("Not enough parameters");
 		}
 
 		// API Module
@@ -75,7 +75,7 @@ namespace webserver {
 		parameters.pop_front();
 
 		if (version.size() < 2) {
-			throw exception("Invalid version");
+			throw std::invalid_argument("Invalid version");
 		}
 
 		apiVersion = Util::toInt(version.substr(1));

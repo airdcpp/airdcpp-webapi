@@ -26,7 +26,7 @@
 namespace webserver {
 	CID Deserializer::deserializeCID(const string& aCID) throw(exception) {
 		if (!Encoder::isBase32(aCID.c_str())) {
-			throw exception("Invalid CID");
+			throw std::invalid_argument("Invalid CID");
 		}
 
 		return CID(aCID);
@@ -44,7 +44,7 @@ namespace webserver {
 	TTHValue Deserializer::deserializeTTH(const json& aJson) throw(exception) {
 		auto tthStr = JsonUtil::getField<string>("tth", aJson, false);
 		if (!Encoder::isBase32(tthStr.c_str())) {
-			throw exception("Invalid TTH");
+			throw std::invalid_argument("Invalid TTH");
 		}
 
 		return TTHValue(tthStr);

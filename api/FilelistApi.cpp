@@ -151,7 +151,7 @@ namespace webserver {
 		};
 	}
 
-	api_return FilelistApi::handleDownload(ApiRequest& aRequest) {
+	api_return FilelistApi::handleDownload(ApiRequest& aRequest) throw(exception) {
 		const auto& reqJson = aRequest.getRequestBody();
 		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
 

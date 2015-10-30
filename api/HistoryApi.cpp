@@ -55,7 +55,7 @@ namespace webserver {
 	static SettingsManager::HistoryType toHistoryType(const string& aName) {
 		auto type = Util::toInt(aName);
 		if (type < 0 || type >= SettingsManager::HistoryType::HISTORY_LAST) {
-			throw std::exception("Invalid history type");
+			throw std::invalid_argument("Invalid history type");
 		}
 
 		return static_cast<SettingsManager::HistoryType>(type);

@@ -38,8 +38,12 @@ namespace webserver {
 
 	api_return FilesystemApi::handleListItems(ApiRequest& aRequest) throw(exception) {
 		const auto& reqJson = aRequest.getRequestBody();
-		auto path = JsonUtil::getField<string>("path", reqJson, WIN32 ? true : false);
 
+#ifdef WIN32
+		auto path = JsonUtil::getField<string>("path", reqJson, true);
+#else
+		auto path = JsonUtil::getField<string>("path", reqJson, false);
+#endif
 		auto dirsOnly = JsonUtil::getOptionalField<bool>("directories_only", reqJson);
 
 		json retJson;

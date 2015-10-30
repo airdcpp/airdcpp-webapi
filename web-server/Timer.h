@@ -25,7 +25,7 @@ namespace webserver {
 	class Timer : boost::noncopyable {
 	public:
 		typedef std::function<void()> CallBack;
-		Timer(CallBack&& aCallBack, boost::asio::io_service& aIO, time_t aIntervalMillis) : cb(move(aCallBack)), 
+		Timer(CallBack&& aCallBack, boost::asio::io_service& aIO, time_t aIntervalMillis) : cb(move(aCallBack)),
 			interval(aIntervalMillis),
 			timer(aIO, interval) {
 
@@ -45,7 +45,7 @@ namespace webserver {
 			auto cancelled = timer.cancel();
 
 			if (cancelled > 0 && aWaitShutdown) {
-				std::this_thread::sleep_for(30ms);
+				std::this_thread::sleep_for(std::chrono::milliseconds(30));
 				if (running && !timer.get_io_service().stopped()) {
 					// cancel again in case someone starts the timer meanwhile.....
 					stop(true);

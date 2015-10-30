@@ -38,8 +38,8 @@ namespace webserver {
 			if (value) {
 				if (*value < aMin || *value > aMax) {
 					throwError(aFieldName, ERROR_INVALID,
-						"Value " + Util::toString(*value) + " is not in range " + 
-						Util::toString(aMin) + " - " + Util::toString(aMax));
+						"Value " + std::to_string(*value) + " is not in range " + 
+						std::to_string(aMin) + " - " + std::to_string(aMax));
 				}
 			}
 

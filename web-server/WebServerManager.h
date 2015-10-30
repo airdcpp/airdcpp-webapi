@@ -103,7 +103,7 @@ namespace webserver {
 		template <typename EndpointType>
 		void on_http(EndpointType* s, websocketpp::connection_hdl hdl, bool aIsSecure) {
 			// Blocking HTTP Handler
-			EndpointType::connection_ptr con = s->get_con_from_hdl(hdl);
+			auto con = s->get_con_from_hdl(hdl);
 			SessionPtr session = nullptr;
 			auto token = con->get_request_header("Authorization");
 			if (token != websocketpp::http::empty_header) {
