@@ -27,12 +27,12 @@
 #include <airdcpp/Util.h>
 
 namespace webserver {
-	WebUserManager::WebUserManager(WebServerManager* aServer) {
+	WebUserManager::WebUserManager(WebServerManager* aServer) : server(aServer){
 		aServer->addListener(this);
 	}
 
 	WebUserManager::~WebUserManager() {
-		WebServerManager::getInstance()->removeListener(this);
+		server->removeListener(this);
 	}
 
 	SessionPtr WebUserManager::authenticate(const string& aUserName, const string& aPassword, bool aIsSecure) noexcept {
@@ -81,8 +81,8 @@ namespace webserver {
 			}
 		}
 
-		removedTokens.erase(remove_if(removedTokens.begin(), removedTokens.end(), [](const string& aToken) {
-			return !WebServerManager::getInstance()->getSocket(aToken);
+		removedTokens.erase(remove_if(removedTokens.begin(), removedTokens.end(), [this](const string& aToken) {
+			return !server->getSocket(aToken);
 		}), removedTokens.end());
 
 		if (!removedTokens.empty()) {
@@ -94,7 +94,7 @@ namespace webserver {
 	}
 
 	void WebUserManager::on(WebServerManagerListener::Started) noexcept {
-		expirationTimer = WebServerManager::getInstance()->addTimer([this] { checkExpiredSessions(); }, 30*1000);
+		expirationTimer = server->addTimer([this] { checkExpiredSessions(); }, 30*1000);
 		expirationTimer->start(false);
 	}
 

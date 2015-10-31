@@ -53,6 +53,8 @@ namespace webserver {
 		void on(WebServerManagerListener::Started) noexcept;
 		void on(WebServerManagerListener::LoadSettings, SimpleXML& aXml) noexcept;
 		void on(WebServerManagerListener::SaveSettings, SimpleXML& aXml) noexcept;
+
+		WebServerManager* server;
 	};
 }
 

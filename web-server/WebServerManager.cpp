@@ -37,6 +37,11 @@ namespace webserver {
 		userManager = unique_ptr<WebUserManager>(new WebUserManager(this));
 	}
 
+	WebServerManager::~WebServerManager() {
+		// Let it remove the listener
+		userManager.reset();
+	}
+
 	bool WebServerManager::start(const string& aWebResourcePath, ErrorF&& errorF) {
 		SettingsManager::getInstance()->setDefault(SettingsManager::PM_MESSAGE_CACHE, 200);
 		SettingsManager::getInstance()->setDefault(SettingsManager::HUB_MESSAGE_CACHE, 200);
@@ -165,10 +170,6 @@ namespace webserver {
 			Thread::sleep(50);
 	}
 
-	WebServerManager::~WebServerManager() {
-
-	}
-
 	void WebServerManager::logout(const string& aSessionToken) noexcept {
 		vector<WebSocketPtr> sessionSockets;
 
@@ -277,11 +278,11 @@ namespace webserver {
 		SettingsManager::saveSettingFile(xml, CONFIG_DIR, CONFIG_NAME);
 	}
 
-	bool WebServerManager::ServerConfig::hasValidConfig() const noexcept {
+	bool ServerConfig::hasValidConfig() const noexcept {
 		return port > 0;
 	}
 
-	void WebServerManager::ServerConfig::save(SimpleXML& xml_, const string& aTagName) noexcept {
+	void ServerConfig::save(SimpleXML& xml_, const string& aTagName) noexcept {
 		if (!hasValidConfig()) {
 			return;
 		}

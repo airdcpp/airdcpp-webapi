@@ -102,7 +102,10 @@ namespace webserver {
 
 		auto path = JsonUtil::getField<string>("path", reqJson, false);
 		try {
-			File::createDirectory(path);
+			if (!File::createDirectory(path)) {
+				aRequest.setResponseErrorStr("Directory exists");
+				return websocketpp::http::status_code::bad_request;
+			}
 		} catch (const FileException& e) {
 			aRequest.setResponseErrorStr("Failed to create directory: " + e.getError());
 			return websocketpp::http::status_code::internal_server_error;

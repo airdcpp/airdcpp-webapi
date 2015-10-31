@@ -36,6 +36,13 @@
 #include <iostream>
 
 namespace webserver {
+	struct ServerConfig {
+		IGETSET(int, port, Port, -1);
+
+		bool hasValidConfig() const noexcept;
+		void save(SimpleXML& aXml, const string& aTagName) noexcept;
+	};
+
 	// alias some of the bind related functions as they are a bit long
 	using websocketpp::lib::placeholders::_1;
 	using websocketpp::lib::placeholders::_2;
@@ -167,14 +174,19 @@ namespace webserver {
 		}
 
 		bool hasValidConfig() const noexcept;
+
+		void join() {
+			worker_threads.join_all();
+		}
+
+		ServerConfig& getPlainServerConfig() noexcept {
+			return plainServerConfig;
+		}
+
+		ServerConfig& getTlsServerConfig() noexcept {
+			return tlsServerConfig;
+		}
 	private:
-		struct ServerConfig {
-			IGETSET(int, port, Port, -1);
-
-			bool hasValidConfig() const noexcept;
-			void save(SimpleXML& aXml, const string& aTagName) noexcept;
-		};
-
 		ServerConfig plainServerConfig;
 		ServerConfig tlsServerConfig;
 
