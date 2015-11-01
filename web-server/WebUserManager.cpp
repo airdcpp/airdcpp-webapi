@@ -136,4 +136,27 @@ namespace webserver {
 		RLock l(cs);
 		return !users.empty();
 	}
+
+	bool WebUserManager::hasUser(const string& aUserName) const noexcept {
+		RLock l(cs);
+		return users.find(aUserName) != users.end();
+	}
+
+	bool WebUserManager::addUser(const string& aUserName, const string& aPassword) noexcept {
+		WLock l(cs);
+		return users.emplace(aUserName, make_shared<WebUser>(aUserName, aPassword)).second;
+	}
+
+	bool WebUserManager::removeUser(const string& aUserName) noexcept {
+		WLock l(cs);
+		return users.erase(aUserName) > 0;
+	}
+
+	StringList WebUserManager::getUserNames() const noexcept {
+		StringList ret;
+
+		RLock l(cs);
+		boost::copy(users | map_keys, back_inserter(ret));
+		return ret;
+	}
 }

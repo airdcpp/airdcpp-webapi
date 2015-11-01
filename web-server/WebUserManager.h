@@ -41,6 +41,13 @@ namespace webserver {
 		void logout(const SessionPtr& aSession);
 
 		bool hasUsers() const noexcept;
+		bool hasUser(const string& aUserName) const noexcept;
+
+		// Adds a new users or updates password for an existing one. Returns false when an existing user was found.
+		bool addUser(const string& aUserName, const string& aPassword) noexcept;
+
+		bool removeUser(const string& aUserName) noexcept;
+		StringList getUserNames() const noexcept;
 	private:
 		mutable SharedMutex cs;
 

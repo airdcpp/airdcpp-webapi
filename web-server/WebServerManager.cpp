@@ -42,6 +42,10 @@ namespace webserver {
 		userManager.reset();
 	}
 
+	string WebServerManager::getConfigPath() const noexcept {
+		return CONFIG_DIR + PATH_SEPARATOR + CONFIG_NAME;
+	}
+
 	bool WebServerManager::start(const string& aWebResourcePath, ErrorF&& errorF) {
 		SettingsManager::getInstance()->setDefault(SettingsManager::PM_MESSAGE_CACHE, 200);
 		SettingsManager::getInstance()->setDefault(SettingsManager::HUB_MESSAGE_CACHE, 200);
@@ -257,7 +261,7 @@ namespace webserver {
 		}
 	}
 
-	void WebServerManager::save() noexcept {
+	bool WebServerManager::save(SettingsManager::CustomErrorF aCustomErrorF) noexcept {
 		SimpleXML xml;
 
 		xml.addTag("WebServer");
@@ -275,7 +279,13 @@ namespace webserver {
 
 		xml.stepOut();
 
-		SettingsManager::saveSettingFile(xml, CONFIG_DIR, CONFIG_NAME);
+		auto errorF = aCustomErrorF;
+		if (!errorF) {
+			// Avoid crashes if the file is saved when core is not loaded
+			errorF = [](const string&) {};
+		}
+
+		return SettingsManager::saveSettingFile(xml, CONFIG_DIR, CONFIG_NAME, errorF);
 	}
 
 	bool ServerConfig::hasValidConfig() const noexcept {

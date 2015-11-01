@@ -167,7 +167,7 @@ namespace webserver {
 		WebSocketPtr getSocket(const std::string& aSessionToken) noexcept;
 
 		bool load() noexcept;
-		void save() noexcept;
+		bool save(std::function<void(const string&)> aCustomErrorF = nullptr) noexcept;
 
 		WebUserManager& getUserManager() noexcept {
 			return *userManager.get();
@@ -186,6 +186,8 @@ namespace webserver {
 		ServerConfig& getTlsServerConfig() noexcept {
 			return tlsServerConfig;
 		}
+
+		string getConfigPath() const noexcept;
 	private:
 		ServerConfig plainServerConfig;
 		ServerConfig tlsServerConfig;
