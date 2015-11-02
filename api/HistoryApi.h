@@ -36,8 +36,8 @@ namespace webserver {
 			return 0;
 		}
 	private:
-		api_return handleGetHistory(ApiRequest& aRequest) throw(exception);
-		api_return handlePostHistory(ApiRequest& aRequest) throw(exception);
+		api_return handleGetHistory(ApiRequest& aRequest);
+		api_return handlePostHistory(ApiRequest& aRequest);
 	};
 
 	static SettingsManager::HistoryType toHistoryType(const string& aName);

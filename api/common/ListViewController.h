@@ -154,7 +154,7 @@ namespace webserver {
 			onFilterUpdated();
 		}
 	private:
-		api_return handlePostFilter(ApiRequest& aRequest) throw(exception) {
+		api_return handlePostFilter(ApiRequest& aRequest) {
 			const auto& reqJson = aRequest.getRequestBody();
 
 			std::string pattern = reqJson["pattern"];
@@ -168,7 +168,7 @@ namespace webserver {
 			return websocketpp::http::status_code::no_content;
 		}
 
-		api_return handlePostSettings(ApiRequest& aRequest) throw(exception) {
+		api_return handlePostSettings(ApiRequest& aRequest) {
 			parseProperties(aRequest.getRequestBody());
 
 			if (!active) {
@@ -179,7 +179,7 @@ namespace webserver {
 			return websocketpp::http::status_code::no_content;
 		}
 
-		api_return handleReset(ApiRequest& aRequest) throw(exception) {
+		api_return handleReset(ApiRequest& aRequest) {
 			stop();
 			return websocketpp::http::status_code::no_content;
 		}
@@ -230,7 +230,7 @@ namespace webserver {
 			}
 		}
 
-		api_return handleDeleteFilter(ApiRequest& aRequest) throw(exception) {
+		api_return handleDeleteFilter(ApiRequest& aRequest) {
 			resetFilter();
 			return websocketpp::http::status_code::ok;
 		}

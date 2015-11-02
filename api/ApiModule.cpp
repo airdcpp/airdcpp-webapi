@@ -75,7 +75,7 @@ namespace webserver {
 		return true;
 	}
 
-	api_return ApiModule::handleRequest(ApiRequest& aRequest) throw(exception) {
+	api_return ApiModule::handleRequest(ApiRequest& aRequest) {
 		// Find section
 		auto i = requestHandlers.find(aRequest.getStringParam(0));
 		if (i == requestHandlers.end()) {
@@ -125,7 +125,7 @@ namespace webserver {
 		return handler->f(aRequest);
 	}
 
-	api_return ApiModule::handleSubscribe(ApiRequest& aRequest) throw(exception) {
+	api_return ApiModule::handleSubscribe(ApiRequest& aRequest) {
 		if (!socket) {
 			aRequest.setResponseErrorStr("Socket required");
 			return websocketpp::http::status_code::precondition_required;
@@ -141,7 +141,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return ApiModule::handleUnsubscribe(ApiRequest& aRequest) throw(exception) {
+	api_return ApiModule::handleUnsubscribe(ApiRequest& aRequest) {
 		auto subscription = aRequest.getStringParam(0);
 		if (subscriptionExists(subscription)) {
 			setSubscriptionState(subscription, false);

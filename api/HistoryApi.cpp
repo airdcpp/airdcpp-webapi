@@ -28,7 +28,7 @@ namespace webserver {
 	HistoryApi::~HistoryApi() {
 	}
 
-	api_return HistoryApi::handleGetHistory(ApiRequest& aRequest) throw(exception) {
+	api_return HistoryApi::handleGetHistory(ApiRequest& aRequest) {
 		json j;
 
 		auto history = SettingsManager::getInstance()->getHistory(toHistoryType(aRequest.getStringParam(0)));
@@ -44,7 +44,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HistoryApi::handlePostHistory(ApiRequest& aRequest) throw(exception) {
+	api_return HistoryApi::handlePostHistory(ApiRequest& aRequest) {
 		auto type = toHistoryType(aRequest.getStringParam(0));
 		const string item = aRequest.getRequestBody()["item"];
 

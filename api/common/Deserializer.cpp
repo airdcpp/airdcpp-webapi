@@ -24,7 +24,7 @@
 #include <airdcpp/ClientManager.h>
 
 namespace webserver {
-	CID Deserializer::deserializeCID(const string& aCID) throw(exception) {
+	CID Deserializer::deserializeCID(const string& aCID) {
 		if (!Encoder::isBase32(aCID.c_str())) {
 			throw std::invalid_argument("Invalid CID");
 		}
@@ -32,16 +32,16 @@ namespace webserver {
 		return CID(aCID);
 	}
 
-	UserPtr Deserializer::deserializeUser(const json& aJson) throw(exception) {
+	UserPtr Deserializer::deserializeUser(const json& aJson) {
 		auto cidStr = JsonUtil::getField<string>("cid", aJson, false);
 		return ClientManager::getInstance()->findUser(deserializeCID(cidStr));
 	}
 
-	HintedUser Deserializer::deserializeHintedUser(const json& aJson) throw(exception) {
+	HintedUser Deserializer::deserializeHintedUser(const json& aJson) {
 		return HintedUser(deserializeUser(aJson), JsonUtil::getField<string>("hub_url", aJson, false));
 	}
 
-	TTHValue Deserializer::deserializeTTH(const json& aJson) throw(exception) {
+	TTHValue Deserializer::deserializeTTH(const json& aJson) {
 		auto tthStr = JsonUtil::getField<string>("tth", aJson, false);
 		if (!Encoder::isBase32(tthStr.c_str())) {
 			throw std::invalid_argument("Invalid TTH");
@@ -50,7 +50,7 @@ namespace webserver {
 		return TTHValue(tthStr);
 	}
 
-	QueueItemBase::Priority Deserializer::deserializePriority(const json& aJson, bool allowDefault) throw(exception) {
+	QueueItemBase::Priority Deserializer::deserializePriority(const json& aJson, bool allowDefault) {
 		int minAllowed = allowDefault ? QueueItemBase::DEFAULT : QueueItemBase::PAUSED_FORCE;
 
 		auto priority = JsonUtil::getEnumField<int>("priority", aJson, !allowDefault, minAllowed, QueueItemBase::HIGHEST);

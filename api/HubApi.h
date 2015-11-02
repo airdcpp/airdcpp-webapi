@@ -44,11 +44,11 @@ namespace webserver {
 	private:
 		void addHub(const ClientPtr& aClient) noexcept;
 
-		api_return handleGetHubs(ApiRequest& aRequest) throw(exception);
+		api_return handleGetHubs(ApiRequest& aRequest);
 
-		api_return handleConnect(ApiRequest& aRequest) throw(exception);
-		api_return handleDisconnect(ApiRequest& aRequest) throw(exception);
-		api_return handleSearchNicks(ApiRequest& aRequest) throw(exception);
+		api_return handleConnect(ApiRequest& aRequest);
+		api_return handleDisconnect(ApiRequest& aRequest);
+		api_return handleSearchNicks(ApiRequest& aRequest);
 
 
 		void on(ClientManagerListener::ClientCreated, const ClientPtr&) noexcept;

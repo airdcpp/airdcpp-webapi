@@ -35,7 +35,7 @@ namespace webserver {
 			return 0;
 		}
 	private:
-		api_return handleGetDirectories(ApiRequest& aRequest) throw(exception);
+		api_return handleGetDirectories(ApiRequest& aRequest);
 	};
 }
 

@@ -38,7 +38,7 @@ namespace webserver {
 		ShareManager::getInstance()->removeListener(this);
 	}
 
-	api_return ShareApi::handleGetProfiles(ApiRequest& aRequest) throw(exception) {
+	api_return ShareApi::handleGetProfiles(ApiRequest& aRequest) {
 		json j;
 
 		auto profiles = ShareManager::getInstance()->getProfiles();
@@ -56,7 +56,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return ShareApi::handleGetRoots(ApiRequest& aRequest) throw(exception) {
+	api_return ShareApi::handleGetRoots(ApiRequest& aRequest) {
 		json ret;
 
 		auto roots = ShareManager::getInstance()->getGroupedDirectories();
@@ -78,7 +78,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return ShareApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
+	api_return ShareApi::handleFindDupePaths(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		json ret;

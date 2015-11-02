@@ -66,7 +66,7 @@ namespace webserver {
 		return h != apiHandlers.end() ? h->second.get() : nullptr;
 	}
 
-	websocketpp::http::status_code::value Session::handleRequest(ApiRequest& aRequest) throw(exception) {
+	websocketpp::http::status_code::value Session::handleRequest(ApiRequest& aRequest) {
 		auto h = apiHandlers.find(aRequest.getApiModule());
 		if (h != apiHandlers.end()) {
 			if (aRequest.getApiVersion() != h->second->getVersion()) {

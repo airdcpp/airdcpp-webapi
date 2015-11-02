@@ -85,30 +85,30 @@ namespace webserver {
 			return 0;
 		}
 	private:
-		api_return handleFindDupePaths(ApiRequest& aRequest) throw(exception);
+		api_return handleFindDupePaths(ApiRequest& aRequest);
 
-		api_return handleRemoveBundle(ApiRequest& aRequest) throw(exception);
-		//api_return handleRemoveTempItem(ApiRequest& aRequest) throw(exception);
-		//api_return handleRemoveFileList(ApiRequest& aRequest) throw(exception);
-		api_return handleRemoveFile(ApiRequest& aRequest) throw(exception);
+		api_return handleRemoveBundle(ApiRequest& aRequest);
+		//api_return handleRemoveTempItem(ApiRequest& aRequest);
+		//api_return handleRemoveFileList(ApiRequest& aRequest);
+		api_return handleRemoveFile(ApiRequest& aRequest);
 
-		api_return handleGetBundles(ApiRequest& aRequest) throw(exception);
+		api_return handleGetBundles(ApiRequest& aRequest);
 
-		//api_return handleGetFilelist(ApiRequest& aRequest) throw(exception);
-		//api_return handleGetTempItem(ApiRequest& aRequest) throw(exception);
-		api_return handleGetFile(ApiRequest& aRequest) throw(exception);
+		//api_return handleGetFilelist(ApiRequest& aRequest);
+		//api_return handleGetTempItem(ApiRequest& aRequest);
+		api_return handleGetFile(ApiRequest& aRequest);
 
-		api_return handleGetBundle(ApiRequest& aRequest) throw(exception);
+		api_return handleGetBundle(ApiRequest& aRequest);
 
-		api_return handleAddFilelist(ApiRequest& aRequest) throw(exception);
-		api_return handleAddTempItem(ApiRequest& aRequest) throw(exception);
-		api_return handleAddDirectoryBundle(ApiRequest& aRequest) throw(exception);
-		api_return handleAddFileBundle(ApiRequest& aRequest) throw(exception);
+		api_return handleAddFilelist(ApiRequest& aRequest);
+		api_return handleAddTempItem(ApiRequest& aRequest);
+		api_return handleAddDirectoryBundle(ApiRequest& aRequest);
+		api_return handleAddFileBundle(ApiRequest& aRequest);
 
-		api_return handleUpdateBundle(ApiRequest& aRequest) throw(exception);
-		api_return handleSearchBundle(ApiRequest& aRequest) throw(exception);
-		//api_return handleUpdateTempItem(ApiRequest& aRequest) throw(exception);
-		//api_return handleUpdateFileList(ApiRequest& aRequest) throw(exception);
+		api_return handleUpdateBundle(ApiRequest& aRequest);
+		api_return handleSearchBundle(ApiRequest& aRequest);
+		//api_return handleUpdateTempItem(ApiRequest& aRequest);
+		//api_return handleUpdateFileList(ApiRequest& aRequest);
 
 		//bundle update listeners
 		void on(QueueManagerListener::BundleAdded, const BundlePtr& aBundle) noexcept;

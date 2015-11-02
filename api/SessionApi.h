@@ -28,9 +28,9 @@ namespace webserver {
 	public:
 		SessionApi();
 
-		api_return handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception);
-		api_return handleSocketConnect(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception);
-		api_return handleLogout(ApiRequest& aRequest) throw(exception);
+		api_return handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp);
+		api_return handleSocketConnect(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket);
+		api_return handleLogout(ApiRequest& aRequest);
 
 		json getSystemInfo(const string& aIp) const noexcept;
 	private:

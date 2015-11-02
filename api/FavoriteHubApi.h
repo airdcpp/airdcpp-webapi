@@ -64,13 +64,13 @@ namespace webserver {
 			PROP_LAST
 		};
 	private:
-		api_return handleAddHub(ApiRequest& aRequest) throw(exception);
-		api_return handleRemoveHub(ApiRequest& aRequest) throw(exception);
-		api_return handleUpdateHub(ApiRequest& aRequest) throw(exception);
-		api_return handleGetHub(ApiRequest& aRequest) throw(exception);
+		api_return handleAddHub(ApiRequest& aRequest);
+		api_return handleRemoveHub(ApiRequest& aRequest);
+		api_return handleUpdateHub(ApiRequest& aRequest);
+		api_return handleGetHub(ApiRequest& aRequest);
 
-		api_return handleConnect(ApiRequest& aRequest) throw(exception);
-		api_return handleDisconnect(ApiRequest& aRequest) throw(exception);
+		api_return handleConnect(ApiRequest& aRequest);
+		api_return handleDisconnect(ApiRequest& aRequest);
 
 		// Returns error if there are invalid properties
 		string updateValidatedProperties(FavoriteHubEntryPtr& aEntry, json& j, bool aNewHub);

@@ -59,7 +59,7 @@ namespace webserver {
 		}
 	}
 
-	api_return FilelistApi::handlePostList(ApiRequest& aRequest) throw(exception) {
+	api_return FilelistApi::handlePostList(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto user = Deserializer::deserializeHintedUser(reqJson["user"]);
@@ -88,7 +88,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FilelistApi::handleDeleteList(ApiRequest& aRequest) throw(exception) {
+	api_return FilelistApi::handleDeleteList(ApiRequest& aRequest) {
 		auto list = getSubModule(aRequest.getStringParam(0));
 		if (!list) {
 			aRequest.setResponseErrorStr("List not found");
@@ -99,7 +99,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FilelistApi::handleGetLists(ApiRequest& aRequest) throw(exception) {
+	api_return FilelistApi::handleGetLists(ApiRequest& aRequest) {
 		json retJson;
 
 		{
@@ -151,7 +151,7 @@ namespace webserver {
 		};
 	}
 
-	api_return FilelistApi::handleDownload(ApiRequest& aRequest) throw(exception) {
+	api_return FilelistApi::handleDownload(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 		auto listPath = JsonUtil::getField<string>("list_path", aRequest.getRequestBody(), false);
 

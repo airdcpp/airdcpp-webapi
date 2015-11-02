@@ -41,17 +41,17 @@ namespace webserver {
 		LogManager::getInstance()->removeListener(this);
 	}
 
-	api_return LogApi::handleRead(ApiRequest& aRequest) throw(exception) {
+	api_return LogApi::handleRead(ApiRequest& aRequest) {
 		LogManager::getInstance()->setRead();
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return LogApi::handleClear(ApiRequest& aRequest) throw(exception) {
+	api_return LogApi::handleClear(ApiRequest& aRequest) {
 		LogManager::getInstance()->clearCache();
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return LogApi::handleGetLog(ApiRequest& aRequest) throw(exception) {
+	api_return LogApi::handleGetLog(ApiRequest& aRequest) {
 		auto j = Serializer::serializeFromEnd(
 			aRequest.getRangeParam(0),
 			LogManager::getInstance()->getCache().getLogMessages(),

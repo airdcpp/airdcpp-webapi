@@ -73,7 +73,7 @@ namespace webserver {
 		}
 	}
 
-	api_return HubApi::handleGetHubs(ApiRequest& aRequest) throw(exception) {
+	api_return HubApi::handleGetHubs(ApiRequest& aRequest) {
 		json retJson;
 
 		{
@@ -115,7 +115,7 @@ namespace webserver {
 		});
 	}
 
-	api_return HubApi::handleConnect(ApiRequest& aRequest) throw(exception) {
+	api_return HubApi::handleConnect(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto address = JsonUtil::getField<string>("hub_url", reqJson, false);
@@ -134,7 +134,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubApi::handleDisconnect(ApiRequest& aRequest) throw(exception) {
+	api_return HubApi::handleDisconnect(ApiRequest& aRequest) {
 		if (!ClientManager::getInstance()->putClient(aRequest.getTokenParam(0))) {
 			return websocketpp::http::status_code::not_found;
 		}
@@ -142,7 +142,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubApi::handleSearchNicks(ApiRequest& aRequest) throw(exception) {
+	api_return HubApi::handleSearchNicks(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto pattern = JsonUtil::getField<string>("pattern", reqJson);

@@ -40,7 +40,7 @@ namespace webserver {
 		};
 	}
 
-	api_return RecentHubApi::handleSearchHubs(ApiRequest& aRequest) throw(exception) {
+	api_return RecentHubApi::handleSearchHubs(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto pattern = JsonUtil::getField<string>("pattern", reqJson);
@@ -57,7 +57,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return RecentHubApi::handleGetHubs(ApiRequest& aRequest) throw(exception) {
+	api_return RecentHubApi::handleGetHubs(ApiRequest& aRequest) {
 		
 		return websocketpp::http::status_code::ok;
 	}

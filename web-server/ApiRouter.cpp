@@ -125,7 +125,7 @@ namespace webserver {
 		return static_cast<api_return>(code);
 	}
 
-	api_return ApiRouter::handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception) {
+	api_return ApiRouter::handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) {
 		if (aRequest.getApiVersion() != 0) {
 			aRequest.setResponseErrorStr("Invalid API version");
 			return websocketpp::http::status_code::precondition_failed;

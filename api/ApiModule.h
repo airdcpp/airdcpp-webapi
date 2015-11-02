@@ -75,7 +75,7 @@ namespace webserver {
 		typedef std::map<const string, bool> SubscriptionMap;
 		typedef std::map<std::string, RequestHandler::List> RequestHandlerMap;
 
-		api_return handleRequest(ApiRequest& aRequest) throw(exception);
+		api_return handleRequest(ApiRequest& aRequest);
 
 		virtual void on(SessionListener::SocketConnected, const WebSocketPtr&) noexcept;
 		virtual void on(SessionListener::SocketDisconnected) noexcept;
@@ -124,8 +124,8 @@ namespace webserver {
 
 		WebSocketPtr socket = nullptr;
 
-		virtual api_return handleSubscribe(ApiRequest& aRequest) throw(exception);
-		virtual api_return handleUnsubscribe(ApiRequest& aRequest) throw(exception);
+		virtual api_return handleSubscribe(ApiRequest& aRequest);
+		virtual api_return handleUnsubscribe(ApiRequest& aRequest);
 	private:
 		SubscriptionMap subscriptions;
 	};

@@ -36,9 +36,9 @@ namespace webserver {
 			return 0;
 		}
 	private:
-		api_return handleGetProfiles(ApiRequest& aRequest) throw(exception);
-		api_return handleGetRoots(ApiRequest& aRequest) throw(exception);
-		api_return handleFindDupePaths(ApiRequest& aRequest) throw(exception);
+		api_return handleGetProfiles(ApiRequest& aRequest);
+		api_return handleGetRoots(ApiRequest& aRequest);
+		api_return handleFindDupePaths(ApiRequest& aRequest);
 	};
 }
 

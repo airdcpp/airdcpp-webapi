@@ -52,32 +52,32 @@ namespace webserver {
 		chat->removeListener(this);
 	}
 
-	api_return PrivateChatInfo::handleStartTyping(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handleStartTyping(ApiRequest& aRequest) {
 		chat->sendPMInfo(PrivateChat::TYPING_ON);
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatInfo::handleEndTyping(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handleEndTyping(ApiRequest& aRequest) {
 		chat->sendPMInfo(PrivateChat::TYPING_OFF);
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatInfo::handleDisconnectCCPM(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handleDisconnectCCPM(ApiRequest& aRequest) {
 		chat->closeCC(false, true);
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatInfo::handleConnectCCPM(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handleConnectCCPM(ApiRequest& aRequest) {
 		chat->startCC();
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatInfo::handleSetRead(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handleSetRead(ApiRequest& aRequest) {
 		chat->setRead();
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatInfo::handleGetMessages(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handleGetMessages(ApiRequest& aRequest) {
 		auto j = Serializer::serializeFromEnd(
 			aRequest.getRangeParam(0),
 			chat->getCache().getMessages(),
@@ -87,7 +87,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatInfo::handlePostMessage(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatInfo::handlePostMessage(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto message = JsonUtil::getField<string>("message", reqJson, false);

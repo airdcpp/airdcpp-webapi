@@ -36,8 +36,8 @@ namespace webserver {
 			return 0;
 		}
 	private:
-		api_return handleListItems(ApiRequest& aRequest) throw(exception);
-		api_return handlePostDirectory(ApiRequest& aRequest) throw(exception);
+		api_return handleListItems(ApiRequest& aRequest);
+		api_return handlePostDirectory(ApiRequest& aRequest);
 
 		json serializeDirectoryContent(const string& aPath, bool aDirectoriesOnly);
 	};

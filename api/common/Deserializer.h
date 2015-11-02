@@ -30,11 +30,11 @@ namespace webserver {
 
 	class Deserializer {
 	public:
-		static CID deserializeCID(const string& aCID) throw(exception);
-		static UserPtr deserializeUser(const json& aJson) throw(exception);
-		static HintedUser deserializeHintedUser(const json& aJson) throw(exception);
-		static TTHValue deserializeTTH(const json& aJson) throw(exception);
-		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault) throw(exception);
+		static CID deserializeCID(const string& aCID);
+		static UserPtr deserializeUser(const json& aJson);
+		static HintedUser deserializeHintedUser(const json& aJson);
+		static TTHValue deserializeTTH(const json& aJson);
+		static QueueItemBase::Priority deserializePriority(const json& aJson, bool allowDefault);
 
 		static void deserializeDownloadParams(const json& aJson, string& targetDirectory_, string& targetName_, TargetUtil::TargetType& targetType_, QueueItemBase::Priority& priority_);
 	};

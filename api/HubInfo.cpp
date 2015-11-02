@@ -73,12 +73,12 @@ namespace webserver {
 		client->removeListener(this);
 	}
 
-	api_return HubInfo::handleReconnect(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handleReconnect(ApiRequest& aRequest) {
 		client->reconnect();
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubInfo::handleFavorite(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handleFavorite(ApiRequest& aRequest) {
 		if (!client->saveFavorite()) {
 			aRequest.setResponseErrorStr(STRING(FAVORITE_HUB_ALREADY_EXISTS));
 			return websocketpp::http::status_code::bad_request;
@@ -87,14 +87,14 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubInfo::handlePassword(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handlePassword(ApiRequest& aRequest) {
 		auto password = JsonUtil::getField<string>("password", aRequest.getRequestBody(), false);
 
 		client->password(password);
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubInfo::handleRedirect(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handleRedirect(ApiRequest& aRequest) {
 		client->doRedirect();
 		return websocketpp::http::status_code::ok;
 	}
@@ -131,12 +131,12 @@ namespace webserver {
 		};
 	}
 
-	api_return HubInfo::handleSetRead(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handleSetRead(ApiRequest& aRequest) {
 		client->setRead();
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubInfo::handleGetMessages(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handleGetMessages(ApiRequest& aRequest) {
 		auto j = Serializer::serializeFromEnd(
 			aRequest.getRangeParam(0),
 			client->getCache().getMessages(),
@@ -146,7 +146,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return HubInfo::handlePostMessage(ApiRequest& aRequest) throw(exception) {
+	api_return HubInfo::handlePostMessage(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto message = JsonUtil::getField<string>("message", reqJson, false);

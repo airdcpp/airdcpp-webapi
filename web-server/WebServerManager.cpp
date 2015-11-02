@@ -43,7 +43,7 @@ namespace webserver {
 	}
 
 	string WebServerManager::getConfigPath() const noexcept {
-		return CONFIG_DIR + PATH_SEPARATOR + CONFIG_NAME;
+		return Util::getPath(CONFIG_DIR) + CONFIG_NAME;
 	}
 
 	bool WebServerManager::start(const string& aWebResourcePath, ErrorF&& errorF) {

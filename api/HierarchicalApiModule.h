@@ -45,7 +45,7 @@ namespace webserver {
 			}
 		}
 
-		api_return handleSubscribe(ApiRequest& aRequest) throw(exception) {
+		api_return handleSubscribe(ApiRequest& aRequest) {
 			if (!socket) {
 				aRequest.setResponseErrorStr("Socket required");
 				return websocketpp::http::status_code::precondition_required;
@@ -59,7 +59,7 @@ namespace webserver {
 			return ApiModule::handleSubscribe(aRequest);
 		}
 
-		api_return handleUnsubscribe(ApiRequest& aRequest) throw(exception) {
+		api_return handleUnsubscribe(ApiRequest& aRequest) {
 			const auto& subscription = aRequest.getStringParam(0);
 			if (setChildSubscriptionState(subscription, false)) {
 				return websocketpp::http::status_code::ok;

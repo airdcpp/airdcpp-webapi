@@ -104,7 +104,7 @@ namespace webserver {
 		}
 	}
 
-	api_return FavoriteHubApi::handleAddHub(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteHubApi::handleAddHub(ApiRequest& aRequest) {
 		auto j = aRequest.getRequestBody();
 
 		FavoriteHubEntryPtr e = new FavoriteHubEntry();
@@ -126,7 +126,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FavoriteHubApi::handleRemoveHub(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteHubApi::handleRemoveHub(ApiRequest& aRequest) {
 		auto token = aRequest.getTokenParam(0);
 		if (!FavoriteManager::getInstance()->removeFavoriteHub(token)) {
 			aRequest.setResponseErrorStr("Hub not found");
@@ -136,7 +136,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FavoriteHubApi::handleGetHub(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteHubApi::handleGetHub(ApiRequest& aRequest) {
 		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!entry) {
 			aRequest.setResponseErrorStr("Hub not found");
@@ -147,7 +147,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FavoriteHubApi::handleUpdateHub(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteHubApi::handleUpdateHub(ApiRequest& aRequest) {
 		auto e = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!e) {
 			aRequest.setResponseErrorStr("Hub not found");
@@ -170,7 +170,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FavoriteHubApi::handleConnect(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteHubApi::handleConnect(ApiRequest& aRequest) {
 		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!entry) {
 			aRequest.setResponseErrorStr("Hub not found");
@@ -184,7 +184,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return FavoriteHubApi::handleDisconnect(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteHubApi::handleDisconnect(ApiRequest& aRequest) {
 		auto entry = FavoriteManager::getInstance()->getFavoriteHubEntry(aRequest.getTokenParam(0));
 		if (!entry) {
 			aRequest.setResponseErrorStr("Hub not found");

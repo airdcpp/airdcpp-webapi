@@ -29,7 +29,7 @@ namespace webserver {
 	FavoriteDirectoryApi::~FavoriteDirectoryApi() {
 	}
 
-	api_return FavoriteDirectoryApi::handleGetDirectories(ApiRequest& aRequest) throw(exception) {
+	api_return FavoriteDirectoryApi::handleGetDirectories(ApiRequest& aRequest) {
 		json ret;
 
 		auto directories = FavoriteManager::getInstance()->getFavoriteDirs();

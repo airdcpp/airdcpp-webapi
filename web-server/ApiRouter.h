@@ -37,7 +37,7 @@ namespace webserver {
 	private:
 		api_return handleRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) noexcept;
 
-		api_return handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception);
+		api_return handleSessionRequest(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp);
 
 		SessionApi sessionApi;
 	};

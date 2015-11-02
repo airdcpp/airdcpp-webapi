@@ -57,7 +57,7 @@ namespace webserver {
 		return retJson;
 	}
 
-	websocketpp::http::status_code::value SessionApi::handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) throw(exception) {
+	websocketpp::http::status_code::value SessionApi::handleLogin(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket, const string& aIp) {
 		const auto& reqJson = aRequest.getRequestBody();
 		auto session = WebServerManager::getInstance()->getUserManager().authenticate(reqJson["username"], reqJson["password"], aIsSecure);
 
@@ -81,7 +81,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return SessionApi::handleLogout(ApiRequest& aRequest) throw(exception) {
+	api_return SessionApi::handleLogout(ApiRequest& aRequest) {
 		if (!aRequest.getSession()) {
 			aRequest.setResponseErrorStr("Not authorized");
 			return websocketpp::http::status_code::unauthorized;
@@ -92,7 +92,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return SessionApi::handleSocketConnect(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) throw(exception) {
+	api_return SessionApi::handleSocketConnect(ApiRequest& aRequest, bool aIsSecure, const WebSocketPtr& aSocket) {
 		std::string sessionToken = aRequest.getRequestBody()["authorization"];
 
 		SessionPtr session = WebServerManager::getInstance()->getUserManager().getSession(sessionToken);

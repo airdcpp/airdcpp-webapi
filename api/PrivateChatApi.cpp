@@ -48,7 +48,7 @@ namespace webserver {
 		MessageManager::getInstance()->removeListener(this);
 	}
 
-	api_return PrivateChatApi::handlePostChat(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatApi::handlePostChat(ApiRequest& aRequest) {
 		auto c = MessageManager::getInstance()->addChat(Deserializer::deserializeHintedUser(aRequest.getRequestBody()), false);
 		if (!c) {
 			aRequest.setResponseErrorStr("Chat session exists");
@@ -62,7 +62,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatApi::handleDeleteChat(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatApi::handleDeleteChat(ApiRequest& aRequest) {
 		auto chat = getSubModule(aRequest.getStringParam(0));
 		if (!chat) {
 			aRequest.setResponseErrorStr("Chat session not found");
@@ -73,7 +73,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return PrivateChatApi::handleGetThreads(ApiRequest& aRequest) throw(exception) {
+	api_return PrivateChatApi::handleGetThreads(ApiRequest& aRequest) {
 		json retJson;
 
 		{

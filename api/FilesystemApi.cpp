@@ -36,7 +36,7 @@ namespace webserver {
 	FilesystemApi::~FilesystemApi() {
 	}
 
-	api_return FilesystemApi::handleListItems(ApiRequest& aRequest) throw(exception) {
+	api_return FilesystemApi::handleListItems(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 #ifdef WIN32
@@ -97,7 +97,7 @@ namespace webserver {
 		return retJson;
 	}
 
-	api_return FilesystemApi::handlePostDirectory(ApiRequest& aRequest) throw(exception) {
+	api_return FilesystemApi::handlePostDirectory(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto path = JsonUtil::getField<string>("path", reqJson, false);

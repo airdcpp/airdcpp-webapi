@@ -48,15 +48,15 @@ namespace webserver {
 
 		static json serializeCCPMState(uint8_t aState) noexcept;
 	private:
-		api_return handleGetMessages(ApiRequest& aRequest) throw(exception);
-		api_return handlePostMessage(ApiRequest& aRequest) throw(exception);
-		api_return handleSetRead(ApiRequest& aRequest) throw(exception);
+		api_return handleGetMessages(ApiRequest& aRequest);
+		api_return handlePostMessage(ApiRequest& aRequest);
+		api_return handleSetRead(ApiRequest& aRequest);
 
-		api_return handleDisconnectCCPM(ApiRequest& aRequest) throw(exception);
-		api_return handleConnectCCPM(ApiRequest& aRequest) throw(exception);
+		api_return handleDisconnectCCPM(ApiRequest& aRequest);
+		api_return handleConnectCCPM(ApiRequest& aRequest);
 
-		api_return handleStartTyping(ApiRequest& aRequest) throw(exception);
-		api_return handleEndTyping(ApiRequest& aRequest) throw(exception);
+		api_return handleStartTyping(ApiRequest& aRequest);
+		api_return handleEndTyping(ApiRequest& aRequest);
 
 		void on(PrivateChatListener::PrivateMessage, PrivateChat*, const ChatMessagePtr&) noexcept;
 		void on(PrivateChatListener::StatusMessage, PrivateChat*, const LogMessagePtr&) noexcept;

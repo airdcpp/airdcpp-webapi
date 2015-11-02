@@ -74,14 +74,14 @@ namespace webserver {
 
 		static PropertyItemHandler<OnlineUserPtr> onlineUserPropertyHandler;
 	private:
-		api_return handleGetMessages(ApiRequest& aRequest) throw(exception);
-		api_return handlePostMessage(ApiRequest& aRequest) throw(exception);
-		api_return handleSetRead(ApiRequest& aRequest) throw(exception);
+		api_return handleGetMessages(ApiRequest& aRequest);
+		api_return handlePostMessage(ApiRequest& aRequest);
+		api_return handleSetRead(ApiRequest& aRequest);
 
-		api_return handleReconnect(ApiRequest& aRequest) throw(exception);
-		api_return handleFavorite(ApiRequest& aRequest) throw(exception);
-		api_return handlePassword(ApiRequest& aRequest) throw(exception);
-		api_return handleRedirect(ApiRequest& aRequest) throw(exception);
+		api_return handleReconnect(ApiRequest& aRequest);
+		api_return handleFavorite(ApiRequest& aRequest);
+		api_return handlePassword(ApiRequest& aRequest);
+		api_return handleRedirect(ApiRequest& aRequest);
 
 		/*void on(UserConnected, const Client*, const OnlineUserPtr&) noexcept;
 		void on(UserUpdated, const Client*, const OnlineUserPtr&) noexcept;

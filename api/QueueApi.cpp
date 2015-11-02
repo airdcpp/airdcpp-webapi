@@ -75,7 +75,7 @@ namespace webserver {
 		DownloadManager::getInstance()->removeListener(this);
 	}
 
-	api_return QueueApi::handleFindDupePaths(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleFindDupePaths(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		json ret;
@@ -102,7 +102,7 @@ namespace webserver {
 	}
 
 	// BUNDLES
-	api_return QueueApi::handleGetBundles(ApiRequest& aRequest)  throw(exception) {
+	api_return QueueApi::handleGetBundles(ApiRequest& aRequest)  {
 		int start = aRequest.getRangeParam(0);
 		int count = aRequest.getRangeParam(1);
 
@@ -112,7 +112,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return QueueApi::handleGetBundle(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleGetBundle(ApiRequest& aRequest) {
 		auto b = QueueManager::getInstance()->findBundle(aRequest.getRangeParam(0));
 		if (b) {
 			auto j = Serializer::serializeItem(b, bundlePropertyHandler);
@@ -123,7 +123,7 @@ namespace webserver {
 		return websocketpp::http::status_code::not_found;
 	}
 
-	api_return QueueApi::handleSearchBundle(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleSearchBundle(ApiRequest& aRequest) {
 		auto b = QueueManager::getInstance()->findBundle(aRequest.getTokenParam(0));
 		if (b) {
 			QueueManager::getInstance()->searchBundleAlternates(b, true);
@@ -133,7 +133,7 @@ namespace webserver {
 		return websocketpp::http::status_code::not_found;
 	}
 
-	api_return QueueApi::handleAddFileBundle(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleAddFileBundle(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		string targetDirectory, targetFileName;
@@ -169,7 +169,7 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return QueueApi::handleAddDirectoryBundle(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleAddDirectoryBundle(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		BundleFileInfo::List files;
@@ -212,12 +212,12 @@ namespace webserver {
 		return websocketpp::http::status_code::ok;
 	}
 
-	api_return QueueApi::handleRemoveBundle(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleRemoveBundle(ApiRequest& aRequest) {
 		auto success = QueueManager::getInstance()->removeBundle(aRequest.getTokenParam(0), false);
 		return success ? websocketpp::http::status_code::ok : websocketpp::http::status_code::not_found;
 	}
 
-	api_return QueueApi::handleUpdateBundle(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleUpdateBundle(ApiRequest& aRequest) {
 		auto b = QueueManager::getInstance()->findBundle(aRequest.getTokenParam(0));
 		if (!b) {
 			return websocketpp::http::status_code::not_found;
@@ -242,7 +242,7 @@ namespace webserver {
 
 
 	// TEMP ITEMS
-	api_return QueueApi::handleAddTempItem(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleAddTempItem(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		try {
@@ -264,7 +264,7 @@ namespace webserver {
 
 
 	// FILELISTS
-	api_return QueueApi::handleAddFilelist(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleAddFilelist(ApiRequest& aRequest) {
 		const auto& reqJson = aRequest.getRequestBody();
 
 		auto i = reqJson.find("directory");
@@ -286,12 +286,12 @@ namespace webserver {
 
 
 	// FILES (COMMON)
-	api_return QueueApi::handleGetFile(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleGetFile(ApiRequest& aRequest) {
 		auto success = QueueManager::getInstance()->findFile(aRequest.getTokenParam(0));
 		return success ? websocketpp::http::status_code::ok : websocketpp::http::status_code::not_found;
 	}
 
-	api_return QueueApi::handleRemoveFile(ApiRequest& aRequest) throw(exception) {
+	api_return QueueApi::handleRemoveFile(ApiRequest& aRequest) {
 		auto success = QueueManager::getInstance()->removeFile(aRequest.getTokenParam(0), false);
 		return success ? websocketpp::http::status_code::ok : websocketpp::http::status_code::not_found;
 	}

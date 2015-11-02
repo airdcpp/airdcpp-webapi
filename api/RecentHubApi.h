@@ -37,8 +37,8 @@ namespace webserver {
 
 		static json serializeHub(const RecentHubEntryPtr& aHub) noexcept;
 	private:
-		api_return handleSearchHubs(ApiRequest& aRequest) throw(exception);
-		api_return handleGetHubs(ApiRequest& aRequest) throw(exception);
+		api_return handleSearchHubs(ApiRequest& aRequest);
+		api_return handleGetHubs(ApiRequest& aRequest);
 	};
 }
 

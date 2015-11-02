@@ -41,10 +41,10 @@ namespace webserver {
 	private:
 		void addChat(const PrivateChatPtr& aChat) noexcept;
 
-		api_return handlePostChat(ApiRequest& aRequest) throw(exception);
-		api_return handleDeleteChat(ApiRequest& aRequest) throw(exception);
+		api_return handlePostChat(ApiRequest& aRequest);
+		api_return handleDeleteChat(ApiRequest& aRequest);
 
-		api_return handleGetThreads(ApiRequest& aRequest) throw(exception);
+		api_return handleGetThreads(ApiRequest& aRequest);
 
 		void on(MessageManagerListener::ChatCreated, const PrivateChatPtr& aChat, bool aReceivedMessage) noexcept;
 		void on(MessageManagerListener::ChatRemoved, const PrivateChatPtr& aChat) noexcept;
