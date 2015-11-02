@@ -30,11 +30,13 @@ namespace webserver {
 
 		typedef X<0> Started;
 		typedef X<1> Stopping;
-		typedef X<2> LoadSettings;
-		typedef X<3> SaveSettings;
+		typedef X<2> Stopped;
+		typedef X<3> LoadSettings;
+		typedef X<4> SaveSettings;
 
 		virtual void on(Started) noexcept { }
 		virtual void on(Stopping) noexcept { }
+		virtual void on(Stopped) noexcept { }
 		virtual void on(LoadSettings, SimpleXML&) noexcept { }
 		virtual void on(SaveSettings, SimpleXML&) noexcept { }
 	};

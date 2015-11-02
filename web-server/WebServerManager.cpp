@@ -172,6 +172,8 @@ namespace webserver {
 
 		while (!ios.stopped())
 			Thread::sleep(50);
+
+		fire(WebServerManagerListener::Stopped());
 	}
 
 	void WebServerManager::logout(const string& aSessionToken) noexcept {

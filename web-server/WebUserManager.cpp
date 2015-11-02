@@ -98,6 +98,12 @@ namespace webserver {
 		expirationTimer->start(false);
 	}
 
+	void WebUserManager::on(WebServerManagerListener::Stopped) noexcept {
+		// Let the modules handle deletion in a clean way before we are shutting down...
+		WLock l(cs);
+		sessions.clear();
+	}
+
 	void WebUserManager::on(WebServerManagerListener::LoadSettings, SimpleXML& xml_) noexcept {
 		if (xml_.findChild("WebUsers")) {
 			xml_.stepIn();
