@@ -16,22 +16,13 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef DCPLUSPLUS_DCPP_FORMAT_H
-#define DCPLUSPLUS_DCPP_FORMAT_H
-
-#include <web-server/stdinc.h>
-
-#include <airdcpp/typedefs.h>
+#ifndef DCPLUSPLUS_API_VERSION_H
+#define DCPLUSPLUS_API_VERSION_H
 
 namespace webserver {
-	class Format {
-	public:
-		static std::string formatIp(const string& aIP, const string& aCountryCode) noexcept;
-		static std::string formatIp(const string& aIP) noexcept;
+#define API_VERSION 1
+#define API_FEATURE_LEVEL 0
 
-		static std::string formatNicks(const HintedUser& aUser) noexcept;
-		static std::string formatHubs(const HintedUser& aUser) noexcept;
-	};
 }
 
 #endif
