@@ -141,6 +141,7 @@ namespace webserver {
 
 		//{ ResourceManager::HASHING_OPTIONS },
 		{ "max_hash_speed", SettingsManager::MAX_HASH_SPEED, ResourceManager::SETTINGS_MAX_HASHER_SPEED, ApiSettingItem::TYPE_LAST, ResourceManager::Strings::MBPS },
+		{ "max_hash_queue", SettingsManager::MAX_HASH_QUEUE, ResourceManager::SETTINGS_MAX_HASHER_QUEUE, ApiSettingItem::TYPE_LAST, ResourceManager::Strings::GiB },
 		{ "max_total_hashers", SettingsManager::MAX_HASHING_THREADS, ResourceManager::MAX_HASHING_THREADS },
 		{ "max_volume_hashers", SettingsManager::HASHERS_PER_VOLUME, ResourceManager::MAX_VOL_HASHERS },
 
